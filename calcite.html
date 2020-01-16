@@ -38,6 +38,11 @@
           width: 100%;
           
         }
+        #panelDiv{
+          height: 100%;
+          width: 100%;
+          overflow-y: scroll;
+        }
         .card :hover{
           cursor: pointer;
         }
@@ -61,16 +66,19 @@
         .slider {
           margin-top: 20px;
           height: 40px;
-          width: 300px;
+          width: 200px;
         }
         .esri-histogram-range-slider {
           background-color: #efefef;
         }
-        /* .esri-histogram-range-slider__range-type--between{
-          background-color: #efefef;
-        } */
         .esri-histogram__content{
           background-color: #efefef;
+        }
+        #featuresCntCard{
+          background-color: #efefef;
+          box-shadow: 0px 0px 0px #efefef;
+          -webkit-box-shadow: 0px 0px 0px #efefef;
+          pointer-events: none;
         }
     </style>
     <link rel="shortcut icon" href="/img/favicon.ico">
@@ -138,7 +146,22 @@
             <div id="sliderScaleDiv" class="esri-widget">
               <div id="scaleSlider"></div>
             </div>
-            <div id = "featuresContDiv"></div>
+
+            
+            
+            <div class="card block leader-1" id="featuresCntCard">
+              <div class="card-content text-center">
+                <div class="leader-1 trailer-1 font-size-6" id="featuresCntDiv"></div>
+                <!-- <h4>Some Option</h4>
+                <p class="font-size--3 text-darker-gray trailer-0"><b>A NOTE ABOUT THAT</b></p>
+                <p class="font-size--3 text-darker-gray"><b>YOU WILL LIKE IT</b></p>
+                <hr>
+                <p class="trailer-0">An option option: $10</p>
+                <p>Another option option: $10</p>
+                <a href="#" class="btn btn-fill">Buy Online</a> -->
+              </div>
+            </div>
+
           </div>
           <div id="queryResultsDiv">
             <!-- <div class="card block trailer-1" id="card">
@@ -174,7 +197,7 @@
     <script>
        calcite.init()
     </script>
-    <script src="https://js.arcgis.com/4.13/"></script>
+    <script src="https://js.arcgis.com/4.14/"></script>
 
     <script>
       require([
@@ -195,7 +218,8 @@
         "esri/portal/Portal",
         "esri/layers/Layer",
         "esri/widgets/HistogramRangeSlider/HistogramRangeSliderViewModel",
-        "esri/widgets/Measurement"
+        "esri/widgets/Measurement",
+        "esri/widgets/Zoom"
       ], function(
         MapView, 
         watchUtils,
@@ -214,7 +238,8 @@
         Portal,
         Layer,
         HistogramRangeSliderVM,
-        Measurement
+        Measurement,
+        Zoom
       ) {
 
         //////////
@@ -244,18 +269,7 @@
         const loaderDiv = document.getElementById("loaderDiv");
         const scaleSlider = document.getElementById("scaleSlider");
         const yearSlider = document.getElementById("yearSlider");
-        const featuresContDiv = document.getElementById("featuresContDiv");
-        const infoDiv = document.getElementById("infoDiv");
-        
-        ///////////
-        // modal //
-        ///////////
-        infoDiv.addEventListener("click", showModal);
-
-        function showModal (event) {
-          console.log(event);
-        };
-
+        const featuresCntDiv = document.getElementById("featuresCntDiv");
 
         /////////////
         // シンボル //
@@ -323,7 +337,7 @@
 
         const portal = new Portal();
 
-
+        // ローダーの表示を止める
         view.watch('updating', function(evt){
           if(!evt){
             loaderDiv.classList.remove('is-active');
@@ -356,10 +370,22 @@
 
         view.ui.add(searchWidget, "top-right");
 
+        // ビューのサイズが小さい時ウィジェットを表示しない
+        if (view.map === map) {
+          view.watch("widthBreakpoint", function(newVal) {
+            if (newVal === "xsmall") {
+              view.ui.components = ["attribution"];
+            } else {
+              view.ui.components = ["attribution", searchWidget, "zoom"];
+            }
+          });
+        }
+        
+
         zukakuFeatureLayer.queryFeatureCount().then(function(numFeatures){
-          // totalFeaturesCnt = numFeatures;
+          totalFeaturesCnt = numFeatures;
           filteredFeaturesCnt = numFeatures;
-          featuresContDiv.innerHTML = filteredFeaturesCnt ;
+          featuresCntDiv.innerHTML = filteredFeaturesCnt ;
         });
 
         // フィーチャレイヤービュー
@@ -372,6 +398,22 @@
           zukakuLayerView.filter = {
             where: whereClause
           };
+
+          // zukakuLayerView.when(function(){
+          //   console.log("a");
+          //   const queryParams = zukakuLayerView.createQuery();
+          //   queryParams.returnGeometry = false;
+          //   queryParams.outFields = ["objectid"];
+          //   queryParams.where = "1=1";
+          //   zukakuLayerView.queryFeatures(queryParams)
+          //     .then(function(response){
+          //       filteredFeaturesCnt = response.features.length;
+          //       featuresCntDiv.innerHTML = filteredFeaturesCnt;
+          //     })
+          //     .catch(function(error) {
+          //       console.log(error);
+          //     });
+          // });
 
           // ポインターが重なった時
           view.on('pointer-move', function(evt){
@@ -498,7 +540,7 @@
           zukakuLayerView.queryFeatures(queryParams)
             .then(function(response){
               filteredFeaturesCnt = response.features.length;
-              featuresContDiv.innerHTML = filteredFeaturesCnt;
+              featuresCntDiv.innerHTML = filteredFeaturesCnt;
             })
             .catch(function(error) {
               console.log(error);
@@ -526,7 +568,7 @@
           zukakuLayerView.queryFeatures(queryParams)
             .then(function(response){
               filteredFeaturesCnt = response.features.length;
-              featuresContDiv.innerHTML = filteredFeaturesCnt;
+              featuresCntDiv.innerHTML = filteredFeaturesCnt;
             })
             .catch(function(error) {
               console.log(error);
@@ -544,7 +586,6 @@
           
           // フィルターのかかったレイヤービューに対してクエリする
           const queryParams = zukakuLayerView.filter.createQuery();
-          // set a geometry for querying features by the view's extent
           queryParams.geometry = pointermove;
           queryParams.spatialRelationship = "intersects";
           queryParams.returnGeometry = true;
@@ -593,7 +634,6 @@
 
           // フィルターのかかったレイヤービューに対してクエリする
           const queryParams = zukakuLayerView.filter.createQuery();
-          // set a geometry for querying features by the view's extent
           queryParams.geometry = clickedPoint;
           queryParams.spatialRelationship = "intersects";
           queryParams.returnGeometry = true;
@@ -809,7 +849,6 @@
           let id = event.target.dataset.resultId;
 
           const queryParams = zukakuLayerView.filter.createQuery();
-          // set a geometry for querying features by the view's extent
           queryParams.returnGeometry = true;
           queryParams.outFields = ["*"];
           queryParams.where = "id = '" + id + "'";
@@ -827,6 +866,14 @@
         // 外邦図閲覧マップ //
         //////////////////////
 
+        let mapSecond;
+        let viewSecond;
+        let tileLayer;
+        let northId;
+        let southId;
+        let westId;
+        let eastId;
+
         function createMap(response){
 
           sliderDiv.style.display = 'none';
@@ -835,6 +882,10 @@
           const feature = response.features[0];
 
           const id = feature.attributes.id;
+          northId = feature.attributes.north;
+          southId = feature.attributes.south;
+          westId = feature.attributes.west;
+          eastId = feature.attributes.east;
 
           portal.load().then(function() {
             var queryParams = {
@@ -849,10 +900,6 @@
           return response;
         };
 
-        let mapSecond;
-        let viewSecond;
-        let tileLayer;
-
         function addTileLayer(response){
 
           const itemId = response.results[0].id;
@@ -861,6 +908,7 @@
           tileLayer = new TileLayer({
             url: tileLayerUrl
           });
+          console.log(tileLayer);
 
           mapSecond = new Map({
             basemap: 'topo'
@@ -898,6 +946,14 @@
           view.map = mapSecond;
           view.constraints = {minZoom: minLOD, maxZoom: maxLOD};
 
+          // ウィジェット全消去
+          view.ui.empty("bottom-left");
+          view.ui.empty("top-right");
+          view.ui.empty("bottom-right");
+          
+
+          
+
           // 外邦図検索画面に戻るcloseボタン
           const btnDiv = document.createElement('div');
           btnDiv.className = "esri-widget";
@@ -910,10 +966,11 @@
           const sliderTransparencyDiv = document.createElement('div');
           sliderTransparencyDiv.className = "esri-widget";
           sliderTransparencyDiv.setAttribute("id","sliderTransparencyDiv");
-          panelDiv.parentNode.insertBefore(sliderTransparencyDiv, panelDiv);
           sliderTransparencyDiv.innerHTML = '<div id="tranparencySlider" class="slider">';
-            // sliderTransparencyDiv.innerHTML = '<form class="calcite-slider" id="tranparencySlider">';
 
+          panelDiv.parentNode.insertBefore(sliderTransparencyDiv, panelDiv);
+          
+          
           const tranparencySlider = new Slider({
             container: "tranparencySlider",
             min: 0,
@@ -952,26 +1009,55 @@
           selectZukakuDiv.className = "esri-component esri-widget";
           panelDiv.parentNode.insertBefore(selectZukakuDiv, panelDiv);
 
-          const upArrowBtn = document.createElement('button');
-          upArrowBtn.setAttribute("id", "upArrow");
-          upArrowBtn.className = "esri-widget--button esri-interactive esri-icon-up-arrow";
-          selectZukakuDiv.appendChild(upArrowBtn);
+          if (northId) {
+            const upArrowBtn = document.createElement('button');
+            upArrowBtn.setAttribute("id", "upArrow");
+            upArrowBtn.setAttribute("data-id", northId);
+            upArrowBtn.className = "esri-widget--button esri-interactive esri-icon-up-arrow";
+            selectZukakuDiv.appendChild(upArrowBtn);
+          }
+          
+          if (southId) {
+            const downArrowBtn = document.createElement('button');
+            downArrowBtn.setAttribute("id", "downArrow");
+            downArrowBtn.setAttribute("data-id", southId);
+            downArrowBtn.className = "esri-widget--button esri-interactive esri-icon-down-arrow";
+            selectZukakuDiv.appendChild(downArrowBtn);
+          }
+          
+          if (westId) {
+            const leftArrowBtn = document.createElement('button');
+            leftArrowBtn.setAttribute("id", "leftArrow");
+            leftArrowBtn.setAttribute("data-id", westId);
+            leftArrowBtn.className = "esri-widget--button esri-interactive esri-icon-left-triangle-arrow";
+            selectZukakuDiv.appendChild(leftArrowBtn);
+          }
+          
+          if (eastId) {
+            const rightArrowBtn = document.createElement('button');
+            rightArrowBtn.setAttribute("id", "rightArrow");
+            rightArrowBtn.setAttribute("data-id", eastId);
+            rightArrowBtn.className = "esri-widget--button esri-interactive esri-icon-right-triangle-arrow";
+            selectZukakuDiv.appendChild(rightArrowBtn);
+          }
+          
+          selectZukakuDiv.addEventListener("click", showNextImage);
 
-          const downArrowBtn = document.createElement('button');
-          downArrowBtn.setAttribute("id", "downArrow");
-          downArrowBtn.className = "esri-widget--button esri-interactive esri-icon-down-arrow";
-          selectZukakuDiv.appendChild(downArrowBtn);
+          function showNextImage(event){
+            const id = event.path[0].dataset.id;
+            
+            const queryParams = zukakuFeatureLayer.createQuery();
+            // set a geometry for querying features by the view's extent
+            queryParams.returnGeometry = true;
+            queryParams.outFields = ["*"];
+            queryParams.where = "id = '" + id + "'";
 
-          const leftArrowBtn = document.createElement('button');
-          leftArrowBtn.setAttribute("id", "leftArrow");
-          leftArrowBtn.className = "esri-widget--button esri-interactive esri-icon-left-triangle-arrow";
-          selectZukakuDiv.appendChild(leftArrowBtn);
-
-          const rightArrowBtn = document.createElement('button');
-          rightArrowBtn.setAttribute("id", "rightArrow");
-          rightArrowBtn.className = "esri-widget--button esri-interactive esri-icon-right-triangle-arrow";
-          selectZukakuDiv.appendChild(rightArrowBtn);
-
+            zukakuFeatureLayer.queryFeatures(queryParams)
+            .then(addGraphicsAndAttribute)
+            .catch(function(error) {
+              console.log(error);
+            });
+          };
 
           view.ui.add([
             {
@@ -980,12 +1066,29 @@
               index: 0
             }
           ]);
+          
           view.ui.add("sliderTransparencyDiv", "top-right");
-          view.ui.remove(searchWidget);
           view.ui.add(searchWidgetNoSources, "top-right");
           view.ui.add("toolbarDiv", "top-right");
           view.ui.add(measurement, "bottom-right");
-          view.ui.add("selectZukakuDiv", "top-left");
+          view.ui.add([
+            {component: "selectZukakuDiv",
+             position: "bottom-left",
+             index: 0
+            }
+          ]);
+
+          if (view.map === mapSecond) {
+            view.watch("widthBreakpoint", function(newVal) {
+              if (newVal === "xsmall") {
+                view.ui.components = ["attribution"];
+              } else {
+                view.ui.components = ["attribution", searchWidgetNoSources, "toolbarDiv", measurement, "selectZukakuDiv", "zoom"];
+              }
+            });
+          }
+
+          // view.ui.components = ["attribution", "zoom"];
 
           tranparencySlider.on(
             ["thumb-change", "thumb-drag"],
@@ -1042,19 +1145,22 @@
         };
 
         const arrayAtt = [
-          {"title": "ID", "att": "id"},
-          {"title": "AREA3", "att": "area3"},
           {"title": "TITLE", "att": "title"},
-          {"title": "AREA NAME", "att": "area_name"},
+          {"title": "PRINTED IN", "att": "print_year_en"},
           {"title": "SCALE", "att": "scale"},
+          {"title": "AREA3", "att": "area3"},
+          
+          // {"title": "AREA NAME", "att": "area_name"},
+          
           {"title": "SURVEYD BY", "att": "surveyed_by"},
           {"title": "SURVEYD IN", "att": "survey_year"},
           {"title": "PRINTED BY", "att": "printed_by"},
-          {"title": "PRINTED IN", "att": "print_year_en"},
+          
           {"title": "PUBLISHED IN", "att": "publish_year"},
-          {"title": "HEIGHT", "att": "height"},
-          {"title": "WIDTH", "att": "width"},
-          {"title": "COLOR", "att": "color"}
+          {"title": "HEIGHT (cm)", "att": "height"},
+          {"title": "WIDTH (cm)", "att": "width"},
+          {"title": "COLOR", "att": "color"},
+          {"title": "ID", "att": "id"}
         ];
 
         function addZukakuAttribute(response){
@@ -1063,21 +1169,27 @@
 
           for(let i = 0; i < arrayAtt.length; i++) {
 
-            const attribute = document.createElement("div");
-            attribute.classList.add("trailer-1");
-            attributeDiv.appendChild(attribute);
-            // attribute.style.paddingBottom = "10px";
-
-            const title = document.createElement("div");
-            attribute.appendChild(title);
-            title.style.color = "gray";
-            title.innerHTML = arrayAtt[i]["title"];
-
-            const value = document.createElement("div");
-            attribute.appendChild(value);
-            // value.style.marginLeft = "10px";
             const field = arrayAtt[i]["att"];
-            value.innerHTML = feature.attributes[field];
+            const attValue = feature.attributes[field];
+
+            if (attValue && attValue !== "－") {
+              const attribute = document.createElement("div");
+              attribute.classList.add("trailer-1");
+              attributeDiv.appendChild(attribute);
+              // attribute.style.paddingBottom = "10px";
+
+              const title = document.createElement("div");
+              attribute.appendChild(title);
+              title.style.color = "gray";
+              title.innerHTML = arrayAtt[i]["title"];
+
+              const value = document.createElement("div");
+              attribute.appendChild(value);
+              // value.style.marginLeft = "10px";
+              
+              value.innerHTML = attValue;
+            };
+            
 
           };
 
