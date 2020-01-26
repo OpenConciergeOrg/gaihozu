@@ -879,6 +879,7 @@
           } else if (length === 1) {
 
             graphicsLayerMouseOveredZukaku.removeAll();
+            graphicsLayerSelectedZukaku.removeAll();
 
             createMap(response);
             addZukakuGraphics(featuresQuery[0], graphicsLayerSelectedZukaku, symbolSelectedZukaku);
@@ -1111,7 +1112,6 @@
           southId = feature.attributes.south;
           westId = feature.attributes.west;
           eastId = feature.attributes.east;
-          console.log(southId);
 
           portal.load().then(function() {
             var queryParams = {
@@ -1157,9 +1157,12 @@
         const measurement = new Measurement({
           view: view
         });
+
+        // let selectZukakuDiv;
         
 
         function createTileView(response){
+
         
           const maxLOD = response.data.maxLOD;
           const minLOD = response.data.minLOD;
@@ -1168,20 +1171,15 @@
             view.goTo(tileLayer.fullExtent);
           });
 
-
           view.map = mapSecond;
           view.constraints = {minZoom: minLOD, maxZoom: maxLOD};
-          // console.log(view);
 
           // ウィジェット全消去
           // view.ui.empty("bottom-left");
-          searchDiv.parentNode.removeChild(searchDiv);
+          // searchDiv.parentNode.removeChild(searchDiv);
 
           
-          // if (view.ui.find(selectZukakuDiv)){
-          //   console.log("a");
-          //   view.ui.remove(selectZukakuDiv);
-          // };
+          
 
           showAlert();
           useP1.innerHTML = strp3_1;
@@ -1225,14 +1223,18 @@
             rangeLabelsVisible: true
           });
 
-          console.log(tranparencySlider);
+          // console.log(tranparencySlider);
 
           // 図郭選択
+          if (document.getElementById("selectZukakuDiv")) {
+            document.getElementById("selectZukakuDiv").parentNode.removeChild(document.getElementById("selectZukakuDiv"));
+          };
+
           const selectZukakuDiv = document.createElement('div');
           selectZukakuDiv.setAttribute("id", "selectZukakuDiv");
           selectZukakuDiv.className = "esri-component esri-widget";
           panelDiv.parentNode.insertBefore(selectZukakuDiv, panelDiv);
-          console.log(northId);
+          // console.log(northId);  
           if (northId) {
             const upArrowBtn = document.createElement('button');
             upArrowBtn.setAttribute("id", "upArrow");
@@ -1240,7 +1242,6 @@
             upArrowBtn.className = "esri-widget--button esri-interactive esri-icon-up-arrow";
             selectZukakuDiv.appendChild(upArrowBtn);
           }
-          console.log(southId);
           if (southId) {
             const downArrowBtn = document.createElement('button');
             downArrowBtn.setAttribute("id", "downArrow");
@@ -1268,7 +1269,9 @@
           selectZukakuDiv.addEventListener("click", showNextImage);
 
           function showNextImage(event){
-            const id = event.path[0].dataset.id;
+            // console.log(event);
+            // const id = event.path[0].dataset.id;
+            const id = event.target.dataset.id;
             
             const queryParams = zukakuFeatureLayer.createQuery();
             // set a geometry for querying features by the view's extent
@@ -1292,6 +1295,11 @@
           ]);
           if (view.heightBreakpoint !== "xsmall"){
             // 計測ウィジェット
+
+            if (document.getElementById("toolbarDiv")) {
+              document.getElementById("toolbarDiv").parentNode.removeChild(document.getElementById("toolbarDiv"));
+            };
+
             const toolbarDiv = document.createElement('div');
             toolbarDiv.setAttribute("id", "toolbarDiv");
             toolbarDiv.className = "esri-component esri-widget";
@@ -1315,22 +1323,6 @@
             view.ui.add("toolbarDiv", "top-right");
             view.ui.add(measurement, "bottom-right");
           };
-          
-          
-
-          // view.ui.add(panelExpand, "top-right");
-
-          // if (view.map === mapSecond) {
-          //   view.watch("widthBreakpoint", function(newVal) {
-          //     if (newVal === "xsmall") {
-          //       view.ui.components = ["attribution"];
-          //     } else {
-          //       view.ui.components = ["attribution", searchWidgetNoSources, "toolbarDiv", measurement, "selectZukakuDiv", "zoom"];
-          //     }
-          //   });
-          // }
-
-          // view.ui.components = ["attribution", "zoom"];
 
           tranparencySlider.on(
             ["thumb-change", "thumb-drag"],
@@ -1455,6 +1447,13 @@
             if (document.getElementById("sliderTransparencyDiv")) {
               document.getElementById("sliderTransparencyDiv").parentNode.removeChild(document.getElementById("sliderTransparencyDiv"));
             };
+            if (document.getElementById("selectZukakuDiv")) {
+              document.getElementById("selectZukakuDiv").parentNode.removeChild(document.getElementById("selectZukakuDiv"));
+            };
+            if (document.getElementById("toolbarDiv")) {
+              document.getElementById("toolbarDiv").parentNode.removeChild(document.getElementById("toolbarDiv"));
+            };
+
 
             loaderDiv.classList.add('is-active');
 
