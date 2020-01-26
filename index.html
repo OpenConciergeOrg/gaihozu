@@ -1293,12 +1293,16 @@
              position: "top-left"
             }
           ]);
-          if (view.heightBreakpoint !== "xsmall"){
+
+          if (document.getElementById("toolbarDiv")) {
+            document.getElementById("toolbarDiv").parentNode.removeChild(document.getElementById("toolbarDiv"));
+          };
+
+
+          // if (view.heightBreakpoint !== "xsmall"){
             // 計測ウィジェット
 
-            if (document.getElementById("toolbarDiv")) {
-              document.getElementById("toolbarDiv").parentNode.removeChild(document.getElementById("toolbarDiv"));
-            };
+            
 
             const toolbarDiv = document.createElement('div');
             toolbarDiv.setAttribute("id", "toolbarDiv");
@@ -1322,7 +1326,7 @@
 
             view.ui.add("toolbarDiv", "top-right");
             view.ui.add(measurement, "bottom-right");
-          };
+          // };
 
           tranparencySlider.on(
             ["thumb-change", "thumb-drag"],
