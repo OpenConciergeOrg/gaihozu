@@ -16,8 +16,8 @@
       /* @import url("calcite-web/1.2.5/sass/calcite-web.css"); */
         html,
         body,
-        /* .wrapper {
-          height: 20%;
+        .wrapper {
+          height: 50%;
           width: 100%;
           margin: 0;
           padding: 0;
@@ -30,7 +30,7 @@
           margin: 0;
           padding: 0;
           
-        } */
+        }
         #viewDiv {
           padding: 0;
           margin: 0;
@@ -127,6 +127,16 @@
         .esri-widget--button.active:focus path {
           fill: #e4e4e4;
         }
+        .esri-view-height-xsmall
+          .esri-ui-corner
+          .esri-expand
+          .esri-legend.esri-widget,
+        .esri-view-height-small
+          .esri-ui-corner
+          .esri-expand
+          .esri-legend.esri-widget {
+          max-height: 100%;
+        }
         /* #gridDiv{
           position: absolute;
           top: 60px;
@@ -145,14 +155,14 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     <!-- get calcite-web css from the cdn (use latest version) -->
     <!-- <link rel="stylesheet" href="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/css/calcite-web.min.css"> -->
-    <!-- <link rel="stylesheet" href="style.css"> -->
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
     
     <!-- top navigation -->
-    <!-- <header class="sub-nav"> -->
-      <!-- <div class="grid-container">
-        <div class="column-24 padding-left-1 padding-right-1">
+    <header class="sub-nav">
+      <div class="grid-container">
+        <div class="column-24 padding-left-1 padding-right-1 phone-hide">
           <a href="index.html" class="top-nav-title text-white">Gaihozu Explorer</a>
           <nav class="class-top-nav-list right js-modal-toggle" data-modal="foo" role="navigation" aria-labelledby="usernav" id="infoDiv">           
             <a class="top-nav-link margin-left-1 text-white" href="#">
@@ -161,66 +171,37 @@
             </a>
           </nav>
         </div>
-      </div> -->
-      <!-- <div id="titleDiv" class="esri-widget"><div id="title">Gaihozu Explorer</div></div> -->
-    <!-- </header> -->
-
-    <!-- <div class="js-modal modal-overlay modifier-class" data-modal="foo">
-      <div class="modal-content column-12" role="dialog" aria-labelledby="modal" role="dialog">
-        <a class="js-modal-toggle right" href="#" aria-label="close-modal">
-          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
-        </a>
-        <h3 class='trailer-half'>Modal!</h3>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-        cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-        proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-        <div class="text-right">
-            <button class="btn js-modal-toggle">Close</button>
-            
-        </div>
       </div>
-    </div> -->
-    <div id="viewDiv"></div>
-    <!-- <div id="helpDiv">
-      <button id="btnHelp" class="esri-widget--button esri-widget esri-interactive esri-icon-question">
-      </button>
-    </div> -->
-    <!-- <div class="esri-widget padding-leader-1 padding-trailer-1 padding-left-1 padding-right-1" id="panelDiv">
-      <div id="sliderDiv">
-        <div id="sliderYearDiv" class="esri-widget">
-          <div class="histogram-title">Printed Year</div>
-          <div id="yearSlider"></div>
-        </div>
-        <div id="sliderScaleDiv" class="esri-widget padding-leader-1">
-          <div class="histogram-title">Map Scale</div>
-          <div id="scaleSlider"></div>
-        </div>
-        <div class="card block leader-1 trailer-1" id="featuresCntCard">
-          <div class="card-content text-center">
-            <div class="font-size-6" id="featuresCntDiv"></div>
+    </header>
+
+    <div class="wrapper">
+      <div class="js-modal modal-overlay modifier-class" data-modal="foo">
+        <div class="modal-content column-12" role="dialog" aria-labelledby="modal" role="dialog">
+          <a class="js-modal-toggle right" href="#" aria-label="close-modal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
+          </a>
+          <h3 class='trailer-half'>Modal!</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+          tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+          quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+          consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+          cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+          proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+          <div class="text-right">
+              <button class="btn js-modal-toggle">Close</button>
+              <!-- <button class="btn btn-clear js-modal-toggle">cancel</button> -->
           </div>
         </div>
       </div>
-      <div id="queryResultsDiv">
-      </div>
-      <div id="attributeDiv">
-      </div>
-    </div> -->
-    <!-- <div class="loader is-active" id="loaderDiv">
-    <div class="loader-bars"></div>
-
-
-    <div class="wrapper"> -->
-      
 
       <!-- main-content -->
-      <!-- <div class="grid-container" id="grid"> -->
+      <div class="grid-container" id="grid">
+        <div class="column-24" id="viewDiv"></div>
         
-        
-        
+        <div id="helpDiv">
+          <button id="btnHelp" class="esri-widget--button esri-widget esri-interactive esri-icon-question">
+          </button>
+        </div>
         
 
         <!-- <div id="toolbarDiv" >
@@ -229,16 +210,66 @@
           <button id="clear" class="esri-widget--button esri-interactive esri-icon-trash"></button>
         </div> -->
 
-        
+        <div class="esri-widget padding-leader-1 padding-trailer-1 padding-left-1 padding-right-1" id="panelDiv">
+          <!-- <div id="searchDiv" class="trailer-1"></div> -->
+          <div id="sliderDiv">
+            <div id="sliderYearDiv" class="esri-widget">
+              <div class="histogram-title">Printed Year</div>
+              <div id="yearSlider"></div>
+            </div>
+            <div id="sliderScaleDiv" class="esri-widget padding-leader-1">
+              <div class="histogram-title">Map Scale</div>
+              <div id="scaleSlider"></div>
+            </div>
+            <div class="card block leader-1 trailer-1" id="featuresCntCard">
+              <div class="card-content text-center">
+                <div class="font-size-6" id="featuresCntDiv"></div>
+                <!-- <h4>Some Option</h4>
+                <p class="font-size--3 text-darker-gray trailer-0"><b>A NOTE ABOUT THAT</b></p>
+                <p class="font-size--3 text-darker-gray"><b>YOU WILL LIKE IT</b></p>
+                <hr>
+                <p class="trailer-0">An option option: $10</p>
+                <p>Another option option: $10</p>
+                <a href="#" class="btn btn-fill">Buy Online</a> -->
+              </div>
+            </div>
+          </div>
+          <div id="queryResultsDiv">
+            <!-- <div class="card block trailer-1" id="card">
+              <figure class="card-image-wrap">
+                <img class="card-image" src="https://www.arcgis.com/sharing/rest/content/items/cbfdd74f42a148d5a1de7ee39a368d19/info/thumbnail/thumbnail.png?f=json" alt="Bridge Club, 1954">
+                <figcaption class="card-image-caption">
+                  Florida, January 1954
+                </figcaption>
+              </figure>
+              <div class="card-content"> -->
+                <!-- <h4><a href="#">Card with Image</a></h4> -->
+                <!-- <p class="font-size--1 card-last">Cards can have full-bleed images with optional captions.</p> -->
+                <!-- <a href="../../examples/core/#two-up-cards" class="btn btn-fill leader-1">View Examples</a> -->
+              <!-- </div>   
+            </div> -->
+          </div>
+          <div id="attributeDiv">
+            
+            <!-- <div id="toolbarDiv" class="esri-component esri-widget">
+              <button id="distance" class="esri-widget--button esri-interactive esri-icon-measure-line leader-half phone-hide"></button>
+              <button id="area" class="esri-widget--button esri-interactive esri-icon-measure-area phone-hide"></button>
+              <button id="clear" class="esri-widget--button esri-interactive esri-icon-trash phone-hide"></button>
+            </div> -->
+          </div>
 
-        <!-- </div>
-    </div> -->
+        </div>
+        <div class="loader is-active" id="loaderDiv">
+          <div class="loader-bars"></div>
+          <!-- <div class="loader-text">Loading...</div> -->
+        </div>
+    </div>
     <!-- get calcite-web js from the cdn (use latest version) -->
-    <!-- <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/js/calcite-web.min.js"></script> -->
+    <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/js/calcite-web.min.js"></script>
     <!-- interactive patterns need to be initialized -->
-    <!-- <script>
+    <script>
        calcite.init()
-    </script> -->
+    </script>
     <script src="https://js.arcgis.com/4.14/"></script>
 
     <script>
@@ -318,11 +349,11 @@
         // const toolbarDiv = document.getElementById("toolbarDiv");
         const helpDiv = document.getElementById("helpDiv");
 
-        // const strp1_1 = "Click a index polygon to see map image.";
-        // const strp1_2 = "Sliding the thumb on the histogram filters indexes by printed year or scale.";
-        // const strp2 = "Select a card to see map image.";
-        // const strp3_1 = "Sliding the thumb on the slider transparents the map image.";
-        // const strp3_2 = "Click Close button to move to index selection map."
+        const strp1_1 = "Click a index polygon to see map image.";
+        const strp1_2 = "Sliding the thumb on the histogram filters indexes by printed year or scale.";
+        const strp2 = "Select a card to see map image.";
+        const strp3_1 = "Sliding the thumb on the slider transparents the map image.";
+        const strp3_2 = "Click Close button to move to index selection map."
 
         /////////////
         // シンボル //
@@ -383,7 +414,7 @@
           container: "viewDiv",
           map: map,
           center: [118.4985351561923, 1.0326589312043144],
-          zoom: 4
+          zoom: 4,
         });
 
         const graphicsLayerSelectedZukaku = new GraphicsLayer();
@@ -405,11 +436,11 @@
         
 
         // ローダーの表示を止める
-        // view.watch('updating', function(evt){
-        //   if(!evt){
-        //     loaderDiv.classList.remove('is-active');
-        //   };
-        // });
+        view.watch('updating', function(evt){
+          if(!evt){
+            loaderDiv.classList.remove('is-active');
+          };
+        });
 
         // 検索ウィジェット
         const sources = [{
@@ -479,32 +510,32 @@
         view.when(function(){
           panelDiv.style.height = (view.height - 10) +"px";
 
-          // const useDiv = document.createElement('div');
-          // useDiv.setAttribute("id", "useDiv");
-          // useDiv.className = "alert modifier-class is-active";
+          const useDiv = document.createElement('div');
+          useDiv.setAttribute("id", "useDiv");
+          useDiv.className = "alert modifier-class is-active";
           
            
-          // useP1 = document.createElement('div');
-          // useP1.className = "padding-right-1";
-          // useDiv.appendChild(useP1);
+          useP1 = document.createElement('div');
+          useP1.className = "padding-right-1";
+          useDiv.appendChild(useP1);
 
-          // useP2 = document.createElement('div');
-          // useP2.className = "padding-right-1";
-          // useDiv.appendChild(useP2);
+          useP2 = document.createElement('div');
+          useP2.className = "padding-right-1";
+          useDiv.appendChild(useP2);
 
-          // closeAlert = document.createElement('button');
-          // closeAlert.className = "alert-close right";
-          // closeAlert.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>';
-          // useDiv.appendChild(closeAlert);
+          closeAlert = document.createElement('button');
+          closeAlert.className = "alert-close right";
+          closeAlert.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>';
+          useDiv.appendChild(closeAlert);
 
-          // view.ui.add(useDiv, "bottom-left",0);
-          // useP1.innerHTML = strp1_1;
-          // useP2.innerHTML = strp1_2;
+          view.ui.add(useDiv, "bottom-left",0);
+          useP1.innerHTML = strp1_1;
+          useP2.innerHTML = strp1_2;
 
           // アラートを閉じる
-          // closeAlert.onclick = function() {
-          //   useDiv.classList.remove("is-active");
-          // };
+          closeAlert.onclick = function() {
+            useDiv.classList.remove("is-active");
+          };
 
         });
 
