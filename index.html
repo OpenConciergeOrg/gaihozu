@@ -16,23 +16,7 @@
       /* @import url("calcite-web/1.2.5/sass/calcite-web.css"); */
         html,
         body,
-        #titleDiv {
-          position: absolute;
-          height: 55px;
-          width: 100%;
-          display: flex;
-          justify-content: space-between;
-          color: #f8f8f8;
-          background: #464646;
-          z-index: 1;
-        }
-
-        #title {
-          margin: 15px;
-          font-size: 20px;
-          overflow: hidden;
-        }
-        .wrapper {
+        /* .wrapper {
           height: 20%;
           width: 100%;
           margin: 0;
@@ -46,7 +30,7 @@
           margin: 0;
           padding: 0;
           
-        }
+        } */
         #viewDiv {
           padding: 0;
           margin: 0;
@@ -166,7 +150,7 @@
   <body>
     
     <!-- top navigation -->
-    <header class="sub-nav">
+    <!-- <header class="sub-nav"> -->
       <!-- <div class="grid-container">
         <div class="column-24 padding-left-1 padding-right-1">
           <a href="index.html" class="top-nav-title text-white">Gaihozu Explorer</a>
@@ -178,37 +162,66 @@
           </nav>
         </div>
       </div> -->
-      <div id="titleDiv" class="esri-widget"><div id="title">Gaihozu Explorer</div></div>
-    </header>
+      <!-- <div id="titleDiv" class="esri-widget"><div id="title">Gaihozu Explorer</div></div> -->
+    <!-- </header> -->
 
-    <div class="wrapper">
-      <div class="js-modal modal-overlay modifier-class" data-modal="foo">
-        <div class="modal-content column-12" role="dialog" aria-labelledby="modal" role="dialog">
-          <a class="js-modal-toggle right" href="#" aria-label="close-modal">
-            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
-          </a>
-          <h3 class='trailer-half'>Modal!</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-          tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-          quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-          consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-          cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-          proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-          <div class="text-right">
-              <button class="btn js-modal-toggle">Close</button>
-              <!-- <button class="btn btn-clear js-modal-toggle">cancel</button> -->
+    <div class="js-modal modal-overlay modifier-class" data-modal="foo">
+      <div class="modal-content column-12" role="dialog" aria-labelledby="modal" role="dialog">
+        <a class="js-modal-toggle right" href="#" aria-label="close-modal">
+          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
+        </a>
+        <h3 class='trailer-half'>Modal!</h3>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+        cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+        proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        <div class="text-right">
+            <button class="btn js-modal-toggle">Close</button>
+            <!-- <button class="btn btn-clear js-modal-toggle">cancel</button> -->
+        </div>
+      </div>
+    </div>
+    <div class="column-24" id="viewDiv"></div>
+    <div id="helpDiv">
+      <button id="btnHelp" class="esri-widget--button esri-widget esri-interactive esri-icon-question">
+      </button>
+    </div>
+    <div class="esri-widget padding-leader-1 padding-trailer-1 padding-left-1 padding-right-1" id="panelDiv">
+      <!-- <div id="searchDiv" class="trailer-1"></div> -->
+      <div id="sliderDiv">
+        <div id="sliderYearDiv" class="esri-widget">
+          <div class="histogram-title">Printed Year</div>
+          <div id="yearSlider"></div>
+        </div>
+        <div id="sliderScaleDiv" class="esri-widget padding-leader-1">
+          <div class="histogram-title">Map Scale</div>
+          <div id="scaleSlider"></div>
+        </div>
+        <div class="card block leader-1 trailer-1" id="featuresCntCard">
+          <div class="card-content text-center">
+            <div class="font-size-6" id="featuresCntDiv"></div>
           </div>
         </div>
       </div>
+      <div id="queryResultsDiv">
+      </div>
+      <div id="attributeDiv">
+      </div>
+    </div>
+    <div class="loader is-active" id="loaderDiv">
+    <div class="loader-bars"></div>
+
+
+    <div class="wrapper">
+      
 
       <!-- main-content -->
-      <div class="grid-container" id="grid">
-        <div class="column-24" id="viewDiv"></div>
+      <!-- <div class="grid-container" id="grid"> -->
         
-        <div id="helpDiv">
-          <button id="btnHelp" class="esri-widget--button esri-widget esri-interactive esri-icon-question">
-          </button>
-        </div>
+        
+        
         
 
         <!-- <div id="toolbarDiv" >
@@ -217,60 +230,10 @@
           <button id="clear" class="esri-widget--button esri-interactive esri-icon-trash"></button>
         </div> -->
 
-        <div class="esri-widget padding-leader-1 padding-trailer-1 padding-left-1 padding-right-1" id="panelDiv">
-          <!-- <div id="searchDiv" class="trailer-1"></div> -->
-          <div id="sliderDiv">
-            <div id="sliderYearDiv" class="esri-widget">
-              <div class="histogram-title">Printed Year</div>
-              <div id="yearSlider"></div>
-            </div>
-            <div id="sliderScaleDiv" class="esri-widget padding-leader-1">
-              <div class="histogram-title">Map Scale</div>
-              <div id="scaleSlider"></div>
-            </div>
-            <div class="card block leader-1 trailer-1" id="featuresCntCard">
-              <div class="card-content text-center">
-                <div class="font-size-6" id="featuresCntDiv"></div>
-                <!-- <h4>Some Option</h4>
-                <p class="font-size--3 text-darker-gray trailer-0"><b>A NOTE ABOUT THAT</b></p>
-                <p class="font-size--3 text-darker-gray"><b>YOU WILL LIKE IT</b></p>
-                <hr>
-                <p class="trailer-0">An option option: $10</p>
-                <p>Another option option: $10</p>
-                <a href="#" class="btn btn-fill">Buy Online</a> -->
-              </div>
-            </div>
-          </div>
-          <div id="queryResultsDiv">
-            <!-- <div class="card block trailer-1" id="card">
-              <figure class="card-image-wrap">
-                <img class="card-image" src="https://www.arcgis.com/sharing/rest/content/items/cbfdd74f42a148d5a1de7ee39a368d19/info/thumbnail/thumbnail.png?f=json" alt="Bridge Club, 1954">
-                <figcaption class="card-image-caption">
-                  Florida, January 1954
-                </figcaption>
-              </figure>
-              <div class="card-content"> -->
-                <!-- <h4><a href="#">Card with Image</a></h4> -->
-                <!-- <p class="font-size--1 card-last">Cards can have full-bleed images with optional captions.</p> -->
-                <!-- <a href="../../examples/core/#two-up-cards" class="btn btn-fill leader-1">View Examples</a> -->
-              <!-- </div>   
-            </div> -->
-          </div>
-          <div id="attributeDiv">
-            
-            <!-- <div id="toolbarDiv" class="esri-component esri-widget">
-              <button id="distance" class="esri-widget--button esri-interactive esri-icon-measure-line leader-half phone-hide"></button>
-              <button id="area" class="esri-widget--button esri-interactive esri-icon-measure-area phone-hide"></button>
-              <button id="clear" class="esri-widget--button esri-interactive esri-icon-trash phone-hide"></button>
-            </div> -->
-          </div>
+        
 
-        </div>
-        <div class="loader is-active" id="loaderDiv">
-          <div class="loader-bars"></div>
-          <!-- <div class="loader-text">Loading...</div> -->
-        </div>
-    </div>
+        <!-- </div>
+    </div> -->
     <!-- get calcite-web js from the cdn (use latest version) -->
     <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/js/calcite-web.min.js"></script>
     <!-- interactive patterns need to be initialized -->
@@ -421,10 +384,7 @@
           container: "viewDiv",
           map: map,
           center: [118.4985351561923, 1.0326589312043144],
-          zoom: 4,
-          padding: {
-            top: 55
-          }
+          zoom: 4
         });
 
         const graphicsLayerSelectedZukaku = new GraphicsLayer();
