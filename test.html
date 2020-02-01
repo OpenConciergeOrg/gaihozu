@@ -7,7 +7,7 @@
       name="viewport"
       content="initial-scale=1,maximum-scale=1,user-scalable=no"
     />
-    <title>Gaihozu Explorer2</title>
+    <title>Gaihozu Explorer3</title>
     <link
       rel="stylesheet"
       href="https://js.arcgis.com/4.13/esri/themes/light/main.css"
@@ -191,11 +191,12 @@
           title: "図郭"
         });
         map.add(zukakuFeatureLayer);
+        view.ui.components = ["attribution"];
         // map.add(graphicsLayerSelectedZukaku);
         // map.add(graphicsLayerHighlightedZukaku);
         // map.add(graphicsLayerMouseOveredZukaku);
 
-        const portal = new Portal();
+        // const portal = new Portal();
 
         
 
