@@ -68,26 +68,52 @@
         "esri/WebMap",
         "esri/views/MapView",
         "esri/widgets/Legend",
-        "esri/widgets/Expand"
-      ], function(WebMap, MapView, Legend, Expand) {
-        var webmap = new WebMap({
-          portalItem: {
-            id: "52333f74c9d9465c88f2ed7336e1e627"
-          }
+        "esri/widgets/Expand",
+        "esri/Map",
+        "esri/layers/FeatureLayer"
+      ], function(WebMap, MapView, Legend, Expand, Map, FeatureLayer) {
+        var URL_FL = "https://services1.arcgis.com/qvPIahekAMWThrhc/arcgis/rest/services/zukaku/FeatureServer/0";
+
+
+        const map = new Map({
+          basemap: 'streets'
         });
 
-        webmap.when(function(map) {
-          document.getElementById("title").innerHTML =
-            map.portalItem.title + " - Expand Widget";
-        });
-
-        var view = new MapView({
+        const view = new MapView({
           container: "viewDiv",
-          map: webmap,
+          map: map,
+          center: [118.4985351561923, 1.0326589312043144],
+          zoom: 4,
           padding: {
             top: 55
           }
         });
+
+        // var webmap = new WebMap({
+        //   portalItem: {
+        //     id: "52333f74c9d9465c88f2ed7336e1e627"
+        //   }
+        // });
+
+        view.when(function(map) {
+          document.getElementById("title").innerHTML =
+            " - Expand Widget";
+        });
+
+        const zukakuFeatureLayer = new FeatureLayer({
+          url: URL_FL,
+          outFields: ["*"],
+          title: "図郭"
+        });
+        map.add(zukakuFeatureLayer);
+
+        // var view = new MapView({
+        //   container: "viewDiv",
+        //   map: webmap,
+        //   padding: {
+        //     top: 55
+        //   }
+        // });
 
         // Desktop
 
