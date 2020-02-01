@@ -1,0 +1,303 @@
+
+<!doctype html>
+<!--[if lt IE 9]>  <html class="ie lt-ie9 ie8"> <![endif]-->
+<!--[if IE 9]>     <html class="ie ie9"> <![endif]-->
+<!--[if !IE]><!--> <html> <!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <title>Gaihozu Explorer</title>
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.13/esri/themes/light/main.css"
+    />
+    <style>
+      /* @import url("calcite-web/1.2.5/sass/calcite-web.css"); */
+        html,
+        body,
+        #viewDiv {
+          padding: 0;
+          margin: 0;
+          height: 100%;
+          width: 100%;
+        }
+        
+        
+    </style>
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    <!-- get calcite-web css from the cdn (use latest version) -->
+    <!-- <link rel="stylesheet" href="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/css/calcite-web.min.css"> -->
+    <!-- <link rel="stylesheet" href="style.css"> -->
+  </head>
+  <body>
+    
+    <!-- top navigation -->
+    <!-- <header class="sub-nav"> -->
+      <!-- <div class="grid-container">
+        <div class="column-24 padding-left-1 padding-right-1">
+          <a href="index.html" class="top-nav-title text-white">Gaihozu Explorer</a>
+          <nav class="class-top-nav-list right js-modal-toggle" data-modal="foo" role="navigation" aria-labelledby="usernav" id="infoDiv">           
+            <a class="top-nav-link margin-left-1 text-white" href="#">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" class="svg-icon"><path d="M31.297 16.047c0 8.428-6.826 15.25-15.25 15.25S.797 24.475.797 16.047c0-8.424 6.826-15.25 15.25-15.25s15.25 6.826 15.25 15.25zM18 24V12h-4v12h-2v2h8v-2h-2zm0-18h-4v4h4V6z"/></svg>
+              Info
+            </a>
+          </nav>
+        </div>
+      </div> -->
+      <!-- <div id="titleDiv" class="esri-widget"><div id="title">Gaihozu Explorer</div></div> -->
+    <!-- </header> -->
+
+    <!-- <div class="js-modal modal-overlay modifier-class" data-modal="foo">
+      <div class="modal-content column-12" role="dialog" aria-labelledby="modal" role="dialog">
+        <a class="js-modal-toggle right" href="#" aria-label="close-modal">
+          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
+        </a>
+        <h3 class='trailer-half'>Modal!</h3>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+        cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+        proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        <div class="text-right">
+            <button class="btn js-modal-toggle">Close</button>
+            
+        </div>
+      </div>
+    </div> -->
+    <div id="viewDiv"></div>
+    <!-- <div id="helpDiv">
+      <button id="btnHelp" class="esri-widget--button esri-widget esri-interactive esri-icon-question">
+      </button>
+    </div> -->
+    <!-- <div class="esri-widget padding-leader-1 padding-trailer-1 padding-left-1 padding-right-1" id="panelDiv">
+      <div id="sliderDiv">
+        <div id="sliderYearDiv" class="esri-widget">
+          <div class="histogram-title">Printed Year</div>
+          <div id="yearSlider"></div>
+        </div>
+        <div id="sliderScaleDiv" class="esri-widget padding-leader-1">
+          <div class="histogram-title">Map Scale</div>
+          <div id="scaleSlider"></div>
+        </div>
+        <div class="card block leader-1 trailer-1" id="featuresCntCard">
+          <div class="card-content text-center">
+            <div class="font-size-6" id="featuresCntDiv"></div>
+          </div>
+        </div>
+      </div>
+      <div id="queryResultsDiv">
+      </div>
+      <div id="attributeDiv">
+      </div>
+    </div> -->
+    <!-- <div class="loader is-active" id="loaderDiv">
+    <div class="loader-bars"></div>
+
+
+    <div class="wrapper"> -->
+      
+
+      <!-- main-content -->
+      <!-- <div class="grid-container" id="grid"> -->
+        
+        
+        
+        
+
+        <!-- <div id="toolbarDiv" >
+          <button id="distance" class="esri-widget--button esri-interactive esri-icon-measure-line"></button>
+          <button id="area" class="esri-widget--button esri-interactive esri-icon-measure-area"></button>
+          <button id="clear" class="esri-widget--button esri-interactive esri-icon-trash"></button>
+        </div> -->
+
+        
+
+        <!-- </div>
+    </div> -->
+    <!-- get calcite-web js from the cdn (use latest version) -->
+    <!-- <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/js/calcite-web.min.js"></script> -->
+    <!-- interactive patterns need to be initialized -->
+    <!-- <script>
+       calcite.init()
+    </script> -->
+    <script src="https://js.arcgis.com/4.14/"></script>
+
+    <script>
+      require([
+        "esri/views/MapView",
+        "esri/core/watchUtils",
+        "esri/layers/FeatureLayer",
+        "esri/Map",
+        "esri/layers/GraphicsLayer", 
+        "esri/Graphic",
+        "esri/layers/TileLayer",
+        "esri/widgets/Search",
+        "esri/widgets/Slider",
+        "esri/request",
+        "esri/portal/PortalItem",
+        "esri/widgets/HistogramRangeSlider",
+        "esri/renderers/smartMapping/statistics/histogram",
+        "esri/core/promiseUtils",
+        "esri/portal/Portal",
+        "esri/layers/Layer",
+        "esri/widgets/HistogramRangeSlider/HistogramRangeSliderViewModel",
+        "esri/widgets/Measurement",
+        // "esri/widgets/Zoom",
+        "esri/widgets/Expand"
+      ], function(
+        MapView, 
+        watchUtils,
+        FeatureLayer,
+        Map,
+        GraphicsLayer,
+        Graphic,
+        TileLayer,
+        Search,
+        Slider,
+        esriRequest,
+        PortalItem,
+        HistogramRangeSlider,
+        histogram,
+        promiseUtils,
+        Portal,
+        Layer,
+        HistogramRangeSliderVM,
+        Measurement,
+        // Zoom,
+        Expand
+      ) {
+
+        //////////
+        // 変数 //
+        //////////
+
+        URL_FL = "https://services1.arcgis.com/qvPIahekAMWThrhc/arcgis/rest/services/zukaku/FeatureServer/0";
+
+        let btnClose;
+        // let totalFeaturesCnt;
+        let filteredFeaturesCnt;
+
+        //////////////
+        // HTML要素 //
+        //////////////
+        // const queryResultsDiv = document.getElementById("queryResultsDiv");
+        // const sliderYearDiv = document.getElementById("sliderYearDiv");
+        // const sliderScaleDiv = document.getElementById("sliderScaleDiv");
+        // const panelDiv = document.getElementById("panelDiv");
+        const viewDiv = document.getElementById("viewDiv");
+        // const attributeDiv = document.getElementById("attributeDiv");
+        // const featureCountDiv = document.getElementById("featureCountDiv");
+        // const sliderDiv = document.getElementById("sliderDiv");
+        // const showDialogDiv = document.getElementById("showDialogDiv");
+        // const dialog = document.querySelector('dialog');
+        // const closeDialogBtn = document.getElementById("closeDialogBtn");
+        // const loaderDiv = document.getElementById("loaderDiv");
+        // const scaleSlider = document.getElementById("scaleSlider");
+        // const yearSlider = document.getElementById("yearSlider");
+        // const featuresCntDiv = document.getElementById("featuresCntDiv");
+        // const gridDiv = document.getElementById("gridDiv");
+        // const toolbarDiv = document.getElementById("toolbarDiv");
+        // const helpDiv = document.getElementById("helpDiv");
+
+        // const strp1_1 = "Click a index polygon to see map image.";
+        // const strp1_2 = "Sliding the thumb on the histogram filters indexes by printed year or scale.";
+        // const strp2 = "Select a card to see map image.";
+        // const strp3_1 = "Sliding the thumb on the slider transparents the map image.";
+        // const strp3_2 = "Click Close button to move to index selection map."
+
+        /////////////
+        // シンボル //
+        /////////////
+
+        // 選択された図郭のシンボル
+        const symbolSelectedZukaku = {
+          type: "simple-fill", // autocasts as new SimpleFillSymbol()
+          color: [0, 148, 128, 0.5],
+          outline: {
+            // autocasts as new SimpleLineSymbol()
+            color: [255, 255, 255, 1],
+            width: 2
+          }
+        };
+        // ハイライトされた図郭のシンボル（右側のパネルに２つ以上の図郭があるとき）
+        const symbolHighlightedZukaku = {
+          type: "simple-fill", // autocasts as new SimpleFillSymbol()
+          color: [255, 255, 255, 0],
+          outline: {
+            // autocasts as new SimpleLineSymbol()
+            color: [0, 20, 148, 1],
+            width: 2
+          }
+        };
+
+        const symbolMouseOveredZukaku = {
+          type: "simple-fill", // autocasts as new SimpleFillSymbol()
+          color: [255, 255, 255, 0],
+          outline: {
+            // autocasts as new SimpleLineSymbol()
+            color: [0, 94, 148, 1],
+            width: 2
+          }
+        };
+
+        // function showAlert() {
+        //   if (!useDiv.classList.contains("is-active")) {
+        //     useDiv.classList.add("is-active");
+        //   }
+        // };
+
+        // function hideAlert() {
+        //   if (useDiv.classList.contains("is-active")) {
+        //     useDiv.classList.remove("is-active");
+        //   }
+        // };
+
+        ////////////////////
+        // 図郭検索マップ //
+        ////////////////////
+
+        const map = new Map({
+          basemap: 'streets'
+        });
+
+        const view = new MapView({
+          container: "viewDiv",
+          map: map,
+          center: [118.4985351561923, 1.0326589312043144],
+          zoom: 4
+        });
+
+        const graphicsLayerSelectedZukaku = new GraphicsLayer();
+        const graphicsLayerHighlightedZukaku = new GraphicsLayer();
+        const graphicsLayerMouseOveredZukaku = new GraphicsLayer();
+
+        const zukakuFeatureLayer = new FeatureLayer({
+          url: URL_FL,
+          outFields: ["*"],
+          title: "図郭"
+        });
+        map.add(zukakuFeatureLayer);
+        map.add(graphicsLayerSelectedZukaku);
+        map.add(graphicsLayerHighlightedZukaku);
+        map.add(graphicsLayerMouseOveredZukaku);
+
+        const portal = new Portal();
+
+        
+
+        // ローダーの表示を止める
+        // view.watch('updating', function(evt){
+        //   if(!evt){
+        //     loaderDiv.classList.remove('is-active');
+        //   };
+        // });
+
+        
+
+      });
+    </script>
+
+  </body>
+</html>
