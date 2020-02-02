@@ -6,7 +6,7 @@
       name="viewport"
       content="initial-scale=1,maximum-scale=1,user-scalable=no"
     />
-    <title>Gaihozu Explorer 1</title>
+    <title>Gaihozu Explorer 2</title>
 
     <style>
       html,
@@ -136,7 +136,8 @@
         view.watch("widthBreakpoint", function(breakpoint) {
           switch (breakpoint) {
             case "xsmall":
-              updateView(true);
+              updateView(false);
+              // updateView(true);
               break;
             case "small":
             case "medium":
