@@ -18,26 +18,7 @@
         width: 100%;
       }
 
-      #titleDiv {
-        position: absolute;
-        height: 55px;
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        color: #f8f8f8;
-        background: #464646;
-        z-index: 1;
-      }
 
-      #title {
-        margin: 15px;
-        font-size: 20px;
-        overflow: hidden;
-      }
-
-      .invisible {
-        visibility: collapse;
-      }
 
       .esri-expand .esri-expand__content {
         box-shadow: none;
@@ -58,6 +39,7 @@
         display: none;
       }
     </style>
+    <link rel="stylesheet" href="style.css">
     <link
       rel="stylesheet"
       href="https://js.arcgis.com/4.14/esri/themes/light/main.css"
@@ -68,98 +50,305 @@
         "esri/WebMap",
         "esri/views/MapView",
         "esri/widgets/Legend",
-        "esri/widgets/Expand"
-      ], function(WebMap, MapView, Legend, Expand) {
-        var webmap = new WebMap({
-          portalItem: {
-            id: "52333f74c9d9465c88f2ed7336e1e627"
-          }
+        "esri/widgets/Expand",
+        "esri/layers/FeatureLayer",
+        "esri/Map",
+        "esri/widgets/HistogramRangeSlider",
+        "esri/renderers/smartMapping/statistics/histogram",
+        "esri/widgets/HistogramRangeSlider/HistogramRangeSliderViewModel"
+      ], function(
+        WebMap, 
+        MapView, 
+        Legend, 
+        Expand,
+        FeatureLayer,
+        Map,
+        HistogramRangeSlider,
+        histogram,
+        HistogramRangeSliderVM
+      ) {
+        
+        const URL_FL = "https://services1.arcgis.com/qvPIahekAMWThrhc/arcgis/rest/services/zukaku/FeatureServer/0";
+
+
+        const map = new Map({
+          basemap: 'streets'
         });
 
-        webmap.when(function(map) {
-          document.getElementById("title").innerHTML =
-            map.portalItem.title + " - Expand Widget";
+        const zukakuFeatureLayer = new FeatureLayer({
+          url: URL_FL,
+          outFields: ["*"],
+          title: "図郭"
         });
+        map.add(zukakuFeatureLayer);
 
-        var view = new MapView({
+        const view = new MapView({
           container: "viewDiv",
-          map: webmap,
-          padding: {
-            top: 55
-          }
+          map: map,
+          center: [118.4985351561923, 1.0326589312043144],
+          zoom: 4,
         });
+
+        const panelDiv = document.getElementById("panelDiv");
+        const scaleSlider = document.getElementById("scaleSlider");
+        const yearSlider = document.getElementById("yearSlider");
 
         // Desktop
 
-        var legend = new Legend({
+        const panelExpand = new Expand({
           view: view,
-          container: document.createElement("div")
+          content: panelDiv,
+          expanded: true
         });
-
-        // Mobile
-
-        var expandLegend = new Expand({
-          view: view,
-          content: new Legend({
-            view: view,
-            container: document.createElement("div")
-          })
-        });
+        view.ui.add(panelExpand, "top-right");
 
         // Load
 
-        isResponsiveSize = view.widthBreakpoint === "xsmall";
-        updateView(isResponsiveSize);
+        // isResponsiveSize = view.widthBreakpoint === "xsmall";
+        // updateView(isResponsiveSize);
 
         // Breakpoints
 
-        view.watch("widthBreakpoint", function(breakpoint) {
-          switch (breakpoint) {
-            case "xsmall":
-              updateView(true);
-              break;
-            case "small":
-            case "medium":
-            case "large":
-            case "xlarge":
-              updateView(false);
-              break;
-            default:
-          }
-        });
+        // view.watch("widthBreakpoint", function(breakpoint) {
+        //   switch (breakpoint) {
+        //     case "xsmall":
+        //       updateView(true);
+        //       break;
+        //     case "small":
+        //     case "medium":
+        //     case "large":
+        //     case "xlarge":
+        //       updateView(false);
+        //       break;
+        //     default:
+        //   }
+        // });
 
         function updateView(isMobile) {
           // setTitleMobile(isMobile);
           setLegendMobile(isMobile);
         }
 
-        function setTitleMobile(isMobile) {
-          if (isMobile) {
-            document.querySelector("#titleDiv").classList.add("invisible");
-            view.padding = {
-              top: 0
-            };
-          } else {
-            document.querySelector("#titleDiv").classList.remove("invisible");
-            view.padding = {
-              top: 55
-            };
-          }
-        }
+        // function setTitleMobile(isMobile) {
+        //   if (isMobile) {
+        //     document.querySelector("#titleDiv").classList.add("invisible");
+        //     view.padding = {
+        //       top: 0
+        //     };
+        //   } else {
+        //     document.querySelector("#titleDiv").classList.remove("invisible");
+        //     view.padding = {
+        //       top: 55
+        //     };
+        //   }
+        // }
 
-        function setLegendMobile(isMobile) {
-          var toAdd = isMobile ? expandLegend : legend;
-          var toRemove = isMobile ? legend : expandLegend;
+        // function setLegendMobile(isMobile) {
+        //   var toAdd = isMobile ? expandLegend : legend;
+        //   var toRemove = isMobile ? legend : expandLegend;
 
-          view.ui.remove(toRemove);
-          view.ui.add(toAdd, "top-right");
-        }
+        //   view.ui.remove(toRemove);
+        //   view.ui.add(toAdd, "top-right");
+        // }
+
+          // ヒストグラム
+        let minYear = 1939;
+        let maxYear = 1945;
+        
+        let minScale = 1;
+        let maxScale = 12;
+
+        const fieldPrintYear = "print_year_en";
+        const fieldScale = "scale_num";
+
+        histogram({
+          layer: zukakuFeatureLayer,
+          field: fieldPrintYear,
+          numBins: 6,
+          classificationMethod: "equal-interval",
+          minValue: minYear,
+          maxValue: maxYear
+        }).then(createYearHistogramSlider);
+
+        histogram({
+          layer: zukakuFeatureLayer,
+          field: fieldScale,
+          numBins: 11,
+          classificationMethod: "equal-interval",
+          minValue: minScale,
+          maxValue: maxScale
+        }).then(createScaleHistogramSlider);
+
+        function createScaleHistogramSlider (histogramResponse){
+          
+
+          
+          const slider = new HistogramRangeSlider({
+            bins: histogramResponse.bins,
+            min: minScale,
+            max: maxScale,
+            // steps: 1,
+            values: [minScale, maxScale],
+            excludedBarColor: "#524e4e",
+            rangeType: "between",
+            container: scaleSlider
+          });
+
+
+          // ラベルを変更する
+          const viewModel = slider.viewModel;
+          viewModel.labelFormatFunction = function(value, type) {
+            if (type === "min"){
+              return "LargeScale";
+            } else if (type === "max"){
+              return "SmallScale";
+            };
+          };
+
+          slider.on(["thumb-change", "thumb-drag", "segment-drag"], scaleChanged);
+
+        };
+
+        function createYearHistogramSlider (histogramResponse){
+          const slider = new HistogramRangeSlider({
+            bins: histogramResponse.bins,
+            min: minYear,
+            max: maxYear,
+            // steps: 1,
+            values: [minYear, maxYear],
+            excludedBarColor: "#524e4e",
+            rangeType: "between",
+            container: yearSlider
+          });
+
+          // ラベルを変更する
+          const viewModel = slider.viewModel;
+          viewModel.labelFormatFunction = function(value, type) {
+            if (type === "min"){
+              return "1939";
+            } else if (type === "max"){
+              return "1945";
+            };
+          };
+
+          slider.on(["thumb-change", "thumb-drag", "segment-drag"], yearChanged);
+
+        };
+
+        function yearChanged(event){
+          const year = event.value;
+          const index = event.index;
+          
+          if (index === 0){
+            minYear = year;
+          } else if (index === 1){
+            maxYear = year;
+          };
+          whereClause = fieldPrintYear + ">= " + minYear + " AND " + fieldPrintYear + " <= " + maxYear + " AND " + fieldScale + " >= " + minScale + " AND " + fieldScale + " <= " + maxScale;
+          zukakuLayerView.filter = {
+            where: whereClause
+          };
+
+          const queryParams = zukakuLayerView.filter.createQuery();
+          queryParams.returnGeometry = false;
+          queryParams.outFields = ["objectid"];
+
+          zukakuLayerView.queryFeatures(queryParams)
+            .then(function(response){
+              filteredFeaturesCnt = response.features.length;
+              featuresCntDiv.innerHTML = filteredFeaturesCnt;
+            })
+            .catch(function(error) {
+              console.log(error);
+            });
+        };
+
+        function scaleChanged(event){
+          const scale = event.value;
+          const index = event.index;
+          
+          if (index === 0){
+            minScale = scale;
+          } else if (index === 1){
+            maxScale = scale;
+          };
+          whereClause = fieldPrintYear + ">= " + minYear + " AND " + fieldPrintYear + " <= " + maxYear + " AND " + fieldScale + " >= " + minScale + " AND " + fieldScale + " <= " + maxScale;
+          zukakuLayerView.filter = {
+            where: whereClause
+          };
+
+          const queryParams = zukakuLayerView.filter.createQuery();
+          queryParams.returnGeometry = false;
+          queryParams.outFields = ["objectid"];
+
+          zukakuLayerView.queryFeatures(queryParams)
+            .then(function(response){
+              filteredFeaturesCnt = response.features.length;
+              featuresCntDiv.innerHTML = filteredFeaturesCnt;
+            })
+            .catch(function(error) {
+              console.log(error);
+            });
+        };
+
+
       });
     </script>
   </head>
 
   <body>
-    <div id="titleDiv" class="esri-widget"><div id="title"></div></div>
+
+    <header class="sub-nav">
+      <div class="grid-container">
+        <div class="column-24 padding-left-1 padding-right-1">
+          <a href="index.html" class="top-nav-title text-white">Gaihozu Explorer</a>
+          <nav class="class-top-nav-list right js-modal-toggle" data-modal="foo" role="navigation" aria-labelledby="usernav" id="infoDiv">           
+            <a class="top-nav-link margin-left-1 text-white" href="#">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" class="svg-icon"><path d="M31.297 16.047c0 8.428-6.826 15.25-15.25 15.25S.797 24.475.797 16.047c0-8.424 6.826-15.25 15.25-15.25s15.25 6.826 15.25 15.25zM18 24V12h-4v12h-2v2h8v-2h-2zm0-18h-4v4h4V6z"/></svg>
+              Info
+            </a>
+          </nav>
+        </div>
+      </div>
+    </header> 
+
+    <!-- <div id="titleDiv" class="esri-widget"><div id="title"></div></div> -->
     <div id="viewDiv"></div>
+
+    <div class="esri-widget padding-leader-1 padding-trailer-1 padding-left-1 padding-right-1" id="panelDiv">
+      <div id="sliderDiv">
+        <div id="sliderYearDiv" class="esri-widget">
+          <div class="histogram-title">Printed Year</div>
+          <div id="yearSlider"></div>
+        </div>
+        <div id="sliderScaleDiv" class="esri-widget">
+          <div class="histogram-title">Map Scale</div>
+          <div id="scaleSlider"></div>
+        </div>
+        
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+
+
+        <div id="featuresCntCard">
+          <div class="card-content text-center">
+            <div id="featuresCntDiv"></div>
+          </div>
+        </div>
+      </div>
+      <div id="queryResultsDiv">
+      </div>
+      <div id="attributeDiv">
+      </div>
+    </div>
   </body>
 </html>
