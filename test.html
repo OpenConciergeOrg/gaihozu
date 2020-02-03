@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
   <head>
@@ -7,22 +6,44 @@
       name="viewport"
       content="initial-scale=1,maximum-scale=1,user-scalable=no"
     />
-    <title>Gaihozu Explorer3</title>
-    <link
-      rel="stylesheet"
-      href="https://js.arcgis.com/4.14/esri/themes/light/main.css"
-    />
+    <title>Responsive apps using CSS - 4.14</title>
+
     <style>
-      /* @import url("calcite-web/1.2.5/sass/calcite-web.css"); */
-        html,
-        body,
-        #viewDiv {
-          padding: 0;
-          margin: 0;
-          height: 100%;
-          width: 100%;
-        }
-        .esri-view-height-xsmall
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      #titleDiv {
+        position: absolute;
+        height: 55px;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        color: #f8f8f8;
+        background: #464646;
+        z-index: 1;
+      }
+
+      #title {
+        margin: 15px;
+        font-size: 20px;
+        overflow: hidden;
+      }
+
+      .invisible {
+        visibility: collapse;
+      }
+
+      .esri-expand .esri-expand__content {
+        box-shadow: none;
+      }
+
+      /* .esri-view-height-xsmall
         .esri-ui-corner
         .esri-expand
         .esri-legend.esri-widget,
@@ -31,197 +52,114 @@
         .esri-expand
         .esri-legend.esri-widget {
         max-height: 100%;
-      }
-        
-        
-    </style>
-    <link rel="stylesheet" href="style.css">
-    <link rel="shortcut icon" href="/img/favicon.ico">
-    <!-- get calcite-web css from the cdn (use latest version) -->
-    <!-- <link rel="stylesheet" href="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/css/calcite-web.min.css"> -->
-    <!-- <link rel="stylesheet" href="style.css"> -->
-  </head>
-  <body>
-    
-    <div id="viewDiv"></div>
-    
-    <script src="https://js.arcgis.com/4.14/"></script>
+      } */
 
+      .esri-view-width-less-than-small .esri-zoom .esri-widget--button {
+        display: none;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.14/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.14/"></script>
     <script>
       require([
+        "esri/WebMap",
         "esri/views/MapView",
-        "esri/core/watchUtils",
-        "esri/layers/FeatureLayer",
-        "esri/Map",
-        "esri/layers/GraphicsLayer", 
-        "esri/Graphic",
-        "esri/layers/TileLayer",
-        "esri/widgets/Search",
-        "esri/widgets/Slider",
-        "esri/request",
-        "esri/portal/PortalItem",
-        "esri/widgets/HistogramRangeSlider",
-        "esri/renderers/smartMapping/statistics/histogram",
-        "esri/core/promiseUtils",
-        "esri/portal/Portal",
-        "esri/layers/Layer",
-        "esri/widgets/HistogramRangeSlider/HistogramRangeSliderViewModel",
-        "esri/widgets/Measurement",
-        // "esri/widgets/Zoom",
+        "esri/widgets/Legend",
         "esri/widgets/Expand"
-      ], function(
-        MapView, 
-        watchUtils,
-        FeatureLayer,
-        Map,
-        GraphicsLayer,
-        Graphic,
-        TileLayer,
-        Search,
-        Slider,
-        esriRequest,
-        PortalItem,
-        HistogramRangeSlider,
-        histogram,
-        promiseUtils,
-        Portal,
-        Layer,
-        HistogramRangeSliderVM,
-        Measurement,
-        // Zoom,
-        Expand
-      ) {
-
-        //////////
-        // 変数 //
-        //////////
-
-        URL_FL = "https://services1.arcgis.com/qvPIahekAMWThrhc/arcgis/rest/services/zukaku/FeatureServer/0";
-
-        let btnClose;
-        // let totalFeaturesCnt;
-        let filteredFeaturesCnt;
-
-        //////////////
-        // HTML要素 //
-        //////////////
-        // const queryResultsDiv = document.getElementById("queryResultsDiv");
-        // const sliderYearDiv = document.getElementById("sliderYearDiv");
-        // const sliderScaleDiv = document.getElementById("sliderScaleDiv");
-        // const panelDiv = document.getElementById("panelDiv");
-        const viewDiv = document.getElementById("viewDiv");
-        // const attributeDiv = document.getElementById("attributeDiv");
-        // const featureCountDiv = document.getElementById("featureCountDiv");
-        // const sliderDiv = document.getElementById("sliderDiv");
-        // const showDialogDiv = document.getElementById("showDialogDiv");
-        // const dialog = document.querySelector('dialog');
-        // const closeDialogBtn = document.getElementById("closeDialogBtn");
-        // const loaderDiv = document.getElementById("loaderDiv");
-        // const scaleSlider = document.getElementById("scaleSlider");
-        // const yearSlider = document.getElementById("yearSlider");
-        // const featuresCntDiv = document.getElementById("featuresCntDiv");
-        // const gridDiv = document.getElementById("gridDiv");
-        // const toolbarDiv = document.getElementById("toolbarDiv");
-        // const helpDiv = document.getElementById("helpDiv");
-
-        // const strp1_1 = "Click a index polygon to see map image.";
-        // const strp1_2 = "Sliding the thumb on the histogram filters indexes by printed year or scale.";
-        // const strp2 = "Select a card to see map image.";
-        // const strp3_1 = "Sliding the thumb on the slider transparents the map image.";
-        // const strp3_2 = "Click Close button to move to index selection map."
-
-        /////////////
-        // シンボル //
-        /////////////
-
-        // 選択された図郭のシンボル
-        const symbolSelectedZukaku = {
-          type: "simple-fill", // autocasts as new SimpleFillSymbol()
-          color: [0, 148, 128, 0.5],
-          outline: {
-            // autocasts as new SimpleLineSymbol()
-            color: [255, 255, 255, 1],
-            width: 2
+      ], function(WebMap, MapView, Legend, Expand) {
+        var webmap = new WebMap({
+          portalItem: {
+            id: "52333f74c9d9465c88f2ed7336e1e627"
           }
-        };
-        // ハイライトされた図郭のシンボル（右側のパネルに２つ以上の図郭があるとき）
-        const symbolHighlightedZukaku = {
-          type: "simple-fill", // autocasts as new SimpleFillSymbol()
-          color: [255, 255, 255, 0],
-          outline: {
-            // autocasts as new SimpleLineSymbol()
-            color: [0, 20, 148, 1],
-            width: 2
-          }
-        };
-
-        const symbolMouseOveredZukaku = {
-          type: "simple-fill", // autocasts as new SimpleFillSymbol()
-          color: [255, 255, 255, 0],
-          outline: {
-            // autocasts as new SimpleLineSymbol()
-            color: [0, 94, 148, 1],
-            width: 2
-          }
-        };
-
-        // function showAlert() {
-        //   if (!useDiv.classList.contains("is-active")) {
-        //     useDiv.classList.add("is-active");
-        //   }
-        // };
-
-        // function hideAlert() {
-        //   if (useDiv.classList.contains("is-active")) {
-        //     useDiv.classList.remove("is-active");
-        //   }
-        // };
-
-        ////////////////////
-        // 図郭検索マップ //
-        ////////////////////
-
-        const map = new Map({
-          basemap: 'streets'
         });
 
-        const view = new MapView({
+        webmap.when(function(map) {
+          document.getElementById("title").innerHTML =
+            map.portalItem.title + " - Expand Widget";
+        });
+
+        var view = new MapView({
           container: "viewDiv",
-          map: map,
-          center: [118.4985351561923, 1.0326589312043144],
-          zoom: 4
+          map: webmap,
+          padding: {
+            top: 55
+          }
         });
 
-        const graphicsLayerSelectedZukaku = new GraphicsLayer();
-        const graphicsLayerHighlightedZukaku = new GraphicsLayer();
-        const graphicsLayerMouseOveredZukaku = new GraphicsLayer();
+        // Desktop
 
-        const zukakuFeatureLayer = new FeatureLayer({
-          url: URL_FL,
-          outFields: ["*"],
-          title: "図郭"
+        var legend = new Legend({
+          view: view,
+          container: document.createElement("div")
         });
-        map.add(zukakuFeatureLayer);
-        // view.ui.components = ["attribution"];
-        // map.add(graphicsLayerSelectedZukaku);
-        // map.add(graphicsLayerHighlightedZukaku);
-        // map.add(graphicsLayerMouseOveredZukaku);
 
-        // const portal = new Portal();
+        // Mobile
 
-        
+        var expandLegend = new Expand({
+          view: view,
+          content: new Legend({
+            view: view,
+            container: document.createElement("div")
+          })
+        });
 
-        // ローダーの表示を止める
-        // view.watch('updating', function(evt){
-        //   if(!evt){
-        //     loaderDiv.classList.remove('is-active');
-        //   };
-        // });
+        // Load
 
-        
+        isResponsiveSize = view.widthBreakpoint === "xsmall";
+        updateView(isResponsiveSize);
 
+        // Breakpoints
+
+        view.watch("widthBreakpoint", function(breakpoint) {
+          switch (breakpoint) {
+            case "xsmall":
+              updateView(true);
+              break;
+            case "small":
+            case "medium":
+            case "large":
+            case "xlarge":
+              updateView(false);
+              break;
+            default:
+          }
+        });
+
+        function updateView(isMobile) {
+          setTitleMobile(isMobile);
+          setLegendMobile(isMobile);
+        }
+
+        function setTitleMobile(isMobile) {
+          if (isMobile) {
+            document.querySelector("#titleDiv").classList.add("invisible");
+            view.padding = {
+              top: 0
+            };
+          } else {
+            document.querySelector("#titleDiv").classList.remove("invisible");
+            view.padding = {
+              top: 55
+            };
+          }
+        }
+
+        function setLegendMobile(isMobile) {
+          var toAdd = isMobile ? expandLegend : legend;
+          var toRemove = isMobile ? legend : expandLegend;
+
+          view.ui.remove(toRemove);
+          view.ui.add(toAdd, "top-right");
+        }
       });
     </script>
+  </head>
 
+  <body>
+    <div id="titleDiv" class="esri-widget"><div id="title"></div></div>
+    <div id="viewDiv"></div>
   </body>
 </html>
