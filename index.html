@@ -143,11 +143,10 @@
         .esri-view-height-xsmall
           .esri-ui-corner
           .esri-expand
-          .esri-legend.esri-widget,
-        .esri-view-height-small
-          .esri-ui-corner
-          .esri-expand
-          .esri-legend.esri-widget {
+          .esri-legend.esri-widget{
+          max-height: 100%;
+        }
+        .esri-expand__container .esri-expand__container--expanded #panelDiv{
           max-height: 100%;
         }
         
@@ -508,7 +507,7 @@
         let useP2;
 
         view.when(function(){
-          panelDiv.style.height = (view.height - 10) +"px";
+          // panelDiv.style.height = (view.height - 10) +"px";
 
           const useDiv = document.createElement('div');
           useDiv.setAttribute("id", "useDiv");
