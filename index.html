@@ -7,7 +7,7 @@
     <meta charset="utf-8">
     <meta content="IE=edge" http-equiv="X-UA-Compatible">
     <meta name="viewport" content="width=device-width, user-scalable=no">
-    <title>Gaihozu Explorer1</title>
+    <title>Gaihozu Explorer</title>
     <link
       rel="stylesheet"
       href="https://js.arcgis.com/4.13/esri/themes/light/main.css"
@@ -126,16 +126,6 @@
         .esri-widget--button.active:hover path,
         .esri-widget--button.active:focus path {
           fill: #e4e4e4;
-        }
-        .esri-view-height-xsmall
-          .esri-ui-corner
-          .esri-expand
-          .esri-legend.esri-widget,
-        .esri-view-height-small
-          .esri-ui-corner
-          .esri-expand
-          .esri-legend.esri-widget {
-          max-height: 100% !important;
         }
         /* #gridDiv{
           position: absolute;
@@ -510,32 +500,32 @@
         view.when(function(){
           panelDiv.style.height = (view.height - 10) +"px";
 
-          // const useDiv = document.createElement('div');
-          // useDiv.setAttribute("id", "useDiv");
-          // useDiv.className = "alert modifier-class is-active";
+          const useDiv = document.createElement('div');
+          useDiv.setAttribute("id", "useDiv");
+          useDiv.className = "alert modifier-class is-active";
           
            
-          // useP1 = document.createElement('div');
-          // useP1.className = "padding-right-1";
-          // useDiv.appendChild(useP1);
+          useP1 = document.createElement('div');
+          useP1.className = "padding-right-1";
+          useDiv.appendChild(useP1);
 
-          // useP2 = document.createElement('div');
-          // useP2.className = "padding-right-1";
-          // useDiv.appendChild(useP2);
+          useP2 = document.createElement('div');
+          useP2.className = "padding-right-1";
+          useDiv.appendChild(useP2);
 
-          // closeAlert = document.createElement('button');
-          // closeAlert.className = "alert-close right";
-          // closeAlert.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>';
-          // useDiv.appendChild(closeAlert);
+          closeAlert = document.createElement('button');
+          closeAlert.className = "alert-close right";
+          closeAlert.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>';
+          useDiv.appendChild(closeAlert);
 
-          // view.ui.add(useDiv, "bottom-left",0);
-          // useP1.innerHTML = strp1_1;
-          // useP2.innerHTML = strp1_2;
+          view.ui.add(useDiv, "bottom-left",0);
+          useP1.innerHTML = strp1_1;
+          useP2.innerHTML = strp1_2;
 
-          // // アラートを閉じる
-          // closeAlert.onclick = function() {
-          //   useDiv.classList.remove("is-active");
-          // };
+          // アラートを閉じる
+          closeAlert.onclick = function() {
+            useDiv.classList.remove("is-active");
+          };
 
         });
 
