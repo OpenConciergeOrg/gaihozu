@@ -6,7 +6,7 @@
       name="viewport"
       content="initial-scale=1,maximum-scale=1,user-scalable=no"
     />
-    <title>Gaihozu Explorer 2</title>
+    <title>Responsive apps using CSS - 4.14</title>
 
     <style>
       html,
@@ -68,45 +68,25 @@
         "esri/WebMap",
         "esri/views/MapView",
         "esri/widgets/Legend",
-        "esri/widgets/Expand",
-        "esri/layers/FeatureLayer",
-        "esri/Map"
-      ], function(
-        WebMap, 
-        MapView, 
-        Legend, 
-        Expand,
-        FeatureLayer,
-        Map
-      ) {
-
-        URL_FL = "https://services1.arcgis.com/qvPIahekAMWThrhc/arcgis/rest/services/zukaku/FeatureServer/0";
-
-        const map = new Map({
-          basemap: 'streets'
-        });
-
-        const view = new MapView({
-          container: "viewDiv",
-          map: map,
-          center: [118.4985351561923, 1.0326589312043144],
-          zoom: 4,
-          padding: {
-            top: 55
+        "esri/widgets/Expand"
+      ], function(WebMap, MapView, Legend, Expand) {
+        var webmap = new WebMap({
+          portalItem: {
+            id: "52333f74c9d9465c88f2ed7336e1e627"
           }
         });
 
-        const zukakuFeatureLayer = new FeatureLayer({
-          url: URL_FL,
-          outFields: ["*"],
-          title: "図郭"
-        });
-        map.add(zukakuFeatureLayer);
-
-
-        view.when(function(map) {
+        webmap.when(function(map) {
           document.getElementById("title").innerHTML =
-            "Gaihozu Explorer";
+            map.portalItem.title + " - Expand Widget";
+        });
+
+        var view = new MapView({
+          container: "viewDiv",
+          map: webmap,
+          padding: {
+            top: 55
+          }
         });
 
         // Desktop
@@ -136,7 +116,6 @@
         view.watch("widthBreakpoint", function(breakpoint) {
           switch (breakpoint) {
             case "xsmall":
-              // updateView(false);
               updateView(true);
               break;
             case "small":
@@ -150,7 +129,7 @@
         });
 
         function updateView(isMobile) {
-          setTitleMobile(isMobile);
+          // setTitleMobile(isMobile);
           setLegendMobile(isMobile);
         }
 
