@@ -104,46 +104,49 @@
           content: panelDiv,
           expanded: true
         });
-        view.ui.add(panelExpand, "top-right");
+        // view.ui.add(panelExpand, "top-right");
 
         view.when(function(){
           panelDiv.style.height = (view.height - 10) +"px";
         })
 
-        // Load
+        view.watch("height", function(newVal){
+          panelDiv.style.height = (newVal - 10) +"px";
+        });
 
-        // isResponsiveSize = view.widthBreakpoint === "xsmall";
-        // updateView(isResponsiveSize);
+        // Load
+        isResponsiveSize = view.widthBreakpoint === "xsmall";
+        updateView(isResponsiveSize);
 
         // Breakpoints
+        view.watch("widthBreakpoint", function(breakpoint) {
+          switch (breakpoint) {
+            case "xsmall":
+              updateView(true);
+              break;
+            case "small":
+            case "medium":
+            case "large":
+            case "xlarge":
+              updateView(false);
+              break;
+            default:
+          }
+        });
 
-        // view.watch("widthBreakpoint", function(breakpoint) {
-        //   switch (breakpoint) {
-        //     case "xsmall":
-        //       updateView(true);
-        //       break;
-        //     case "small":
-        //     case "medium":
-        //     case "large":
-        //     case "xlarge":
-        //       updateView(false);
-        //       break;
-        //     default:
-        //   }
-        // });
+        function setLegendMobile(isMobile) {
+          var toAdd = isMobile ? panelExpand : panelDiv;
+          var toRemove = isMobile ? panelDiv : panelExpand;
+
+          view.ui.remove(toRemove);
+          view.ui.add(toAdd, "top-right");
+        }
 
         function updateView(isMobile) {
-          // setTitleMobile(isMobile);
           setLegendMobile(isMobile);
         }
 
-        // function setLegendMobile(isMobile) {
-        //   var toAdd = isMobile ? expandLegend : legend;
-        //   var toRemove = isMobile ? legend : expandLegend;
-
-        //   view.ui.remove(toRemove);
-        //   view.ui.add(toAdd, "top-right");
-        // }
+        
 
           // ヒストグラム
         let minYear = 1939;
@@ -310,9 +313,6 @@
     <div id="viewDiv"></div>
 
     <div class="esri-widget" id="panelDiv">
-      <!-- <div id="titleDiv" class="font-size-4 padding-leader-1 padding-left-1 padding-right-1 padding-trailer-1">
-        
-      </div> -->
       <div class="panel-dark-blue modifier-class">
         <h4 class="leader-1 trailer-1 padding-left-1 padding-right-1">
           <a href="index.html" class="text-white">
@@ -323,8 +323,6 @@
             <!-- Info -->
           </a>
         </h4>
-        
-        <!-- <p class="trailer-0">Panels set <code>background-color</code> and frame content.</p> -->
       </div>
       <div class="padding-leader-1 padding-trailer-1 padding-left-1 padding-right-1">
       <div id="sliderDiv">
