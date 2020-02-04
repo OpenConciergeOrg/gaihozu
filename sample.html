@@ -6,7 +6,7 @@
       name="viewport"
       content="initial-scale=1,maximum-scale=1,user-scalable=no"
     />
-    <title>Responsive apps using CSS - 4.14</title>
+    <title>Gaihozu Viewer</title>
 
     <style>
       html,
@@ -19,6 +19,7 @@
       }
       #panelDiv{        
         width: 332px;
+        overflow-y: auto;
       }
 
 
@@ -103,6 +104,10 @@
           expanded: true
         });
         view.ui.add(panelExpand, "top-right");
+
+        view.when(function(){
+          panelDiv.style.height = (view.height - 10) +"px";
+        })
 
         // Load
 
@@ -328,6 +333,17 @@
           <div id="scaleSlider"></div>
         </div>
         
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
+        <div class="histogram-title">Map Scale</div>
         <div class="histogram-title">Map Scale</div>
         <div class="histogram-title">Map Scale</div>
         <div class="histogram-title">Map Scale</div>
