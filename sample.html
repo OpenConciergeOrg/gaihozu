@@ -51,9 +51,9 @@
     <script src="https://js.arcgis.com/4.14/"></script>
     <script>
       require([
-        "esri/WebMap",
+        // "esri/WebMap",
         "esri/views/MapView",
-        "esri/widgets/Legend",
+        // "esri/widgets/Legend",
         "esri/widgets/Expand",
         "esri/layers/FeatureLayer",
         "esri/Map",
@@ -61,9 +61,9 @@
         "esri/renderers/smartMapping/statistics/histogram",
         "esri/widgets/HistogramRangeSlider/HistogramRangeSliderViewModel"
       ], function(
-        WebMap, 
+        // WebMap, 
         MapView, 
-        Legend, 
+        // Legend, 
         Expand,
         FeatureLayer,
         Map,
@@ -73,7 +73,9 @@
       ) {
         
         const URL_FL = "https://services1.arcgis.com/qvPIahekAMWThrhc/arcgis/rest/services/zukaku/FeatureServer/0";
-
+        const panelDiv = document.getElementById("panelDiv");
+        const scaleSlider = document.getElementById("scaleSlider");
+        const yearSlider = document.getElementById("yearSlider");
 
         const map = new Map({
           basemap: 'streets'
@@ -93,9 +95,7 @@
           zoom: 4,
         });
 
-        const panelDiv = document.getElementById("panelDiv");
-        const scaleSlider = document.getElementById("scaleSlider");
-        const yearSlider = document.getElementById("yearSlider");
+        
 
         // Desktop
 
@@ -136,20 +136,6 @@
           // setTitleMobile(isMobile);
           setLegendMobile(isMobile);
         }
-
-        // function setTitleMobile(isMobile) {
-        //   if (isMobile) {
-        //     document.querySelector("#titleDiv").classList.add("invisible");
-        //     view.padding = {
-        //       top: 0
-        //     };
-        //   } else {
-        //     document.querySelector("#titleDiv").classList.remove("invisible");
-        //     view.padding = {
-        //       top: 55
-        //     };
-        //   }
-        // }
 
         // function setLegendMobile(isMobile) {
         //   var toAdd = isMobile ? expandLegend : legend;
@@ -329,40 +315,17 @@
           <div class="histogram-title">Printed Year</div>
           <div id="yearSlider"></div>
         </div>
-        <div id="sliderScaleDiv" class="esri-widget">
+        <div id="sliderScaleDiv" class="esri-widget padding-leader-1">
           <div class="histogram-title">Map Scale</div>
           <div id="scaleSlider"></div>
         </div>
-        
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
-        <div class="histogram-title">Map Scale</div>
 
 
-        <div id="featuresCntCard">
+        <!-- <div id="featuresCntCard">
           <div class="card-content text-center">
             <div id="featuresCntDiv"></div>
           </div>
-        </div>
+        </div> -->
       </div>
       <div id="queryResultsDiv">
       </div>
