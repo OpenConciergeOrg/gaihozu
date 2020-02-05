@@ -7,7 +7,7 @@
     <meta charset="utf-8">
     <meta content="IE=edge" http-equiv="X-UA-Compatible">
     <meta name="viewport" content="width=device-width, user-scalable=no">
-    <title>Gaihozu Explorer2</title>
+    <title>Gaihozu Explorer</title>
     <link
       rel="stylesheet"
       href="https://js.arcgis.com/4.13/esri/themes/light/main.css"
@@ -141,7 +141,6 @@
           margin-bottom: 0px;
         }
         
-        
     </style>
     <link rel="shortcut icon" href="/img/favicon.ico">
     <!-- get calcite-web css from the cdn (use latest version) -->
@@ -151,7 +150,7 @@
   <body>
     
     <!-- top navigation -->
-    <!-- <header class="sub-nav">
+    <header class="sub-nav">
       <div class="grid-container">
         <div class="column-24 padding-left-1 padding-right-1 phone-hide">
           <a href="index.html" class="top-nav-title text-white">Gaihozu Explorer</a>
@@ -163,7 +162,7 @@
           </nav>
         </div>
       </div>
-    </header> -->
+    </header>
 
     <!-- <div class="wrapper"> -->
       <div class="js-modal modal-overlay modifier-class" data-modal="foo">
@@ -186,8 +185,8 @@
       </div>
 
       <!-- main-content -->
-      <!-- <div class="grid-container" id="grid"> -->
-        <div id="viewDiv"></div>
+      <div class="grid-container" id="grid">
+        <div class="column-24" id="viewDiv"></div>
         
         <div id="helpDiv">
           <button id="btnHelp" class="esri-widget--button esri-widget esri-interactive esri-icon-question">
@@ -254,7 +253,7 @@
           <div class="loader-bars"></div>
           <!-- <div class="loader-text">Loading...</div> -->
         </div>
-    </div>
+    <!-- </div> -->
     <!-- get calcite-web js from the cdn (use latest version) -->
     <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/js/calcite-web.min.js"></script>
     <!-- interactive patterns need to be initialized -->
@@ -499,7 +498,7 @@
         let useP2;
 
         view.when(function(){
-          // panelDiv.style.height = (view.height - 10) +"px";
+          panelDiv.style.height = (view.height - 10) +"px";
 
           const useDiv = document.createElement('div');
           useDiv.setAttribute("id", "useDiv");
