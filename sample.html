@@ -71,6 +71,15 @@
       .esri-widget{
         background-color: #efefef !important;
       }
+
+      .alert{
+        position: relative;
+      }
+      .alert-close {
+        position: absolute;
+        right: 0 !important;
+        top: 0 !important;
+      }
     </style>
     
     <link
@@ -78,11 +87,11 @@
       href="https://js.arcgis.com/4.14/esri/themes/light/main.css"
     />
     <link rel="stylesheet" href="style.css">
-    <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/js/calcite-web.min.js"></script>
+    <!-- <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/js/calcite-web.min.js"></script> -->
     <!-- interactive patterns need to be initialized -->
-    <script>
+    <!-- <script>
        calcite.init()
-    </script>
+    </script> -->
     <script src="https://js.arcgis.com/4.14/"></script>
     <script>
       require([
@@ -113,6 +122,16 @@
         const scaleSlider = document.getElementById("scaleSlider");
         const yearSlider = document.getElementById("yearSlider");
         const loaderDiv = document.getElementById("loaderDiv");
+        const modalsvg = document.getElementById("modalsvg");
+        const modal = document.getElementById("modal");
+        const closeModal = document.getElementById("closeModal");
+        const closeModalBtn = document.getElementById("closeModalBtn");
+
+        const strp1_1 = "Click a index polygon to see map image.";
+        const strp1_2 = "Sliding the thumb on the histogram filters indexes by printed year or scale.";
+        const strp2 = "Select a card to see map image.";
+        const strp3_1 = "Sliding the thumb on the slider transparents the map image.";
+        const strp3_2 = "Click Close button to move to index selection map."
 
         const map = new Map({
           basemap: 'streets'
@@ -139,6 +158,24 @@
           };
         });
         
+        // モーダル
+        modalsvg.onclick = function(){
+          if (!modal.classList.contains("is-active")) {
+            modal.classList.add("is-active");
+          }
+        };
+
+        closeModal.onclick = function(){
+          if (modal.classList.contains("is-active")) {
+            modal.classList.remove("is-active");
+          }
+        };  
+
+        closeModalBtn.onclick = function(){
+          if (modal.classList.contains("is-active")) {
+            modal.classList.remove("is-active");
+          }
+        };        
 
         // Desktop
 
@@ -149,6 +186,28 @@
         });
         
         view.when(function(){
+          const useDiv = document.createElement('div');
+          useDiv.setAttribute("id", "useDiv");
+          useDiv.className = "alert modifier-class is-active";
+          
+           
+          useP1 = document.createElement('div');
+          useP1.className = "padding-right-1";
+          useDiv.appendChild(useP1);
+
+          useP2 = document.createElement('div');
+          useP2.className = "padding-right-1";
+          useDiv.appendChild(useP2);
+
+          closeAlert = document.createElement('button');
+          closeAlert.className = "alert-close right";
+          closeAlert.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>';
+          useDiv.appendChild(closeAlert);
+
+          view.ui.add(useDiv, "bottom-left",0);
+          useP1.innerHTML = strp1_1;
+          useP2.innerHTML = strp1_2;
+
           panelDiv.style.height = (view.height - 20) +"px";
         })
 
@@ -338,9 +397,9 @@
   <body>
 
     <div class="wrapper">
-    <div class="js-modal modal-overlay modifier-class" data-modal="foo">
+    <div class="js-modal modal-overlay modifier-class" data-modal="foo" id="modal">
       <div class="modal-content column-12" role="dialog" aria-labelledby="modal">
-        <a class="js-modal-toggle right" href="#" aria-label="close-modal">
+        <a class="js-modal-toggle right" href="#" aria-label="close-modal" id="closeModal">
           <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
         </a>
         <h3 class='trailer-half'>Modal!</h3>
@@ -351,7 +410,7 @@
         cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
         proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
         <div class="text-right">
-            <button class="btn js-modal-toggle">Close</button>
+            <button class="btn js-modal-toggle" id="closeModalBtn">Close</button>
             <!-- <button class="btn btn-clear js-modal-toggle">cancel</button> -->
         </div>
       </div>
@@ -371,11 +430,11 @@
             Gaihozu Viewer
           </a>
           
-          <a class="right svg js-modal-toggle" data-modal="foo">
+          <a class="js-modal-toggle right svg" href="#" data-modal="foo" id="modalsvg">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M16.5 9.5a1 1 0 1 1 1-1 1.002 1.002 0 0 1-1 1zM17 23V12h-2v1h1v10h-1v1h3v-1zm12.8-6.5A13.3 13.3 0 1 1 16.5 3.2a13.3 13.3 0 0 1 13.3 13.3zm-1 0a12.3 12.3 0 1 0-12.3 12.3 12.314 12.314 0 0 0 12.3-12.3z"/><path fill="none" d="M0 0h32v32H0z"/></svg>
             <!-- Info -->
           </a>
-          <a class="right svg padding-right-1">
+          <a class="right svg padding-right-half" href="#">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M17 21h-1c0-2.959 1.227-3.919 2.371-5.207.916-1.031 1.639-1.846 1.629-3.264C20 10.104 18.08 9 16.167 9 14.16 9 12 10.194 12 12.817h-1a4.523 4.523 0 0 1 1.648-3.628A5.549 5.549 0 0 1 16.168 8C18.637 8 21 9.555 21 12.525a5.598 5.598 0 0 1-1.881 3.932C18.043 17.668 17 18.421 17 21zm.5 3.5a1 1 0 1 0-1 1 1.002 1.002 0 0 0 1-1zm12.3-8A13.3 13.3 0 1 1 16.5 3.2a13.3 13.3 0 0 1 13.3 13.3zm-1 0a12.3 12.3 0 1 0-12.3 12.3 12.314 12.314 0 0 0 12.3-12.3z"/><path fill="none" d="M0 0h32v32H0z"/></svg>
           </a>
         </h4>
