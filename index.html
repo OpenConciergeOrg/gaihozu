@@ -84,6 +84,12 @@
       .esri-search__container {
         border: solid 1px rgba(110,110,110,0.3);
       }
+      a:hover {
+        color: #750045 !important;
+      }
+      .svg:hover {
+        fill: #750045 !important;
+      }
     </style>
     <link
       rel="stylesheet"
@@ -149,11 +155,12 @@
         const sliderScaleDiv = document.getElementById("sliderScaleDiv");
         const helpsvg = document.getElementById("helpsvg");
 
-        const strp1_1 = "Click a index polygon to see map image.";
-        const strp1_2 = "Sliding the thumb on the histogram on the right pane filters indexes by printed year or scale.";
+        const strp1_1 = "Click a index polygon to see a map image.";
+        const strp1_2 = "Sliding the thumb on the histogram on the right pane filters indexes by printed year or map scale.";
         const strp2 = "Select a card to see map image.";
-        const strp3_1 = "Sliding the thumb on the slider transparents the map image.";
-        const strp3_2 = "Click Back button on the top left corner to move to index selection map."
+        const strp3_1 = "Sliding the thumb on the slider on the right pane transparents the map image.";
+        const strp3_2 = "Click Back button on the top left corner to go back to index selection map."
+        const strp4 = "Please click a index."
 
         /////////////
         // シンボル //
@@ -291,6 +298,17 @@
         let closeAlert;
         let useP1;
         let useP2;
+
+        function removeAlertRed(){
+          if (useDiv.classList.contains("alert-red")) {
+            useDiv.classList.remove("alert-red");
+          } 
+        };
+        
+
+        view.constraints = {
+          rotationEnabled: false  // Disables map rotation
+        };
         
         view.when(function(){
           const useDiv = document.createElement('div');
@@ -640,8 +658,12 @@
           if (length === 0){
             // showAlert();
             
-            useP1.innerHTML = strp1_1;
-            useP2.innerHTML = strp1_2;
+            useP1.innerHTML = strp4;
+            useP2.innerHTML = "";
+            useDiv.classList.add("alert-red");
+            // if (useDiv.classList.contains("alert")) {
+            //   useDiv.classList.add("alert-red");
+            // } 
 
             clearMap();
 
@@ -667,7 +689,7 @@
 
             graphicsLayerMouseOveredZukaku.removeAll();
 
-            // showAlert();
+            removeAlertRed();
             useP1.innerHTML = strp2;
             useP2.innerHTML = "";
 
@@ -937,6 +959,7 @@
 
           useP1.innerHTML = strp3_1;
           useP2.innerHTML = strp3_2;
+          removeAlertRed();
           
           // 透過率スライダー
           if (document.getElementById("sliderTransparencyDiv")) {
