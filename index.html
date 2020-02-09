@@ -1,349 +1,159 @@
-
-<!doctype html>
-<!--[if lt IE 9]>  <html class="ie lt-ie9 ie8"> <![endif]-->
-<!--[if IE 9]>     <html class="ie ie9"> <![endif]-->
-<!--[if !IE]><!--> <html> <!--<![endif]-->
+<!DOCTYPE html>
+<html>
   <head>
-    <meta charset="utf-8">
-    <meta content="IE=edge" http-equiv="X-UA-Compatible">
-    <meta name="viewport" content="width=device-width, user-scalable=no">
-    <title>Gaihozu Explorer</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>Gaihozu Viewer</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+        position: absolute;
+      }
+      #panelDiv{        
+        width: 332px;
+        overflow-y: auto;
+      }
+      .esri-expand .esri-expand__content {
+        box-shadow: none;
+      }
+      .loader{
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+        z-index: 9999 ;
+        position: absolute;
+      }
+      .loader-bars{
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translateY(-50%) translateX(-50%);
+        -webkit-transform: translateY(-50%) translateX(-50%);
+      }
+      .esri-view-width-less-than-small .esri-zoom .esri-widget--button {
+        display: none;
+      }
+      .svg {
+        fill: white;
+      }
+      .esri-histogram-range-slider,
+      .esri-view-width-xsmall .esri-expand--auto .esri-expand__container--expanded,
+      .esri-histogram__content,
+      .esri-widget--button,
+      .histogram-title,
+      .esri-widget {
+        background-color: #efefef !important;
+      }
+      .alert{
+        position: relative;
+      }
+      .alert-close {
+        position: absolute;
+        right: 0 !important;
+        top: 0 !important;
+      }
+      #bluepanel{
+        position: -webkit-sticky;
+        position: sticky;
+        top: 0;
+        z-index: 110;
+      }
+      #toolbarDiv{
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        box-shadow: none;
+        margin-bottom: 0px;
+      }
+      #btnClose {
+        background-color: #004575 !important;
+        color: white !important;
+      }
+      .esri-search__container {
+        border: solid 1px rgba(110,110,110,0.3);
+      }
+    </style>
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.13/esri/themes/light/main.css"
+      href="https://js.arcgis.com/4.14/esri/themes/light/main.css"
     />
-    <style>
-      /* @import url("calcite-web/1.2.5/sass/calcite-web.css"); */
-        html,
-        body,
-        .wrapper {
-          height: 50%;
-          width: 100%;
-          margin: 0;
-          padding: 0;
-          background-color: #efefef;
-          z-index: 0 !important;
-        }
-        .grid-container {
-          height: 100%;
-          width: 100%;
-          margin: 0;
-          padding: 0;
-          
-        }
-        #viewDiv {
-          padding: 0;
-          margin: 0;
-          height: 100%;
-          width: 100%;
-        }
-        #panelDiv{        
-          width: 332px;
-          overflow-y: auto;
-        }
-        .card :hover{
-          cursor: pointer;
-        }
-        .loader{
-          padding: 0;
-          margin: 0;
-          height: 100%;
-          width: 100%;
-          z-index: 9999 ;
-          position: relative;
-        }
-        .loader-bars{
-          width: 100%;
-          height: 100%;
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translateY(-50%) translateX(-50%);
-          -webkit-transform: translateY(-50%) translateX(-50%);
-        }
-        .esri-histogram-range-slider {
-          background-color: #efefef;
-        }
-        .esri-histogram__content{
-          background-color: #efefef;
-        }
-        .esri-widget--button{
-          background-color: #efefef;
-        }
-        #featuresCntCard{
-          background-color: #efefef;
-          box-shadow: 0px 0px 0px #efefef;
-          -webkit-box-shadow: 0px 0px 0px #efefef;
-          pointer-events: none;
-        }
-        .sub-nav{
-          background-color: #005e95 !important;
-        }
-        .histogram-title{
-          background-color: #efefef;
-        }
-        .esri-widget{
-          background-color: #efefef !important;
-        }
-        .alert{
-          position: relative;
-        }
-        .alert-close {
-          position: absolute;
-          right: 0 !important;
-          top: 0 !important;
-        }
-        p .esri-distance-measurement-2d__hint-text{
-          margin-bottom: 0rem;
-          /* margin: 12px 0 !important; */
-        }
-        p { 
-          margin-block-end: 0rem !important;
-        }
-        .esri-distance-measurement-2d__container {
-          position: relative !important;
-          padding: 12px 12px !important;
-          overflow-y: auto !important;
-        }
-        .esri-area-measurement-2d__container {
-          position: relative !important;
-          padding: 12px 12px !important;
-          overflow-y: auto !important;
-        }
-        .esri-search__sources-button {
-          background-color: white !important;
-        }
-        .esri-search__submit-button {
-          background-color: white !important;
-        }
-        .esri-widget--button.active,
-        .esri-widget--button.active:hover,
-        .esri-widget--button.active:focus {
-          cursor: default;
-          background-color: #999696;
-        }
-        .esri-widget--button.active path,
-        .esri-widget--button.active:hover path,
-        .esri-widget--button.active:focus path {
-          fill: #e4e4e4;
-        }
-        /* #gridDiv{
-          position: absolute;
-          top: 60px;
-          left: 40px;
-          display: none;
-        } */
-        #toolbarDiv{
-          display: flex;
-          flex-direction: row;
-          flex-wrap: nowrap;
-          box-shadow: none;
-          margin-bottom: 0px;
-        }
-        
-    </style>
-    <link rel="shortcut icon" href="/img/favicon.ico">
-    <!-- get calcite-web css from the cdn (use latest version) -->
-    <!-- <link rel="stylesheet" href="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/css/calcite-web.min.css"> -->
     <link rel="stylesheet" href="style.css">
-  </head>
-  <body>
-    
-    <!-- top navigation -->
-    <header class="sub-nav">
-      <div class="grid-container">
-        <div class="column-24 padding-left-1 padding-right-1">
-          <a href="index.html" class="top-nav-title text-white">Gaihozu Explorer</a>
-          <nav class="class-top-nav-list right js-modal-toggle" data-modal="foo" role="navigation" aria-labelledby="usernav" id="infoDiv">           
-            <a class="top-nav-link margin-left-1 text-white" href="#">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" class="svg-icon"><path d="M31.297 16.047c0 8.428-6.826 15.25-15.25 15.25S.797 24.475.797 16.047c0-8.424 6.826-15.25 15.25-15.25s15.25 6.826 15.25 15.25zM18 24V12h-4v12h-2v2h8v-2h-2zm0-18h-4v4h4V6z"/></svg>
-              Info
-            </a>
-          </nav>
-        </div>
-      </div>
-    </header>
-
-    <!-- <div class="wrapper"> -->
-      <div class="js-modal modal-overlay modifier-class" data-modal="foo">
-        <div class="modal-content column-12" role="dialog" aria-labelledby="modal" role="dialog">
-          <a class="js-modal-toggle right" href="#" aria-label="close-modal">
-            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
-          </a>
-          <h3 class='trailer-half'>Modal!</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-          tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-          quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-          consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-          cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-          proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-          <div class="text-right">
-              <button class="btn js-modal-toggle">Close</button>
-              <!-- <button class="btn btn-clear js-modal-toggle">cancel</button> -->
-          </div>
-        </div>
-      </div>
-
-      <!-- main-content -->
-      <div class="grid-container" id="grid">
-        <div class="column-24" id="viewDiv"></div>
-        
-        <div id="helpDiv">
-          <button id="btnHelp" class="esri-widget--button esri-widget esri-interactive esri-icon-question">
-          </button>
-        </div>
-        
-
-        <!-- <div id="toolbarDiv" >
-          <button id="distance" class="esri-widget--button esri-interactive esri-icon-measure-line"></button>
-          <button id="area" class="esri-widget--button esri-interactive esri-icon-measure-area"></button>
-          <button id="clear" class="esri-widget--button esri-interactive esri-icon-trash"></button>
-        </div> -->
-
-        <div class="esri-widget padding-leader-1 padding-trailer-1 padding-left-1 padding-right-1" id="panelDiv">
-          <!-- <div id="searchDiv" class="trailer-1"></div> -->
-          <div id="sliderDiv">
-            <div id="sliderYearDiv" class="esri-widget">
-              <div class="histogram-title">Printed Year</div>
-              <div id="yearSlider"></div>
-            </div>
-            <div id="sliderScaleDiv" class="esri-widget padding-leader-1">
-              <div class="histogram-title">Map Scale</div>
-              <div id="scaleSlider"></div>
-            </div>
-            <div class="card block leader-1 trailer-1" id="featuresCntCard">
-              <div class="card-content text-center">
-                <div class="font-size-6" id="featuresCntDiv"></div>
-                <!-- <h4>Some Option</h4>
-                <p class="font-size--3 text-darker-gray trailer-0"><b>A NOTE ABOUT THAT</b></p>
-                <p class="font-size--3 text-darker-gray"><b>YOU WILL LIKE IT</b></p>
-                <hr>
-                <p class="trailer-0">An option option: $10</p>
-                <p>Another option option: $10</p>
-                <a href="#" class="btn btn-fill">Buy Online</a> -->
-              </div>
-            </div>
-          </div>
-          <div id="queryResultsDiv">
-            <!-- <div class="card block trailer-1" id="card">
-              <figure class="card-image-wrap">
-                <img class="card-image" src="https://www.arcgis.com/sharing/rest/content/items/cbfdd74f42a148d5a1de7ee39a368d19/info/thumbnail/thumbnail.png?f=json" alt="Bridge Club, 1954">
-                <figcaption class="card-image-caption">
-                  Florida, January 1954
-                </figcaption>
-              </figure>
-              <div class="card-content"> -->
-                <!-- <h4><a href="#">Card with Image</a></h4> -->
-                <!-- <p class="font-size--1 card-last">Cards can have full-bleed images with optional captions.</p> -->
-                <!-- <a href="../../examples/core/#two-up-cards" class="btn btn-fill leader-1">View Examples</a> -->
-              <!-- </div>   
-            </div> -->
-          </div>
-          <div id="attributeDiv">
-            
-            <!-- <div id="toolbarDiv" class="esri-component esri-widget">
-              <button id="distance" class="esri-widget--button esri-interactive esri-icon-measure-line leader-half phone-hide"></button>
-              <button id="area" class="esri-widget--button esri-interactive esri-icon-measure-area phone-hide"></button>
-              <button id="clear" class="esri-widget--button esri-interactive esri-icon-trash phone-hide"></button>
-            </div> -->
-          </div>
-
-        </div>
-        <div class="loader is-active" id="loaderDiv">
-          <div class="loader-bars"></div>
-          <!-- <div class="loader-text">Loading...</div> -->
-        </div>
-    <!-- </div> -->
-    <!-- get calcite-web js from the cdn (use latest version) -->
-    <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/js/calcite-web.min.js"></script>
+    <!-- <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/js/calcite-web.min.js"></script> -->
     <!-- interactive patterns need to be initialized -->
-    <script>
+    <!-- <script>
        calcite.init()
-    </script>
+    </script> -->
     <script src="https://js.arcgis.com/4.14/"></script>
-
     <script>
       require([
         "esri/views/MapView",
-        "esri/core/watchUtils",
+        "esri/widgets/Expand",
         "esri/layers/FeatureLayer",
         "esri/Map",
-        "esri/layers/GraphicsLayer", 
-        "esri/Graphic",
-        "esri/layers/TileLayer",
-        "esri/widgets/Search",
-        "esri/widgets/Slider",
-        "esri/request",
-        "esri/portal/PortalItem",
         "esri/widgets/HistogramRangeSlider",
         "esri/renderers/smartMapping/statistics/histogram",
-        "esri/core/promiseUtils",
-        "esri/portal/Portal",
-        "esri/layers/Layer",
         "esri/widgets/HistogramRangeSlider/HistogramRangeSliderViewModel",
-        "esri/widgets/Measurement",
-        // "esri/widgets/Zoom",
-        "esri/widgets/Expand"
+        "esri/widgets/Search",
+        "esri/layers/GraphicsLayer",
+        "esri/Graphic",
+        "esri/portal/Portal",
+        "esri/portal/PortalItem",
+        "esri/core/watchUtils",
+        "esri/request",
+        "esri/layers/TileLayer",
+        "esri/widgets/Slider",
+        "esri/widgets/Measurement"
       ], function(
         MapView, 
-        watchUtils,
+        Expand,
         FeatureLayer,
         Map,
-        GraphicsLayer,
-        Graphic,
-        TileLayer,
-        Search,
-        Slider,
-        esriRequest,
-        PortalItem,
         HistogramRangeSlider,
         histogram,
-        promiseUtils,
-        Portal,
-        Layer,
         HistogramRangeSliderVM,
-        Measurement,
-        // Zoom,
-        Expand
+        Search,
+        GraphicsLayer,
+        Graphic,
+        Portal,
+        PortalItem,
+        watchUtils,
+        esriRequest,
+        TileLayer,
+        Slider,
+        Measurement
       ) {
+        
+        const URL_FL = "https://services1.arcgis.com/qvPIahekAMWThrhc/arcgis/rest/services/zukaku/FeatureServer/0";
+        const queryTxt = "owner: Y.Hoshida AND group: 3f221abcf0cc4633a868f8dd49f99f8b AND type: 'Map Service' AND tags: ";
 
-        //////////
-        // 変数 //
-        //////////
-
-        URL_FL = "https://services1.arcgis.com/qvPIahekAMWThrhc/arcgis/rest/services/zukaku/FeatureServer/0";
-
-        let btnClose;
-        // let totalFeaturesCnt;
-        let filteredFeaturesCnt;
-
-        //////////////
-        // HTML要素 //
-        //////////////
-        const queryResultsDiv = document.getElementById("queryResultsDiv");
-        const sliderYearDiv = document.getElementById("sliderYearDiv");
-        const sliderScaleDiv = document.getElementById("sliderScaleDiv");
         const panelDiv = document.getElementById("panelDiv");
-        const viewDiv = document.getElementById("viewDiv");
-        const attributeDiv = document.getElementById("attributeDiv");
-        const featureCountDiv = document.getElementById("featureCountDiv");
-        const sliderDiv = document.getElementById("sliderDiv");
-        const showDialogDiv = document.getElementById("showDialogDiv");
-        const dialog = document.querySelector('dialog');
-        const closeDialogBtn = document.getElementById("closeDialogBtn");
-        const loaderDiv = document.getElementById("loaderDiv");
         const scaleSlider = document.getElementById("scaleSlider");
         const yearSlider = document.getElementById("yearSlider");
-        const featuresCntDiv = document.getElementById("featuresCntDiv");
-        // const gridDiv = document.getElementById("gridDiv");
-        // const toolbarDiv = document.getElementById("toolbarDiv");
-        const helpDiv = document.getElementById("helpDiv");
+        const loaderDiv = document.getElementById("loaderDiv");
+        const modalsvg = document.getElementById("modalsvg");
+        const modal = document.getElementById("modal");
+        const closeModal = document.getElementById("closeModal");
+        const closeModalBtn = document.getElementById("closeModalBtn");
+        const sliderScaleDiv = document.getElementById("sliderScaleDiv");
+        const helpsvg = document.getElementById("helpsvg");
 
         const strp1_1 = "Click a index polygon to see map image.";
-        const strp1_2 = "Sliding the thumb on the histogram filters indexes by printed year or scale.";
+        const strp1_2 = "Sliding the thumb on the histogram on the right pane filters indexes by printed year or scale.";
         const strp2 = "Select a card to see map image.";
         const strp3_1 = "Sliding the thumb on the slider transparents the map image.";
-        const strp3_2 = "Click Close button to move to index selection map."
+        const strp3_2 = "Click Back button on the top left corner to move to index selection map."
 
         /////////////
         // シンボル //
@@ -380,36 +190,14 @@
           }
         };
 
-        // function showAlert() {
-        //   if (!useDiv.classList.contains("is-active")) {
-        //     useDiv.classList.add("is-active");
-        //   }
-        // };
-
-        // function hideAlert() {
-        //   if (useDiv.classList.contains("is-active")) {
-        //     useDiv.classList.remove("is-active");
-        //   }
-        // };
-
-        ////////////////////
-        // 図郭検索マップ //
-        ////////////////////
+        ///////////
+        // マップ //
+        ///////////
+        const portal = new Portal();
 
         const map = new Map({
-          basemap: 'streets'
+          basemap: 'streets-vector'
         });
-
-        const view = new MapView({
-          container: "viewDiv",
-          map: map,
-          center: [118.4985351561923, 1.0326589312043144],
-          zoom: 4,
-        });
-
-        const graphicsLayerSelectedZukaku = new GraphicsLayer();
-        const graphicsLayerHighlightedZukaku = new GraphicsLayer();
-        const graphicsLayerMouseOveredZukaku = new GraphicsLayer();
 
         const zukakuFeatureLayer = new FeatureLayer({
           url: URL_FL,
@@ -417,13 +205,21 @@
           title: "図郭"
         });
         map.add(zukakuFeatureLayer);
+
+        const graphicsLayerSelectedZukaku = new GraphicsLayer();
+        const graphicsLayerHighlightedZukaku = new GraphicsLayer();
+        const graphicsLayerMouseOveredZukaku = new GraphicsLayer();
+
         map.add(graphicsLayerSelectedZukaku);
         map.add(graphicsLayerHighlightedZukaku);
         map.add(graphicsLayerMouseOveredZukaku);
 
-        const portal = new Portal();
-
-        
+        const view = new MapView({
+          container: "viewDiv",
+          map: map,
+          center: [118.4985351561923, 1.0326589312043144],
+          zoom: 3
+        });
 
         // ローダーの表示を止める
         view.watch('updating', function(evt){
@@ -431,6 +227,25 @@
             loaderDiv.classList.remove('is-active');
           };
         });
+        
+        // モーダル
+        modalsvg.onclick = function(){
+          if (!modal.classList.contains("is-active")) {
+            modal.classList.add("is-active");
+          }
+        };
+
+        closeModal.onclick = function(){
+          if (modal.classList.contains("is-active")) {
+            modal.classList.remove("is-active");
+          }
+        };  
+
+        closeModalBtn.onclick = function(){
+          if (modal.classList.contains("is-active")) {
+            modal.classList.remove("is-active");
+          }
+        };
 
         // 検索ウィジェット
         const sources = [{
@@ -451,8 +266,7 @@
         function addSearchWidget(){
           searchDiv = document.createElement('div');
           searchDiv.className = "trailer-1 text-center";
-          // featuresCntCard.parentNode.insertBefore(searchDiv, featuresCntCard);
-          featuresCntCard.parentNode.insertBefore(searchDiv, featuresCntCard.nextSibling); 
+          sliderScaleDiv.parentNode.insertBefore(searchDiv, sliderScaleDiv.nextSibling); 
 
           const searchWidget = new Search({
             view: view,
@@ -467,42 +281,21 @@
           view: view
         });
 
+        // 右側のパネル
         const panelExpand = new Expand({
           view: view,
           content: panelDiv,
           expanded: true
         });
-        if (view.width < 545){
-          view.ui.add(panelExpand, "top-right");
-        } else {
-          view.ui.add(panelDiv, "top-right");
-        }
-
-        view.ui.add(helpDiv, "top-left");
-
-        helpDiv.onclick = function(){
-          if (!useDiv.classList.contains("is-active")) {
-            useDiv.classList.add("is-active");
-          }
-        };
-        
-
-        function expandPanel(){
-          if (panelExpand.expanded === false) {
-            panelExpand.expanded = true;
-          }
-        };
 
         let closeAlert;
         let useP1;
         let useP2;
-
+        
         view.when(function(){
-          panelDiv.style.height = (view.height - 10) +"px";
-
           const useDiv = document.createElement('div');
           useDiv.setAttribute("id", "useDiv");
-          useDiv.className = "alert modifier-class is-active";
+          useDiv.className = "alert is-active";
           
            
           useP1 = document.createElement('div');
@@ -522,41 +315,60 @@
           useP1.innerHTML = strp1_1;
           useP2.innerHTML = strp1_2;
 
+          // 左下のヘルプ
+          helpsvg.onclick = function(){
+            if (!useDiv.classList.contains("is-active")) {
+              useDiv.classList.add("is-active");
+            } else {
+              useDiv.classList.remove("is-active");
+            }
+          };
+
           // アラートを閉じる
           closeAlert.onclick = function() {
             useDiv.classList.remove("is-active");
           };
 
-        });
+          // パネルの高さ
+          panelDiv.style.height = (view.height - 20) +"px";
+        })
 
+        // パネルの高さ
         view.watch("height", function(newVal){
-          panelDiv.style.height = (newVal - 10) +"px";
-          // if (newVal === "small"){
-          //   console.log("small");
-          //   panelDiv.style.height = "200px";
-          // } else if (newVal === "medium") {
-          //   console.log("medium");
-          //   panelDiv.style.height = "300px";
-          // }
+          panelDiv.style.height = (newVal - 20) +"px";
         });
 
-        // ビューのサイズが小さい時ウィジェットを表示しない
-        // if (view.map === map) {
-        //   view.watch("widthBreakpoint", function(newVal) {
-        //     if (newVal === "xsmall") {
-        //       view.ui.components = ["attribution"];
-        //     } else {
-        //       view.ui.components = ["attribution", searchWidget, "zoom"];
-        //     }
-        //   });
-        // }
-        
+        // Load
+        isResponsiveSize = view.widthBreakpoint === "xsmall";
+        updateView(isResponsiveSize);
 
-        zukakuFeatureLayer.queryFeatureCount().then(function(numFeatures){
-          totalFeaturesCnt = numFeatures;
-          filteredFeaturesCnt = numFeatures;
-          featuresCntDiv.innerHTML = filteredFeaturesCnt ;
+        // Breakpoints
+        view.watch("widthBreakpoint", function(breakpoint) {
+          switch (breakpoint) {
+            case "xsmall":
+              updateView(true);
+              break;
+            case "small":
+            case "medium":
+            case "large":
+            case "xlarge":
+              updateView(false);
+              break;
+            default:
+          }
         });
+
+        function setLegendMobile(isMobile) {
+          var toAdd = isMobile ? panelExpand : panelDiv;
+          var toRemove = isMobile ? panelDiv : panelExpand;
+
+          view.ui.remove(toRemove);
+          view.ui.add(toAdd, "top-right");
+        }
+
+        function updateView(isMobile) {
+          setLegendMobile(isMobile);
+        }
 
         // フィーチャレイヤービュー
         let zukakuLayerView;
@@ -568,22 +380,6 @@
           zukakuLayerView.filter = {
             where: whereClause
           };
-
-          // zukakuLayerView.when(function(){
-          //   console.log("a");
-          //   const queryParams = zukakuLayerView.createQuery();
-          //   queryParams.returnGeometry = false;
-          //   queryParams.outFields = ["objectid"];
-          //   queryParams.where = "1=1";
-          //   zukakuLayerView.queryFeatures(queryParams)
-          //     .then(function(response){
-          //       filteredFeaturesCnt = response.features.length;
-          //       featuresCntDiv.innerHTML = filteredFeaturesCnt;
-          //     })
-          //     .catch(function(error) {
-          //       console.log(error);
-          //     });
-          // });
 
           // ポインターが重なった時
           view.on('pointer-move', function(evt){
@@ -605,11 +401,11 @@
 
         });
 
-        // ヒストグラム
+          // ヒストグラム
         let minYear = 1939;
         let maxYear = 1945;
         
-        let minScale = 1;
+        let minScale = 0;
         let maxScale = 12;
 
         const fieldPrintYear = "print_year_en";
@@ -703,18 +499,18 @@
             where: whereClause
           };
 
-          const queryParams = zukakuLayerView.filter.createQuery();
-          queryParams.returnGeometry = false;
-          queryParams.outFields = ["objectid"];
+          // const queryParams = zukakuLayerView.filter.createQuery();
+          // queryParams.returnGeometry = false;
+          // queryParams.outFields = ["objectid"];
 
-          zukakuLayerView.queryFeatures(queryParams)
-            .then(function(response){
-              filteredFeaturesCnt = response.features.length;
-              featuresCntDiv.innerHTML = filteredFeaturesCnt;
-            })
-            .catch(function(error) {
-              console.log(error);
-            });
+          // zukakuLayerView.queryFeatures(queryParams)
+          //   .then(function(response){
+          //     filteredFeaturesCnt = response.features.length;
+          //     featuresCntDiv.innerHTML = filteredFeaturesCnt;
+          //   })
+          //   .catch(function(error) {
+          //     console.log(error);
+          //   });
         };
 
         function scaleChanged(event){
@@ -731,18 +527,26 @@
             where: whereClause
           };
 
-          const queryParams = zukakuLayerView.filter.createQuery();
-          queryParams.returnGeometry = false;
-          queryParams.outFields = ["objectid"];
+          // const queryParams = zukakuLayerView.filter.createQuery();
+          // queryParams.returnGeometry = false;
+          // queryParams.outFields = ["objectid"];
 
-          zukakuLayerView.queryFeatures(queryParams)
-            .then(function(response){
-              filteredFeaturesCnt = response.features.length;
-              featuresCntDiv.innerHTML = filteredFeaturesCnt;
-            })
-            .catch(function(error) {
-              console.log(error);
-            });
+          // zukakuLayerView.queryFeatures(queryParams)
+          //   .then(function(response){
+          //     filteredFeaturesCnt = response.features.length;
+          //     featuresCntDiv.innerHTML = filteredFeaturesCnt;
+          //   })
+          //   .catch(function(error) {
+          //     console.log(error);
+          //   });
+        };
+
+        function clearMap() {
+          graphicsLayerHighlightedZukaku.removeAll();
+          graphicsLayerSelectedZukaku.removeAll();
+          queryResultsDiv.innerHTML = "";
+          sliderDiv.style.display = 'block';
+          attributeDiv.innerHTML = "";
         };
 
         ///////////////////////////////////
@@ -822,6 +626,12 @@
 
         let featuresQuery;
 
+        function expandPanel(){
+          if (panelExpand.expanded === false) {
+            panelExpand.expanded = true;
+          }
+        };
+
         function addGraphicsAndAttribute(response){
           featuresQuery = response.features;
           // console.log(featuresQuery);
@@ -894,7 +704,6 @@
           function createGallery(response){
 
             const thumbnailUrl = response.results[0].thumbnailUrl;
-            // console.log(thumbnailUrl);
 
             const cardBlock = document.createElement("div");
             cardBlock.classList.add("card");
@@ -994,15 +803,6 @@
           });
         };
 
-
-        function clearMap() {
-          graphicsLayerHighlightedZukaku.removeAll();
-          graphicsLayerSelectedZukaku.removeAll();
-          queryResultsDiv.innerHTML = "";
-          sliderDiv.style.display = 'block';
-          attributeDiv.innerHTML = "";
-        };
-
         // マップの中心とズームレベルを取得、外邦図から図郭検索地図に戻る際に使用
         watchUtils.whenTrue(view, "stationary", function() {
           // console.log(view);
@@ -1057,9 +857,15 @@
         let eastId;
         let measurementWidgetDiv;
         let measurementP;
-
-        // const queryTxt = "owner: Y.Hoshida AND type: 'Map Service' AND tags: ";
-        const queryTxt = "owner: Y.Hoshida AND group: 3f221abcf0cc4633a868f8dd49f99f8b AND type: 'Map Service' AND tags: ";
+        let tranparencySlider;
+        let btnClose;
+        let gridDiv;
+        let toolbarDiv;
+        let distanceBtn;
+        let areaBtn;
+        let clearBtn;
+        // let measurement;
+        let selectZukakuDiv;
 
         function createMap(response){
 
@@ -1088,7 +894,7 @@
         };
 
         function addTileLayer(response){
-
+          
           const itemId = response.results[0].id;
 
           const tileLayerUrl = response.results[0].url;
@@ -1129,32 +935,9 @@
           view.map = mapSecond;
           view.constraints = {minZoom: minLOD, maxZoom: maxLOD};
 
-          // showAlert();
           useP1.innerHTML = strp3_1;
           useP2.innerHTML = strp3_2;
-          // view.ui.add("useDiv", "bottom-left",0);
           
-
-          // 外邦図検索画面に戻るcloseボタン
-          // if (document.getElementById("btnClose")) {
-          //   document.getElementById("btnClose").parentNode.removeChild(document.getElementById("btnClose"));
-          // };
-          // const btnDiv = document.createElement('div');
-          // btnDiv.className = "esri-widget";
-          // btnDiv.setAttribute("id","btnDiv");
-          // btnDiv.innerHTML = '<button id="btnClose" class="btn">Close</button>';
-          // queryResultsDiv.parentNode.insertBefore(btnDiv, queryResultsDiv);
-          // btnClose = document.getElementById("btnClose");
-          // if (gridDiv.style.display === "none"){
-          // gridDiv.style.display = "block";
-          
-          // view.ui.add(toolbarDiv, "top-left");
-          // }
-
-
-         
-
-
           // 透過率スライダー
           if (document.getElementById("sliderTransparencyDiv")) {
             document.getElementById("sliderTransparencyDiv").parentNode.removeChild(document.getElementById("sliderTransparencyDiv"));
@@ -1162,14 +945,13 @@
           const sliderTransparencyDiv = document.createElement('div');
           sliderTransparencyDiv.className = "esri-widget";
           sliderTransparencyDiv.setAttribute("id","sliderTransparencyDiv");
-          // sliderTransparencyDiv.classList.add("padding-leader-1");
           sliderTransparencyDiv.classList.add("padding-trailer-1");
           sliderTransparencyDiv.innerHTML = '<div class="histogram-title padding-trailer-1">Transparency</div><div id="tranparencySlider" class="slider"></div>';
 
           queryResultsDiv.parentNode.insertBefore(sliderTransparencyDiv, queryResultsDiv);
           
           
-          const tranparencySlider = new Slider({
+          tranparencySlider = new Slider({
             container: "tranparencySlider",
             min: 0,
             max: 100,
@@ -1180,16 +962,28 @@
             rangeLabelsVisible: true
           });
 
+          tranparencySlider.on(
+            ["thumb-change", "thumb-drag"],
+            transparencyChanged
+          );
+
+          function transparencyChanged(event) {
+            var value = event.value;
+            tileLayer.opacity = value/100;
+            // console.log(tileLayer);
+          };
+          
+
           // 図郭選択
           if (document.getElementById("selectZukakuDiv")) {
             document.getElementById("selectZukakuDiv").parentNode.removeChild(document.getElementById("selectZukakuDiv"));
           };
 
-          const selectZukakuDiv = document.createElement('div');
+          selectZukakuDiv = document.createElement('div');
           selectZukakuDiv.setAttribute("id", "selectZukakuDiv");
           selectZukakuDiv.className = "esri-component esri-widget";
           panelDiv.parentNode.insertBefore(selectZukakuDiv, panelDiv);
-          // console.log(northId);  
+
           if (northId) {
             const upArrowBtn = document.createElement('button');
             upArrowBtn.setAttribute("id", "upArrow");
@@ -1249,8 +1043,7 @@
             document.getElementById("gridDiv").parentNode.removeChild(document.getElementById("gridDiv"));
           };
 
-
-          const gridDiv = document.createElement("div");
+          gridDiv = document.createElement("div");
           gridDiv.setAttribute("id", "gridDiv");
           gridDiv.className = "esri-widget";
           panelDiv.parentNode.insertBefore(gridDiv, panelDiv);
@@ -1263,13 +1056,13 @@
 
           view.ui.add(gridDiv, "top-left", 0);
           view.ui.move("zoom", "top-left", 1);
-          view.ui.move(helpDiv, "top-left", 2);
+          // view.ui.move(helpDiv, "top-left", 2);
           
 
           view.ui.add([
             {component: selectZukakuDiv,
              position: "top-left",
-             index: 3
+             index: 2
             }
           ]);
 
@@ -1283,35 +1076,32 @@
               document.getElementById("toolbarDiv").parentNode.removeChild(document.getElementById("toolbarDiv"));
             };
             
-            measurementP = document.createElement('p');
+            measurementP = document.createElement('div');
             measurementP.setAttribute("id", "measurementP");
             measurementP.className = ("histogram-title padding-trailer-half");
             measurementP.innerHTML = "Measurement";
             sliderTransparencyDiv.parentNode.insertBefore(measurementP, sliderTransparencyDiv.nextSibling);
-
-            const toolbarDiv = document.createElement('div');
+            
+            toolbarDiv = document.createElement('div');
             toolbarDiv.setAttribute("id", "toolbarDiv");
             toolbarDiv.className = "esri-component esri-widget padding-trailer-half";
             measurementP.parentNode.insertBefore(toolbarDiv, measurementP.nextSibling);
-
-            const distanceBtn = document.createElement('button');
+            
+            distanceBtn = document.createElement('button');
             distanceBtn.setAttribute("id", "distance");
             distanceBtn.className = "esri-widget--button esri-interactive esri-icon-measure-line";
             toolbarDiv.appendChild(distanceBtn);
 
-            const areaBtn = document.createElement('button');
+            areaBtn = document.createElement('button');
             areaBtn.setAttribute("id", "area");
             areaBtn.className = "esri-widget--button esri-interactive esri-icon-measure-area";
             toolbarDiv.appendChild(areaBtn);
 
-            const clearBtn = document.createElement('button');
+            clearBtn = document.createElement('button');
             clearBtn.setAttribute("id", "clear");
             clearBtn.className = "esri-widget--button esri-interactive esri-icon-trash";
             toolbarDiv.appendChild(clearBtn);
 
-            if (measurementWidgetDiv) {
-              measurementWidgetDiv.parentNode.removeChild(measurementWidgetDiv);
-            };
             measurementWidgetDiv = document.createElement("div");
             toolbarDiv.parentNode.insertBefore(measurementWidgetDiv, toolbarDiv.nextSibling);
 
@@ -1320,52 +1110,37 @@
               container: measurementWidgetDiv
             });
 
-            const distanceButton = document.getElementById("distance");
-            const areaButton = document.getElementById("area");
-            const clearButton = document.getElementById("clear");
-
-            distanceButton.addEventListener("click", function() {
-              panelExpand.expanded = false;
+            distanceBtn.addEventListener("click", function() {
               distanceMeasurement();
             });
-            areaButton.addEventListener("click", function() {
-              panelExpand.expanded = false;
+            areaBtn.addEventListener("click", function() {
               areaMeasurement();
             });
-            clearButton.addEventListener("click", function() {
+            clearBtn.addEventListener("click", function() {
               clearMeasurements();
             });
 
             function distanceMeasurement() {
               measurement.activeTool = "distance";
-              distanceButton.classList.add("active");
-              areaButton.classList.remove("active");
+              distanceBtn.classList.add("active");
+              areaBtn.classList.remove("active");
             };
 
             function areaMeasurement() {
               measurement.activeTool = "area";
-              distanceButton.classList.remove("active");
-              areaButton.classList.add("active");
+              distanceBtn.classList.remove("active");
+              areaBtn.classList.add("active");
             };
 
             function clearMeasurements() {
-              distanceButton.classList.remove("active");
-              areaButton.classList.remove("active");
+              distanceBtn.classList.remove("active");
+              areaBtn.classList.remove("active");
               measurement.clear();
             };
           };
 
-          tranparencySlider.on(
-            ["thumb-change", "thumb-drag"],
-            transparencyChanged
-          );
-
-          function transparencyChanged(event) {
-            var value = event.value;
-            tileLayer.opacity = value/100;
-            
-          };
-
+          
+          
 
           view.watch('updating', function(evt){
             if(!evt){
@@ -1412,12 +1187,11 @@
             const field = arrayAtt[i]["att"];
             const attValue = feature.attributes[field];
 
-            if (attValue && attValue !== "－") {
+            // if (attValue && attValue !== "－") {
               const attribute = document.createElement("div");
               attribute.classList.add("trailer-1");
               attributeDiv.appendChild(attribute);
-              // attribute.style.paddingBottom = "10px";
-
+              
               const title = document.createElement("div");
               attribute.appendChild(title);
               title.style.color = "gray";
@@ -1425,10 +1199,9 @@
 
               const value = document.createElement("div");
               attribute.appendChild(value);
-              // value.style.marginLeft = "10px";
               
               value.innerHTML = attValue;
-            };
+            // };
             
 
           };
@@ -1440,12 +1213,13 @@
         //////////////////////////////////////////
 
         function clickCloseBtn (){
+          
           btnClose.onclick = function() {
 
-            // if (document.getElementById("btnClose")) {
-            //   document.getElementById("btnClose").parentNode.removeChild(document.getElementById("btnClose"));
-            // };
-            gridDiv.style.display = "none";
+            if (document.getElementById("gridDiv")) {
+              document.getElementById("gridDiv").parentNode.removeChild(document.getElementById("gridDiv"));
+            };
+            // gridDiv.style.display = "none";
             if (document.getElementById("sliderTransparencyDiv")) {
               document.getElementById("sliderTransparencyDiv").parentNode.removeChild(document.getElementById("sliderTransparencyDiv"));
             };
@@ -1461,16 +1235,6 @@
 
             graphicsLayerHighlightedZukaku.removeAll();
 
-
-            // マップが変わったタイミングを監視、不要
-            view.watch("map", function(newValue, oldValue) {
-              // console.log("basemap's title changed from " + oldValue + " to " + newValue);
-
-              if (oldValue === mapSecond){
-              };
-
-            });
-
             if (document.getElementById("atthr")) {
               document.getElementById("atthr").parentNode.removeChild(document.getElementById("atthr"));
             };
@@ -1479,19 +1243,16 @@
               measurementWidgetDiv.parentNode.removeChild(measurementWidgetDiv);
             };
 
+            if (measurementP) {
+              measurementP.parentNode.removeChild(measurementP);
+            };
+
+
 
             view.map = map;
-            // view.ui.remove("btnDiv");
-            // view.ui.remove("sliderTransparencyDiv");
-            // view.ui.remove(searchWidgetNoSources);
-            view.ui.remove("toolbarDiv");
-            view.ui.remove(measurementWidgetDiv);
-            measurementP.parentNode.removeChild(measurementP);
-            view.ui.remove("selectZukakuDiv");
-            // view.ui.add(searchWidget, "bottom-left");
-            // addSearchWidget();
+            view.ui.remove(gridDiv);
+            view.ui.remove(selectZukakuDiv);
 
-            // showAlert();
             useP1.innerHTML = strp1_1;
             useP2.innerHTML = strp1_2;
 
@@ -1524,6 +1285,11 @@
               });
             });
 
+            queryResultsDiv.innerHTML = "";
+            sliderDiv.style.display = 'block';
+            attributeDiv.innerHTML = "";
+
+
             var selectedZukaku = graphicsLayerSelectedZukaku.graphics.items;
             // var point = graphisLayerCenter.graphics.items[0].geometry;
             if (selectedZukaku.length >= 2){
@@ -1540,6 +1306,78 @@
 
       });
     </script>
+  </head>
 
+  <body>
+
+    <div class="wrapper">
+    <div class="js-modal modal-overlay modifier-class" data-modal="foo" id="modal">
+      <div class="modal-content column-12" role="dialog" aria-labelledby="modal">
+        <a class="js-modal-toggle right" href="#" aria-label="close-modal" id="closeModal">
+          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
+        </a>
+        <h3 class='trailer-half'>Modal!</h3>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+        cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+        proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        <div class="text-right">
+          <button class="btn js-modal-toggle" id="closeModalBtn">Close</button>
+          <!-- <button class="btn btn-clear js-modal-toggle">cancel</button> -->
+        </div>
+      </div>
+    </div>
+
+    <div id="viewDiv"></div>
+
+    <div class="loader is-active" id="loaderDiv">
+      <div class="loader-bars"></div>
+      <!-- <div class="loader-text">Loading...</div> -->
+    </div>
+
+    <div class="esri-widget" id="panelDiv">
+      <div class="panel-dark-blue" id="bluepanel">
+        <h4 class="leader-1 trailer-1 padding-left-1 padding-right-1">
+          <a href="index.html" class="text-white">
+            Gaihozu Viewer
+          </a>
+          
+          <a class="js-modal-toggle right svg" href="#" data-modal="foo" id="modalsvg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M16.5 9.5a1 1 0 1 1 1-1 1.002 1.002 0 0 1-1 1zM17 23V12h-2v1h1v10h-1v1h3v-1zm12.8-6.5A13.3 13.3 0 1 1 16.5 3.2a13.3 13.3 0 0 1 13.3 13.3zm-1 0a12.3 12.3 0 1 0-12.3 12.3 12.314 12.314 0 0 0 12.3-12.3z"/><path fill="none" d="M0 0h32v32H0z"/></svg>
+            <!-- Info -->
+          </a>
+          <a class="right svg padding-right-half" href="#" id="helpsvg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M17 21h-1c0-2.959 1.227-3.919 2.371-5.207.916-1.031 1.639-1.846 1.629-3.264C20 10.104 18.08 9 16.167 9 14.16 9 12 10.194 12 12.817h-1a4.523 4.523 0 0 1 1.648-3.628A5.549 5.549 0 0 1 16.168 8C18.637 8 21 9.555 21 12.525a5.598 5.598 0 0 1-1.881 3.932C18.043 17.668 17 18.421 17 21zm.5 3.5a1 1 0 1 0-1 1 1.002 1.002 0 0 0 1-1zm12.3-8A13.3 13.3 0 1 1 16.5 3.2a13.3 13.3 0 0 1 13.3 13.3zm-1 0a12.3 12.3 0 1 0-12.3 12.3 12.314 12.314 0 0 0 12.3-12.3z"/><path fill="none" d="M0 0h32v32H0z"/></svg>
+          </a>
+        </h4>
+      </div>
+      <div class="padding-leader-1 padding-trailer-1 padding-left-1 padding-right-1">
+        <div id="sliderDiv">
+          <div id="sliderYearDiv" class="esri-widget">
+            <div class="histogram-title">Printed Year</div>
+            <div id="yearSlider"></div>
+          </div>
+          <div id="sliderScaleDiv" class="esri-widget padding-leader-1 padding-trailer-1">
+            <div class="histogram-title">Map Scale</div>
+            <div id="scaleSlider"></div>
+          </div>
+
+
+          <!-- <div id="featuresCntCard">
+            <div class="card-content text-center">
+              <div id="featuresCntDiv"></div>
+            </div>
+          </div> -->
+        </div>
+        <div id="queryResultsDiv">
+        </div>
+        <div id="attributeDiv">
+        </div>
+      </div>
+      
+    </div>
+    </div>
   </body>
 </html>
