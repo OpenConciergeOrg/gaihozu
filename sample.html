@@ -22,12 +22,9 @@
         width: 332px;
         overflow-y: auto;
       }
-
-
       .esri-expand .esri-expand__content {
         box-shadow: none;
       }
-
       .loader{
         padding: 0;
         margin: 0;
@@ -45,15 +42,12 @@
         transform: translateY(-50%) translateX(-50%);
         -webkit-transform: translateY(-50%) translateX(-50%);
       }
-
       .esri-view-width-less-than-small .esri-zoom .esri-widget--button {
         display: none;
       }
-
-      .svg{
+      .svg {
         fill: white;
       }
-
       .esri-histogram-range-slider,
       .esri-view-width-xsmall .esri-expand--auto .esri-expand__container--expanded,
       .esri-histogram__content,
@@ -62,8 +56,6 @@
       .esri-widget {
         background-color: #efefef !important;
       }
-
-
       .alert{
         position: relative;
       }
@@ -85,8 +77,14 @@
         box-shadow: none;
         margin-bottom: 0px;
       }
+      #btnClose {
+        background-color: #004575 !important;
+        color: white !important;
+      }
+      .esri-search__container {
+        border: solid 1px rgba(110,110,110,0.3);
+      }
     </style>
-    
     <link
       rel="stylesheet"
       href="https://js.arcgis.com/4.14/esri/themes/light/main.css"
@@ -100,9 +98,7 @@
     <script src="https://js.arcgis.com/4.14/"></script>
     <script>
       require([
-        // "esri/WebMap",
         "esri/views/MapView",
-        // "esri/widgets/Legend",
         "esri/widgets/Expand",
         "esri/layers/FeatureLayer",
         "esri/Map",
@@ -120,9 +116,7 @@
         "esri/widgets/Slider",
         "esri/widgets/Measurement"
       ], function(
-        // WebMap, 
         MapView, 
-        // Legend, 
         Expand,
         FeatureLayer,
         Map,
@@ -196,7 +190,9 @@
           }
         };
 
-        // マップ
+        ///////////
+        // マップ //
+        ///////////
         const portal = new Portal();
 
         const map = new Map({
@@ -251,8 +247,6 @@
           }
         };
 
-        
-
         // 検索ウィジェット
         const sources = [{
           layer: zukakuFeatureLayer,
@@ -287,8 +281,7 @@
           view: view
         });
 
-        // Desktop
-
+        // 右側のパネル
         const panelExpand = new Expand({
           view: view,
           content: panelDiv,
@@ -336,9 +329,11 @@
             useDiv.classList.remove("is-active");
           };
 
+          // パネルの高さ
           panelDiv.style.height = (view.height - 20) +"px";
         })
 
+        // パネルの高さ
         view.watch("height", function(newVal){
           panelDiv.style.height = (newVal - 20) +"px";
         });
@@ -869,7 +864,7 @@
         let distanceBtn;
         let areaBtn;
         let clearBtn;
-        let measurement;
+        // let measurement;
         let selectZukakuDiv;
 
         function createMap(response){
@@ -950,7 +945,6 @@
           const sliderTransparencyDiv = document.createElement('div');
           sliderTransparencyDiv.className = "esri-widget";
           sliderTransparencyDiv.setAttribute("id","sliderTransparencyDiv");
-          // sliderTransparencyDiv.classList.add("padding-leader-1");
           sliderTransparencyDiv.classList.add("padding-trailer-1");
           sliderTransparencyDiv.innerHTML = '<div class="histogram-title padding-trailer-1">Transparency</div><div id="tranparencySlider" class="slider"></div>';
 
@@ -989,7 +983,7 @@
           selectZukakuDiv.setAttribute("id", "selectZukakuDiv");
           selectZukakuDiv.className = "esri-component esri-widget";
           panelDiv.parentNode.insertBefore(selectZukakuDiv, panelDiv);
-          console.log(northId);  
+
           if (northId) {
             const upArrowBtn = document.createElement('button');
             upArrowBtn.setAttribute("id", "upArrow");
@@ -1111,7 +1105,7 @@
             measurementWidgetDiv = document.createElement("div");
             toolbarDiv.parentNode.insertBefore(measurementWidgetDiv, toolbarDiv.nextSibling);
 
-            measurement = new Measurement({
+            const measurement = new Measurement({
               view: view,
               container: measurementWidgetDiv
             });
@@ -1256,18 +1250,9 @@
 
 
             view.map = map;
-            // view.ui.remove("btnDiv");
-            // view.ui.remove("sliderTransparencyDiv");
-            // view.ui.remove(searchWidgetNoSources);
-            // view.ui.remove(toolbarDiv);
-            // view.ui.remove(measurementWidgetDiv);
             view.ui.remove(gridDiv);
-            
             view.ui.remove(selectZukakuDiv);
-            // view.ui.add(searchWidget, "bottom-left");
-            // addSearchWidget();
 
-            // showAlert();
             useP1.innerHTML = strp1_1;
             useP2.innerHTML = strp1_2;
 
