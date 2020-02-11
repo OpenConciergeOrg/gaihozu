@@ -262,8 +262,8 @@
           displayField: "id",
           exactMatch: false,
           outFields: ["*"],
-          name: "Point FS",
-          placeholder: "example: esri",
+          name: "Search by ID",
+          placeholder: "example: TH008053",
           maxResults: 6,
           maxSuggestions: 6,
           suggestionsEnabled: true,
@@ -390,8 +390,9 @@
         }
 
         // フィーチャレイヤービュー
-        let zukakuLayerView;
-        let whereClause = "1=1";
+        let zukakuLayerView　;
+        const defaultWhereClause = "georeference = 1";
+        let whereClause = defaultWhereClause;
 
         view.whenLayerView(zukakuFeatureLayer).then(function(layerView) {
 
@@ -424,7 +425,7 @@
         let minYear = 1939;
         let maxYear = 1945;
         
-        let minScale = 0;
+        let minScale = 1;
         let maxScale = 12;
 
         const fieldPrintYear = "print_year_en";
@@ -513,7 +514,7 @@
           } else if (index === 1){
             maxYear = year;
           };
-          whereClause = fieldPrintYear + ">= " + minYear + " AND " + fieldPrintYear + " <= " + maxYear + " AND " + fieldScale + " >= " + minScale + " AND " + fieldScale + " <= " + maxScale;
+          whereClause = fieldPrintYear + ">= " + minYear + " AND " + fieldPrintYear + " <= " + maxYear + " AND " + fieldScale + " >= " + minScale + " AND " + fieldScale + " <= " + maxScale + " AND " + defaultWhereClause;
           zukakuLayerView.filter = {
             where: whereClause
           };
@@ -541,7 +542,7 @@
           } else if (index === 1){
             maxScale = scale;
           };
-          whereClause = fieldPrintYear + ">= " + minYear + " AND " + fieldPrintYear + " <= " + maxYear + " AND " + fieldScale + " >= " + minScale + " AND " + fieldScale + " <= " + maxScale;
+          whereClause = fieldPrintYear + ">= " + minYear + " AND " + fieldPrintYear + " <= " + maxYear + " AND " + fieldScale + " >= " + minScale + " AND " + fieldScale + " <= " + maxScale + " AND " + defaultWhereClause;
           zukakuLayerView.filter = {
             where: whereClause
           };
@@ -1191,9 +1192,9 @@
           {"title": "PRINTED BY", "att": "printed_by"},
           
           {"title": "PUBLISHED IN", "att": "publish_year"},
-          {"title": "HEIGHT (cm)", "att": "height"},
-          {"title": "WIDTH (cm)", "att": "width"},
-          {"title": "COLOR", "att": "color"},
+          {"title": "HEIGHT x WIDTH(cm)", "att": "height_width"},
+          // {"title": "WIDTH (cm)", "att": "width"},
+          {"title": "COLOR", "att": "color_en"},
           {"title": "ID", "att": "id"}
         ];
 
@@ -1317,7 +1318,9 @@
             var selectedZukaku = graphicsLayerSelectedZukaku.graphics.items;
             // var point = graphisLayerCenter.graphics.items[0].geometry;
             if (selectedZukaku.length >= 2){
-              
+              sliderDiv.style.display = 'none';
+              useP1.innerHTML = strp2;
+              useP2.innerHTML = "";
               attributeDiv.innerHTML = "";
               featuresQuery.forEach(function(featureQuery) {
                 addSelectedZukakuAttribute(featureQuery);
@@ -1335,73 +1338,73 @@
   <body>
 
     <div class="wrapper">
-    <div class="js-modal modal-overlay modifier-class" data-modal="foo" id="modal">
-      <div class="modal-content column-12" role="dialog" aria-labelledby="modal">
-        <a class="js-modal-toggle right" href="#" aria-label="close-modal" id="closeModal">
-          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
-        </a>
-        <h3 class='trailer-half'>Modal!</h3>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-        cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-        proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-        <div class="text-right">
-          <button class="btn js-modal-toggle" id="closeModalBtn">Close</button>
-          <!-- <button class="btn btn-clear js-modal-toggle">cancel</button> -->
+      <div class="js-modal modal-overlay modifier-class" data-modal="foo" id="modal">
+        <div class="modal-content column-12" role="dialog" aria-labelledby="modal">
+          <a class="js-modal-toggle right" href="#" aria-label="close-modal" id="closeModal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
+          </a>
+          <h3 class='trailer-half'>Modal!</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+          tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+          quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+          consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+          cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+          proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+          <div class="text-right">
+            <button class="btn js-modal-toggle" id="closeModalBtn">Close</button>
+            <!-- <button class="btn btn-clear js-modal-toggle">cancel</button> -->
+          </div>
         </div>
       </div>
-    </div>
 
-    <div id="viewDiv"></div>
+      <div id="viewDiv"></div>
 
-    <div class="loader is-active" id="loaderDiv">
-      <div class="loader-bars"></div>
-      <!-- <div class="loader-text">Loading...</div> -->
-    </div>
-
-    <div class="esri-widget" id="panelDiv">
-      <div class="panel-dark-blue" id="bluepanel">
-        <h4 class="leader-1 trailer-1 padding-left-1 padding-right-1">
-          <a href="index.html" class="text-white">
-            Gaihozu Viewer
-          </a>
-          
-          <a class="js-modal-toggle right svg" href="#" data-modal="foo" id="modalsvg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M16.5 9.5a1 1 0 1 1 1-1 1.002 1.002 0 0 1-1 1zM17 23V12h-2v1h1v10h-1v1h3v-1zm12.8-6.5A13.3 13.3 0 1 1 16.5 3.2a13.3 13.3 0 0 1 13.3 13.3zm-1 0a12.3 12.3 0 1 0-12.3 12.3 12.314 12.314 0 0 0 12.3-12.3z"/><path fill="none" d="M0 0h32v32H0z"/></svg>
-            <!-- Info -->
-          </a>
-          <a class="right svg padding-right-half" href="#" id="helpsvg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M17 21h-1c0-2.959 1.227-3.919 2.371-5.207.916-1.031 1.639-1.846 1.629-3.264C20 10.104 18.08 9 16.167 9 14.16 9 12 10.194 12 12.817h-1a4.523 4.523 0 0 1 1.648-3.628A5.549 5.549 0 0 1 16.168 8C18.637 8 21 9.555 21 12.525a5.598 5.598 0 0 1-1.881 3.932C18.043 17.668 17 18.421 17 21zm.5 3.5a1 1 0 1 0-1 1 1.002 1.002 0 0 0 1-1zm12.3-8A13.3 13.3 0 1 1 16.5 3.2a13.3 13.3 0 0 1 13.3 13.3zm-1 0a12.3 12.3 0 1 0-12.3 12.3 12.314 12.314 0 0 0 12.3-12.3z"/><path fill="none" d="M0 0h32v32H0z"/></svg>
-          </a>
-        </h4>
+      <div class="loader is-active" id="loaderDiv">
+        <div class="loader-bars"></div>
+        <!-- <div class="loader-text">Loading...</div> -->
       </div>
-      <div class="padding-leader-1 padding-trailer-1 padding-left-1 padding-right-1">
-        <div id="sliderDiv">
-          <div id="sliderYearDiv" class="esri-widget">
-            <div class="histogram-title">Printed Year</div>
-            <div id="yearSlider"></div>
-          </div>
-          <div id="sliderScaleDiv" class="esri-widget padding-leader-1 padding-trailer-1">
-            <div class="histogram-title">Map Scale</div>
-            <div id="scaleSlider"></div>
-          </div>
 
-
-          <!-- <div id="featuresCntCard">
-            <div class="card-content text-center">
-              <div id="featuresCntDiv"></div>
+      <div class="esri-widget" id="panelDiv">
+        <div class="panel-dark-blue" id="bluepanel">
+          <h4 class="leader-1 trailer-1 padding-left-1 padding-right-1">
+            <a href="index.html" class="text-white">
+              Gaihozu Viewer
+            </a>
+            
+            <a class="js-modal-toggle right svg" href="#" data-modal="foo" id="modalsvg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M16.5 9.5a1 1 0 1 1 1-1 1.002 1.002 0 0 1-1 1zM17 23V12h-2v1h1v10h-1v1h3v-1zm12.8-6.5A13.3 13.3 0 1 1 16.5 3.2a13.3 13.3 0 0 1 13.3 13.3zm-1 0a12.3 12.3 0 1 0-12.3 12.3 12.314 12.314 0 0 0 12.3-12.3z"/><path fill="none" d="M0 0h32v32H0z"/></svg>
+              <!-- Info -->
+            </a>
+            <a class="right svg padding-right-half" href="#" id="helpsvg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M17 21h-1c0-2.959 1.227-3.919 2.371-5.207.916-1.031 1.639-1.846 1.629-3.264C20 10.104 18.08 9 16.167 9 14.16 9 12 10.194 12 12.817h-1a4.523 4.523 0 0 1 1.648-3.628A5.549 5.549 0 0 1 16.168 8C18.637 8 21 9.555 21 12.525a5.598 5.598 0 0 1-1.881 3.932C18.043 17.668 17 18.421 17 21zm.5 3.5a1 1 0 1 0-1 1 1.002 1.002 0 0 0 1-1zm12.3-8A13.3 13.3 0 1 1 16.5 3.2a13.3 13.3 0 0 1 13.3 13.3zm-1 0a12.3 12.3 0 1 0-12.3 12.3 12.314 12.314 0 0 0 12.3-12.3z"/><path fill="none" d="M0 0h32v32H0z"/></svg>
+            </a>
+          </h4>
+        </div>
+        <div class="padding-leader-1 padding-trailer-1 padding-left-1 padding-right-1">
+          <div id="sliderDiv">
+            <div id="sliderYearDiv" class="esri-widget">
+              <div class="histogram-title">Printed Year</div>
+              <div id="yearSlider"></div>
             </div>
-          </div> -->
+            <div id="sliderScaleDiv" class="esri-widget padding-leader-1 padding-trailer-1">
+              <div class="histogram-title">Map Scale</div>
+              <div id="scaleSlider"></div>
+            </div>
+
+
+            <!-- <div id="featuresCntCard">
+              <div class="card-content text-center">
+                <div id="featuresCntDiv"></div>
+              </div>
+            </div> -->
+          </div>
+          <div id="queryResultsDiv">
+          </div>
+          <div id="attributeDiv">
+          </div>
         </div>
-        <div id="queryResultsDiv">
-        </div>
-        <div id="attributeDiv">
-        </div>
+        
       </div>
-      
-    </div>
     </div>
   </body>
 </html>
