@@ -376,9 +376,13 @@
           // パネルの高さ
           panelDiv.style.height = (view.height - 20) +"px";
 
+          addSearchWidget(sliderDiv);
           addMeasure(sliderDiv);
+          
 
-          addSearchWidget(toolbarDiv);
+          
+
+          
         })
 
         // パネルの高さ
@@ -694,7 +698,7 @@
           queryParams.returnGeometry = true;
           queryParams.outFields = ["*"];
 
-          if (view.map === map){
+          if (view.map === map && !measurement.activeWidget){
             zukakuLayerView.queryFeatures(queryParams)
             .then(addGraphicsAndAttribute)
             .catch(function(error) {
@@ -715,7 +719,7 @@
 
         function addGraphicsAndAttribute(response){
           featuresQuery = response.features;
-          // console.log(featuresQuery);
+          
           const length = featuresQuery.length;
           // フィーチャがない場所をクリックしたとき
           if (length === 0){
@@ -956,7 +960,7 @@
         let distanceBtn;
         let areaBtn;
         let clearBtn;
-        // let measurement;
+        let measurement;
         let selectZukakuDiv;
 
         function createMap(response){
@@ -1053,10 +1057,12 @@
             measurementWidgetDiv = document.createElement("div");
             toolbarDiv.parentNode.insertBefore(measurementWidgetDiv, toolbarDiv.nextSibling);
 
-            const measurement = new Measurement({
+            measurement = new Measurement({
               view: view,
               container: measurementWidgetDiv
             });
+
+            
 
             distanceBtn.addEventListener("click", function() {
               distanceMeasurement();
