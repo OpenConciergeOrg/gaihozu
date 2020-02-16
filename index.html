@@ -443,8 +443,11 @@
           });
 
           // クリック時
+          // ベースマップギャラリーを開いているときは、クリック時に閉じる（図郭選択処理をしない）
           view.on("click", function(event) {
-            if (view.map === map){
+            if (bgExpand.expanded === true){
+              bgExpand.expanded = false;
+            } else if(view.map === map){
               clearMap();
               queryFeaturesClickedPoint(event);
             } else {
@@ -699,6 +702,21 @@
           queryParams.returnGeometry = true;
           queryParams.outFields = ["*"];
 
+          // if (view.map === map && (view.width <= 545 || view.height <= 545)){
+          //   zukakuLayerView.queryFeatures(queryParams)
+          //   .then(addGraphicsAndAttribute)
+          //   .catch(function(error) {
+          //     console.log(error);
+          //   });
+          // } else if (view.map === map && !measurement.activeWidget && view.width > 545 && view.height > 545){
+          //   zukakuLayerView.queryFeatures(queryParams)
+          //   .then(addGraphicsAndAttribute)
+          //   .catch(function(error) {
+          //     console.log(error);
+          //   });
+          // }
+
+          // 計測ウィジェットがアクティブでないときのみ
           if (view.map === map && !measurement.activeWidget){
             zukakuLayerView.queryFeatures(queryParams)
             .then(addGraphicsAndAttribute)
@@ -706,6 +724,7 @@
               console.log(error);
             });
           };
+          
 
         };
 
@@ -756,8 +775,13 @@
             sliderDiv.style.display = 'none';
             searchDiv.style.display = 'none';
             searchTitleDiv.style.display = 'none';
-            measurementP.style.display = 'none';
-            toolbarDiv.style.display = 'none';
+
+            // if (view.map === map && (view.width > 545 && view.height > 545)){
+              measurementP.style.display = 'none';
+              toolbarDiv.style.display = 'none';
+              measurementWidgetDiv.style.display = 'none';
+            // }
+            
 
             attributeDiv.innerHTML = "";
             queryResultsDiv.innerHTML = "";
@@ -999,13 +1023,15 @@
             url: tileLayerUrl
           });
           
+          
           mapSecond = new Map({
-            basemap: 'topo'
+            basemap: map.basemap
           });
 
           // すでに追加されている外邦図を削除
           mapSecond.removeAll();
           mapSecond.add(tileLayer);
+          tileLayer.opacity = 0.75;
 
           var options = {
             query: {
@@ -1020,7 +1046,7 @@
 
         function addMeasure(elm){
           // 計測ウィジェット
-          if (view.width > 545 && view.height > 545){
+          // if (view.width > 545 && view.height > 545){
 
             if (document.getElementById("measurementP")) {
               document.getElementById("measurementP").parentNode.removeChild(document.getElementById("measurementP"));
@@ -1092,7 +1118,7 @@
               areaBtn.classList.remove("active");
               measurement.clear();
             };
-          };
+          // };
         }
 
         function createTileView(response){
@@ -1121,7 +1147,7 @@
           sliderTransparencyDiv.classList.add("padding-trailer-1");
           sliderTransparencyDiv.innerHTML = '<div class="histogram-title padding-trailer-1">Transparency</div><div id="tranparencySlider" class="slider"></div>';
 
-          queryResultsDiv.parentNode.insertBefore(sliderTransparencyDiv, queryResultsDiv);
+          measurementP.parentNode.insertBefore(sliderTransparencyDiv, measurementP);
           
           
           tranparencySlider = new Slider({
@@ -1239,8 +1265,17 @@
             }
           ]);
 
-          
-          addMeasure(sliderTransparencyDiv);
+          if (measurementP.style.display === 'none'){
+            measurementP.style.display = 'block';
+          }
+          if (toolbarDiv.style.display === 'none'){
+            toolbarDiv.style.display = 'flex';
+          }
+          if (measurementWidgetDiv.style.display === 'none'){
+            measurementWidgetDiv.style.display = 'block';
+          }
+            
+          // addMeasure(sliderTransparencyDiv);
           
           
 
@@ -1269,9 +1304,9 @@
           {"title": "PRINTED BY", "att": "printed_by"},
           
           {"title": "PUBLISHED IN", "att": "publish_year"},
-          {"title": "HEIGHT x WIDTH(cm)", "att": "height_width"},
+          {"title": "HEIGHT x WIDTH (cm)", "att": "height_width"},
           // {"title": "WIDTH (cm)", "att": "width"},
-          {"title": "COLOR", "att": "color_en"},
+          {"title": "NUMBER OF COLORS", "att": "color_en"},
           {"title": "ID", "att": "id"}
         ];
 
@@ -1328,9 +1363,9 @@
             if (document.getElementById("selectZukakuDiv")) {
               document.getElementById("selectZukakuDiv").parentNode.removeChild(document.getElementById("selectZukakuDiv"));
             };
-            if (document.getElementById("toolbarDiv")) {
-              document.getElementById("toolbarDiv").parentNode.removeChild(document.getElementById("toolbarDiv"));
-            };
+            // if (document.getElementById("toolbarDiv")) {
+            //   document.getElementById("toolbarDiv").parentNode.removeChild(document.getElementById("toolbarDiv"));
+            // };
 
 
             loaderDiv.classList.add('is-active');
@@ -1341,13 +1376,13 @@
               document.getElementById("atthr").parentNode.removeChild(document.getElementById("atthr"));
             };
 
-            if (measurementWidgetDiv) {
-              measurementWidgetDiv.parentNode.removeChild(measurementWidgetDiv);
-            };
+            // if (measurementWidgetDiv) {
+            //   measurementWidgetDiv.parentNode.removeChild(measurementWidgetDiv);
+            // };
 
-            if (measurementP) {
-              measurementP.parentNode.removeChild(measurementP);
-            };
+            // if (measurementP) {
+            //   measurementP.parentNode.removeChild(measurementP);
+            // };
 
 
 
@@ -1393,7 +1428,7 @@
             searchDiv.style.display = 'block';
             searchTitleDiv.style.display = 'block';
 
-            addMeasure(sliderDiv);
+            // addMeasure(sliderDiv);
 
             measurementP.style.display = 'block';
             toolbarDiv.style.display = 'flex';
