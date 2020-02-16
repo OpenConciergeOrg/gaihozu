@@ -504,9 +504,9 @@
           const viewModel = slider.viewModel;
           viewModel.labelFormatFunction = function(value, type) {
             if (type === "min"){
-              return "LargeScale";
+              return "1: 25,000";
             } else if (type === "max"){
-              return "SmallScale";
+              return "1: 2,500,000";
             } else if (value >= 1 && value < 2){
               return "1: 25,000";
             } else if (value >= 2 && value < 3){
@@ -748,9 +748,6 @@
             useP1.innerHTML = strp4;
             useP2.innerHTML = "";
             useDiv.classList.add("alert-red");
-            // if (useDiv.classList.contains("alert")) {
-            //   useDiv.classList.add("alert-red");
-            // } 
 
             clearMap();
 
@@ -1387,6 +1384,9 @@
 
 
             view.map = map;
+            // 外邦図閲覧画面のマップの背景図をセットする
+            map.basemap = mapSecond.basemap;
+
             view.ui.remove(gridDiv);
             view.ui.remove(selectZukakuDiv);
 
