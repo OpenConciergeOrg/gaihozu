@@ -309,11 +309,9 @@
           });
         };
         
-        
-
-        const searchWidgetNoSources = new Search({
-          view: view
-        });
+        // const searchWidgetNoSources = new Search({
+        //   view: view
+        // });
 
         // 右側のパネル
         const panelExpand = new Expand({
@@ -322,7 +320,7 @@
           expanded: true
         });
 
-        let closeAlert;
+        // let closeAlert;
         let useP1;
         let useP2;
 
@@ -351,7 +349,7 @@
           useP2.className = "padding-right-1";
           useDiv.appendChild(useP2);
 
-          closeAlert = document.createElement('button');
+          const closeAlert = document.createElement('button');
           closeAlert.className = "alert-close right";
           closeAlert.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>';
           useDiv.appendChild(closeAlert);
@@ -379,10 +377,6 @@
 
           addSearchWidget(sliderDiv);
           addMeasure(sliderDiv);
-          
-
-          
-
           
         })
 
@@ -588,18 +582,6 @@
             where: whereClause
           };
 
-          // const queryParams = zukakuLayerView.filter.createQuery();
-          // queryParams.returnGeometry = false;
-          // queryParams.outFields = ["objectid"];
-
-          // zukakuLayerView.queryFeatures(queryParams)
-          //   .then(function(response){
-          //     filteredFeaturesCnt = response.features.length;
-          //     featuresCntDiv.innerHTML = filteredFeaturesCnt;
-          //   })
-          //   .catch(function(error) {
-          //     console.log(error);
-          //   });
         };
 
         function scaleChanged(event){
@@ -616,18 +598,6 @@
             where: whereClause
           };
 
-          // const queryParams = zukakuLayerView.filter.createQuery();
-          // queryParams.returnGeometry = false;
-          // queryParams.outFields = ["objectid"];
-
-          // zukakuLayerView.queryFeatures(queryParams)
-          //   .then(function(response){
-          //     filteredFeaturesCnt = response.features.length;
-          //     featuresCntDiv.innerHTML = filteredFeaturesCnt;
-          //   })
-          //   .catch(function(error) {
-          //     console.log(error);
-          //   });
         };
 
         function clearMap() {
@@ -702,20 +672,6 @@
           queryParams.returnGeometry = true;
           queryParams.outFields = ["*"];
 
-          // if (view.map === map && (view.width <= 545 || view.height <= 545)){
-          //   zukakuLayerView.queryFeatures(queryParams)
-          //   .then(addGraphicsAndAttribute)
-          //   .catch(function(error) {
-          //     console.log(error);
-          //   });
-          // } else if (view.map === map && !measurement.activeWidget && view.width > 545 && view.height > 545){
-          //   zukakuLayerView.queryFeatures(queryParams)
-          //   .then(addGraphicsAndAttribute)
-          //   .catch(function(error) {
-          //     console.log(error);
-          //   });
-          // }
-
           // 計測ウィジェットがアクティブでないときのみ
           if (view.map === map && !measurement.activeWidget){
             zukakuLayerView.queryFeatures(queryParams)
@@ -725,11 +681,7 @@
             });
           };
           
-
         };
-
-
-        let featuresQuery;
 
         function expandPanel(){
           if (panelExpand.expanded === false) {
@@ -738,12 +690,11 @@
         };
 
         function addGraphicsAndAttribute(response){
-          featuresQuery = response.features;
+          const featuresQuery = response.features;
           
           const length = featuresQuery.length;
           // フィーチャがない場所をクリックしたとき
           if (length === 0){
-            // showAlert();
             
             useP1.innerHTML = strp4;
             useP2.innerHTML = "";
@@ -923,7 +874,6 @@
 
         // マップの中心とズームレベルを取得、外邦図から図郭検索地図に戻る際に使用
         watchUtils.whenTrue(view, "stationary", function() {
-          // console.log(view);
           if (view.map === map) {
             if (view.extent) {
               viewZoom = view.zoom;
@@ -967,7 +917,6 @@
         //////////////////////
 
         let mapSecond;
-        let viewSecond;
         let tileLayer;
         let northId;
         let southId;
@@ -979,11 +928,12 @@
         let btnClose;
         let gridDiv;
         let toolbarDiv;
-        let distanceBtn;
-        let areaBtn;
-        let clearBtn;
+        // let distanceBtn;
+        // let areaBtn;
+        // let clearBtn;
         let measurement;
         let selectZukakuDiv;
+        const defaultTransparency = 75;
 
         function createMap(response){
 
@@ -1028,7 +978,7 @@
           // すでに追加されている外邦図を削除
           mapSecond.removeAll();
           mapSecond.add(tileLayer);
-          tileLayer.opacity = 0.75;
+          tileLayer.opacity = defaultTransparency/100;
 
           var options = {
             query: {
@@ -1063,17 +1013,17 @@
             toolbarDiv.className = "esri-component esri-widget padding-trailer-half";
             measurementP.parentNode.insertBefore(toolbarDiv, measurementP.nextSibling);
 
-            distanceBtn = document.createElement('button');
+            const distanceBtn = document.createElement('button');
             distanceBtn.setAttribute("id", "distance");
             distanceBtn.className = "esri-widget--button esri-interactive esri-icon-measure-line";
             toolbarDiv.appendChild(distanceBtn);
 
-            areaBtn = document.createElement('button');
+            const areaBtn = document.createElement('button');
             areaBtn.setAttribute("id", "area");
             areaBtn.className = "esri-widget--button esri-interactive esri-icon-measure-area";
             toolbarDiv.appendChild(areaBtn);
 
-            clearBtn = document.createElement('button');
+            const clearBtn = document.createElement('button');
             clearBtn.setAttribute("id", "clear");
             clearBtn.className = "esri-widget--button esri-interactive esri-icon-trash";
             toolbarDiv.appendChild(clearBtn);
@@ -1151,7 +1101,7 @@
             container: "tranparencySlider",
             min: 0,
             max: 100,
-            values: [75],
+            values: [defaultTransparency],
             steps: 5,
             snapOnClickEnabled: false,
             labelsVisible: true,
@@ -1166,7 +1116,6 @@
           function transparencyChanged(event) {
             var value = event.value;
             tileLayer.opacity = value/100;
-            // console.log(tileLayer);
           };
           
 
@@ -1214,8 +1163,7 @@
           selectZukakuDiv.addEventListener("click", showNextImage);
 
           function showNextImage(event){
-            // console.log(event);
-            // const id = event.path[0].dataset.id;
+
             const id = event.target.dataset.id;
             
             const queryParams = zukakuFeatureLayer.createQuery();
@@ -1230,9 +1178,6 @@
               console.log(error);
             });
           };
-
-          
-          // view.ui.add(searchWidgetNoSources, "top-right");
           
           // 戻るボタン
           if (document.getElementById("gridDiv")) {
@@ -1252,7 +1197,6 @@
 
           view.ui.add(gridDiv, "top-left", 0);
           view.ui.move("zoom", "top-left", 1);
-          // view.ui.move(helpDiv, "top-left", 2);
           view.ui.move(bgExpand, "top-left", 3);
           
           view.ui.add([
@@ -1271,10 +1215,6 @@
           if (measurementWidgetDiv.style.display === 'none'){
             measurementWidgetDiv.style.display = 'block';
           }
-            
-          // addMeasure(sliderTransparencyDiv);
-          
-          
 
           view.watch('updating', function(evt){
             if(!evt){
@@ -1283,8 +1223,6 @@
           });
 
           clickCloseBtn();
-
-          
 
         };
 
@@ -1300,7 +1238,7 @@
           {"title": "SURVEYD IN", "att": "survey_year"},
           {"title": "PRINTED BY", "att": "printed_by"},
           
-          {"title": "PUBLISHED IN", "att": "publish_year"},
+          {"title": "PUBLISHED IN", "att": "publish_year_en"},
           {"title": "HEIGHT x WIDTH (cm)", "att": "height_width"},
           // {"title": "WIDTH (cm)", "att": "width"},
           {"title": "NUMBER OF COLORS", "att": "color_en"},
@@ -1353,16 +1291,12 @@
             if (document.getElementById("gridDiv")) {
               document.getElementById("gridDiv").parentNode.removeChild(document.getElementById("gridDiv"));
             };
-            // gridDiv.style.display = "none";
             if (document.getElementById("sliderTransparencyDiv")) {
               document.getElementById("sliderTransparencyDiv").parentNode.removeChild(document.getElementById("sliderTransparencyDiv"));
             };
             if (document.getElementById("selectZukakuDiv")) {
               document.getElementById("selectZukakuDiv").parentNode.removeChild(document.getElementById("selectZukakuDiv"));
             };
-            // if (document.getElementById("toolbarDiv")) {
-            //   document.getElementById("toolbarDiv").parentNode.removeChild(document.getElementById("toolbarDiv"));
-            // };
 
 
             loaderDiv.classList.add('is-active');
@@ -1372,14 +1306,6 @@
             if (document.getElementById("atthr")) {
               document.getElementById("atthr").parentNode.removeChild(document.getElementById("atthr"));
             };
-
-            // if (measurementWidgetDiv) {
-            //   measurementWidgetDiv.parentNode.removeChild(measurementWidgetDiv);
-            // };
-
-            // if (measurementP) {
-            //   measurementP.parentNode.removeChild(measurementP);
-            // };
 
 
 
@@ -1427,8 +1353,6 @@
             attributeDiv.innerHTML = "";
             searchDiv.style.display = 'block';
             searchTitleDiv.style.display = 'block';
-
-            // addMeasure(sliderDiv);
 
             measurementP.style.display = 'block';
             toolbarDiv.style.display = 'flex';
