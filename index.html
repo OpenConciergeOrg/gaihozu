@@ -107,7 +107,15 @@
     <!-- <script>
        calcite.init()
     </script> -->
+    <script>
+      // set locale before JSAPI is loaded
+      dojoConfig = {
+        locale: "en",
+        parseOnLoad: true
+      };
+    </script>
     <script src="https://js.arcgis.com/4.14/"></script>
+    
     <script>
       require([
         "esri/views/MapView",
@@ -127,7 +135,8 @@
         "esri/layers/TileLayer",
         "esri/widgets/Slider",
         "esri/widgets/Measurement",
-        "esri/widgets/BasemapGallery"
+        "esri/widgets/BasemapGallery",
+        "esri/widgets/BasemapGallery/support/PortalBasemapsSource"
       ], function(
         MapView, 
         Expand,
@@ -146,7 +155,8 @@
         TileLayer,
         Slider,
         Measurement,
-        BasemapGallery
+        BasemapGallery,
+        PortalBasemapsSource
       ) {
         
         const URL_FL = "https://services1.arcgis.com/qvPIahekAMWThrhc/arcgis/rest/services/zukaku/FeatureServer/0";
@@ -238,10 +248,21 @@
         });
 
         // ベースマップウィジェット
-        const basemapGallery = new BasemapGallery({
-          view: view,
-          container: document.createElement("div")
+        const portalSource = new PortalBasemapsSource({  
+          query:{title: "Vector Basemaps",owner: "Esri_cy_US"}    
         });
+              
+        // Basemap Gallery Widget     
+        const basemapGallery = new BasemapGallery({       
+          view: view,     
+          container: document.createElement("div"),       
+          source: portalSource
+        }); 
+
+        // const basemapGallery = new BasemapGallery({
+        //   view: view,
+        //   container: document.createElement("div")
+        // });
         const bgExpand = new Expand({
           view: view,
           content: basemapGallery
@@ -795,8 +816,18 @@
             const cardImageCaption = document.createElement("figcaption");
             cardImageCaption.classList.add("card-image-caption");
             cardImageCaption.setAttribute("data-result-id",id);
-            cardImageCaption.innerHTML = feature.attributes.title;
+            const area3_en = feature.attributes.area3_en;
+            const title = feature.attributes.title;
+            
+            if (area3_en){
+              cardImageCaption.innerHTML = area3_en;
+            } else {
+              cardImageCaption.innerHTML = title;
+              
+            };
             cardImageWrap.appendChild(cardImageCaption);
+            
+            
 
             const cardContent = document.createElement("div");
             cardContent.classList.add("card-content");
@@ -934,6 +965,35 @@
         let measurement;
         let selectZukakuDiv;
         const defaultTransparency = 75;
+        // let georeferenceflg;
+
+        function getGeoreferenceFlg(id, attId, classIcon){
+          const queryParams = zukakuFeatureLayer.createQuery();
+          queryParams.returnGeometry = false;
+          queryParams.outFields = ["georeference"];
+          queryParams.where = "id = '" + id + "'";
+
+          zukakuFeatureLayer.queryFeatures(queryParams)
+            .then(function(response){
+              if (response.features.length > 0){
+                const feature = response.features[0];
+                // console.log(feature);
+                const georeferenceflg = feature.attributes.georeference;
+                if (georeferenceflg === 1) {
+                  const arrowBtn = document.createElement('button');
+                  arrowBtn.setAttribute("id", attId);
+                  arrowBtn.setAttribute("data-id", id);
+                  arrowBtn.className = "esri-widget--button esri-interactive " + classIcon;
+                  selectZukakuDiv.appendChild(arrowBtn);
+                  // console.log("a");
+                }
+              }
+              
+            })
+            .catch(function(error) {
+              console.log(error);
+            });
+        }
 
         function createMap(response){
 
@@ -947,6 +1007,7 @@
           southId = feature.attributes.south;
           westId = feature.attributes.west;
           eastId = feature.attributes.east;
+          // georeferenceflg = feature.attributes.georeference;
 
           portal.load().then(function() {
             var queryParams = {
@@ -1129,36 +1190,46 @@
           selectZukakuDiv.className = "esri-component esri-widget";
           panelDiv.parentNode.insertBefore(selectZukakuDiv, panelDiv);
 
-          if (northId) {
-            const upArrowBtn = document.createElement('button');
-            upArrowBtn.setAttribute("id", "upArrow");
-            upArrowBtn.setAttribute("data-id", northId);
-            upArrowBtn.className = "esri-widget--button esri-interactive esri-icon-up-arrow";
-            selectZukakuDiv.appendChild(upArrowBtn);
-          }
-          if (southId) {
-            const downArrowBtn = document.createElement('button');
-            downArrowBtn.setAttribute("id", "downArrow");
-            downArrowBtn.setAttribute("data-id", southId);
-            downArrowBtn.className = "esri-widget--button esri-interactive esri-icon-down-arrow";
-            selectZukakuDiv.appendChild(downArrowBtn);
-          }
+          // 隣接図郭のサービスはあがっているとは限らない
+          // const northGeoreferenceFlg = getGeoreferenceFlg(northId);
+          // if (northId) {
+          //   const upArrowBtn = document.createElement('button');
+          //   upArrowBtn.setAttribute("id", "upArrow");
+          //   upArrowBtn.setAttribute("data-id", northId);
+          //   upArrowBtn.className = "esri-widget--button esri-interactive esri-icon-up-arrow";
+          //   selectZukakuDiv.appendChild(upArrowBtn);
+          // }
+
+          // const southGeoreferenceFlg = getGeoreferenceFlg(southId);
+          // if (southId) {
+          //   const downArrowBtn = document.createElement('button');
+          //   downArrowBtn.setAttribute("id", "downArrow");
+          //   downArrowBtn.setAttribute("data-id", southId);
+          //   downArrowBtn.className = "esri-widget--button esri-interactive esri-icon-down-arrow";
+          //   selectZukakuDiv.appendChild(downArrowBtn);
+          // }
+          getGeoreferenceFlg(northId, "upArrow", "esri-icon-up-arrow");
+          getGeoreferenceFlg(southId, "downArrow", "esri-icon-down-arrow");
+          getGeoreferenceFlg(westId, "leftArrow", "esri-icon-left-triangle-arrow");
+          getGeoreferenceFlg(eastId, "rightArrow", "esri-icon-right-triangle-arrow");
+          // console.log(westGeoreferenceFlg);
+          // console.log("aa");
+          // if (westGeoreferenceFlg === 1) {
+          //   const leftArrowBtn = document.createElement('button');
+          //   leftArrowBtn.setAttribute("id", "leftArrow");
+          //   leftArrowBtn.setAttribute("data-id", westId);
+          //   leftArrowBtn.className = "esri-widget--button esri-interactive esri-icon-left-triangle-arrow";
+          //   selectZukakuDiv.appendChild(leftArrowBtn);
+          // }
           
-          if (westId) {
-            const leftArrowBtn = document.createElement('button');
-            leftArrowBtn.setAttribute("id", "leftArrow");
-            leftArrowBtn.setAttribute("data-id", westId);
-            leftArrowBtn.className = "esri-widget--button esri-interactive esri-icon-left-triangle-arrow";
-            selectZukakuDiv.appendChild(leftArrowBtn);
-          }
-          
-          if (eastId) {
-            const rightArrowBtn = document.createElement('button');
-            rightArrowBtn.setAttribute("id", "rightArrow");
-            rightArrowBtn.setAttribute("data-id", eastId);
-            rightArrowBtn.className = "esri-widget--button esri-interactive esri-icon-right-triangle-arrow";
-            selectZukakuDiv.appendChild(rightArrowBtn);
-          }
+          // const eastGeoreferenceFlg = getGeoreferenceFlg(eastId);
+          // if (eastId) {
+          //   const rightArrowBtn = document.createElement('button');
+          //   rightArrowBtn.setAttribute("id", "rightArrow");
+          //   rightArrowBtn.setAttribute("data-id", eastId);
+          //   rightArrowBtn.className = "esri-widget--button esri-interactive esri-icon-right-triangle-arrow";
+          //   selectZukakuDiv.appendChild(rightArrowBtn);
+          // }
           
           selectZukakuDiv.addEventListener("click", showNextImage);
 
@@ -1227,22 +1298,17 @@
         };
 
         const arrayAtt = [
-          {"title": "TITLE", "att": "title"},
-          {"title": "PRINTED IN", "att": "print_year_en"},
-          {"title": "SCALE", "att": "scale"},
-          {"title": "AREA3", "att": "area3"},
-          
-          // {"title": "AREA NAME", "att": "area_name"},
-          
-          {"title": "SURVEYD BY", "att": "surveyed_by"},
-          {"title": "SURVEYD IN", "att": "survey_year"},
-          {"title": "PRINTED BY", "att": "printed_by"},
-          
-          {"title": "PUBLISHED IN", "att": "publish_year_en"},
-          {"title": "HEIGHT x WIDTH (cm)", "att": "height_width"},
-          // {"title": "WIDTH (cm)", "att": "width"},
-          {"title": "NUMBER OF COLORS", "att": "color_en"},
-          {"title": "ID", "att": "id"}
+          {"title": "記号", "att": "area3"},
+          {"title": "図幅名", "att": "area_name"},
+          {"title": "測量機関", "att": "surveyed_by"},
+          {"title": "測量時期（修正含む）", "att": "survey_year"},
+          {"title": "製版・印刷機関", "att": "printed_by"},
+          {"title": "製版時期", "att": "print_year"},
+          {"title": "発行時期", "att": "publish_year"},
+          {"title": "大きさ", "att": "size"},
+          {"title": "色", "att": "color"},
+          {"title": "備考", "att": "notes"},
+          {"title": "枚数（実物）", "att": "copies"}
         ];
 
         function addZukakuAttribute(response){
@@ -1254,26 +1320,75 @@
           hr.classList = ("trailer-half leader-0");
           attributeDiv.appendChild(hr);
 
+          // const divMaptitle = document.createElement("div");
+          // divMaptitle.innerHTML = "MAP TITLE";
+          // divMaptitle.style.color = "gray";
+          // attributeDiv.appendChild(divMaptitle);
+
+          const divArea3_en = document.createElement("div");
+          const attArea3_en = feature.attributes.area3_en;
+          divArea3_en.classList.add("padding-leader-half");
+          divArea3_en.innerHTML = attArea3_en;
+          attributeDiv.appendChild(divArea3_en);
+
+          const divTitle = document.createElement("div");
+          const attTitle = feature.attributes.title;
+          divTitle.innerHTML = attTitle;
+          attributeDiv.appendChild(divTitle);
+
+          const divScale = document.createElement("div");
+          const attScale = feature.attributes.scale;
+          divScale.classList.add("padding-leader-1");
+          divScale.innerHTML = attScale;
+          attributeDiv.appendChild(divScale);
+
+          const divPrintedYear = document.createElement("div");
+          const attPrintedYear = feature.attributes.print_year_en;
+          divPrintedYear.classList.add("padding-leader-1");
+          divPrintedYear.innerHTML = "Printed in " + attPrintedYear;
+          attributeDiv.appendChild(divPrintedYear);
+
+          const divSize = document.createElement("div");
+          const attSize = feature.attributes.height_width;
+          divSize.classList.add("padding-leader-1");
+          divSize.innerHTML = attSize + " (height, width, cm)";
+          if (attSize !== "-"){
+            attributeDiv.appendChild(divSize);
+          }
+
+          const divId = document.createElement("div");
+          const attId = feature.attributes.id;
+          divId.classList.add("padding-leader-1");
+          divId.innerHTML = attId;
+          attributeDiv.appendChild(divId);
+          
+
+          const details = document.createElement("details");
+          details.classList.add("padding-leader-1");
+          attributeDiv.appendChild(details);
+
+          const summary = document.createElement("summary");
+          summary.innerHTML = "Details in Japanese";
+          details.appendChild(summary);
+
           for(let i = 0; i < arrayAtt.length; i++) {
 
             const field = arrayAtt[i]["att"];
             const attValue = feature.attributes[field];
 
-            // if (attValue && attValue !== "－") {
-              const attribute = document.createElement("div");
-              attribute.classList.add("trailer-1");
-              attributeDiv.appendChild(attribute);
-              
-              const title = document.createElement("div");
-              attribute.appendChild(title);
-              title.style.color = "gray";
-              title.innerHTML = arrayAtt[i]["title"];
+            const attribute = document.createElement("div");
+            attribute.classList.add("leader-1");
+            details.appendChild(attribute);
+            
+            const title = document.createElement("div");
+            attribute.appendChild(title);
+            title.style.color = "gray";
+            title.innerHTML = arrayAtt[i]["title"];
 
-              const value = document.createElement("div");
-              attribute.appendChild(value);
-              
-              value.innerHTML = attValue;
-            // };
+            const value = document.createElement("div");
+            attribute.appendChild(value);
+            
+            value.innerHTML = attValue;
             
 
           };
