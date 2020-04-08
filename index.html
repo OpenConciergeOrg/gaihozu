@@ -30,7 +30,7 @@
         margin: 0;
         height: 100%;
         width: 100%;
-        z-index: 9999 ;
+        /* z-index: 4999 ; */
         position: absolute !important;
       }
       .loader-bars{
@@ -94,6 +94,12 @@
       .esri-histogram-range-slider .esri-slider--horizontal .esri-slider__max, 
       .esri-histogram-range-slider .esri-slider--horizontal .esri-slider__min {
         pointer-events : none;
+      }
+      fieldset{
+        float: left;
+      }
+      article, aside, details, figcaption, figure, footer, header, hgroup, nav, section, summary{
+        display: revert !important;
       }
     </style>
     <link
@@ -180,6 +186,7 @@
         const sliderDiv = document.getElementById("sliderDiv");
         const imgInst = document.getElementById("imgInst");
         const txtInst = document.getElementById("txtInst");
+        const notShowAgainChk = document.getElementById("notShowAgainChk");
 
         const strp1_1 = "Click a index to see a map image.";
         const strp1_2 = "Sliding the thumb on the histogram on the right pane filters indexes by printed year or map scale.";
@@ -278,38 +285,58 @@
             loaderDiv.classList.remove('is-active');
           };
         });
-        
-        // モーダル
+
+        /////////////
+        // モーダル //
+        /////////////
+
+        // info modal
+        // 右側のパネルのボタン：押すと開く
         modalsvg.onclick = function(){
           if (!modal.classList.contains("is-active")) {
             modal.classList.add("is-active");
           }
         };
 
+        // 初回は強制的に表示
+        if(localStorage.getItem('flgNotShowAgain') === null) {
+          modal.classList.add("is-active");
+        };
+
+        // 右上の×ボタン
         closeModal.onclick = function(){
           if (modal.classList.contains("is-active")) {
             modal.classList.remove("is-active");
           }
+          if(notShowAgainChk.checked) {
+            localStorage.setItem('flgNotShowAgain', "1");
+          }
         };  
 
+        // 閉じるボタン
         closeModalBtn.onclick = function(){
           if (modal.classList.contains("is-active")) {
             modal.classList.remove("is-active");
           }
+          if(notShowAgainChk.checked) {
+            localStorage.setItem('flgNotShowAgain', "1");
+          }
         };
 
+        // how to use modal
+        // 右側のパネルのボタン：押すと開く
         helpsvg.onclick = function(){
           if (!modalHelp.classList.contains("is-active")) {
             modalHelp.classList.add("is-active");
           }
         };
-
+        // 右上の×ボタン
         closeModalHelp.onclick = function(){
           if (modalHelp.classList.contains("is-active")) {
             modalHelp.classList.remove("is-active");
           }
         };  
-
+        // 閉じるボタン
         closeModalHelpBtn.onclick = function(){
           if (modalHelp.classList.contains("is-active")) {
             modalHelp.classList.remove("is-active");
@@ -1011,25 +1038,22 @@
         let btnClose;
         let gridDiv;
         let toolbarDiv;
-        // let distanceBtn;
-        // let areaBtn;
-        // let clearBtn;
         let measurement;
         let selectZukakuDiv;
         const defaultTransparency = 75;
-        // let georeferenceflg;
 
         function getGeoreferenceFlg(id, attId, classIcon){
           const queryParams = zukakuFeatureLayer.createQuery();
           queryParams.returnGeometry = false;
           queryParams.outFields = ["georeference"];
           queryParams.where = "id = '" + id + "'";
+          console.log(id);
 
           zukakuFeatureLayer.queryFeatures(queryParams)
             .then(function(response){
               if (response.features.length > 0){
                 const feature = response.features[0];
-                // console.log(feature);
+                console.log(feature);
                 const georeferenceflg = feature.attributes.georeference;
                 if (georeferenceflg === 1) {
                   const arrowBtn = document.createElement('button');
@@ -1037,7 +1061,6 @@
                   arrowBtn.setAttribute("data-id", id);
                   arrowBtn.className = "esri-widget--button esri-interactive " + classIcon;
                   selectZukakuDiv.appendChild(arrowBtn);
-                  // console.log("a");
                 }
               }
               
@@ -1205,7 +1228,7 @@
           sliderTransparencyDiv.className = "esri-widget";
           sliderTransparencyDiv.setAttribute("id","sliderTransparencyDiv");
           sliderTransparencyDiv.classList.add("padding-trailer-1");
-          sliderTransparencyDiv.innerHTML = '<div class="histogram-title padding-trailer-1">Transparency</div><div id="tranparencySlider" class="slider"></div>';
+          sliderTransparencyDiv.innerHTML = '<div class="histogram-title padding-trailer-1">Opacity</div><div id="tranparencySlider" class="slider"></div>';
 
           measurementP.parentNode.insertBefore(sliderTransparencyDiv, measurementP);
           
@@ -1243,45 +1266,10 @@
           panelDiv.parentNode.insertBefore(selectZukakuDiv, panelDiv);
 
           // 隣接図郭のサービスはあがっているとは限らない
-          // const northGeoreferenceFlg = getGeoreferenceFlg(northId);
-          // if (northId) {
-          //   const upArrowBtn = document.createElement('button');
-          //   upArrowBtn.setAttribute("id", "upArrow");
-          //   upArrowBtn.setAttribute("data-id", northId);
-          //   upArrowBtn.className = "esri-widget--button esri-interactive esri-icon-up-arrow";
-          //   selectZukakuDiv.appendChild(upArrowBtn);
-          // }
-
-          // const southGeoreferenceFlg = getGeoreferenceFlg(southId);
-          // if (southId) {
-          //   const downArrowBtn = document.createElement('button');
-          //   downArrowBtn.setAttribute("id", "downArrow");
-          //   downArrowBtn.setAttribute("data-id", southId);
-          //   downArrowBtn.className = "esri-widget--button esri-interactive esri-icon-down-arrow";
-          //   selectZukakuDiv.appendChild(downArrowBtn);
-          // }
           getGeoreferenceFlg(northId, "upArrow", "esri-icon-up-arrow");
           getGeoreferenceFlg(southId, "downArrow", "esri-icon-down-arrow");
           getGeoreferenceFlg(westId, "leftArrow", "esri-icon-left-triangle-arrow");
           getGeoreferenceFlg(eastId, "rightArrow", "esri-icon-right-triangle-arrow");
-          // console.log(westGeoreferenceFlg);
-          // console.log("aa");
-          // if (westGeoreferenceFlg === 1) {
-          //   const leftArrowBtn = document.createElement('button');
-          //   leftArrowBtn.setAttribute("id", "leftArrow");
-          //   leftArrowBtn.setAttribute("data-id", westId);
-          //   leftArrowBtn.className = "esri-widget--button esri-interactive esri-icon-left-triangle-arrow";
-          //   selectZukakuDiv.appendChild(leftArrowBtn);
-          // }
-          
-          // const eastGeoreferenceFlg = getGeoreferenceFlg(eastId);
-          // if (eastId) {
-          //   const rightArrowBtn = document.createElement('button');
-          //   rightArrowBtn.setAttribute("id", "rightArrow");
-          //   rightArrowBtn.setAttribute("data-id", eastId);
-          //   rightArrowBtn.className = "esri-widget--button esri-interactive esri-icon-right-triangle-arrow";
-          //   selectZukakuDiv.appendChild(rightArrowBtn);
-          // }
           
           selectZukakuDiv.addEventListener("click", showNextImage);
 
@@ -1527,17 +1515,6 @@
 
             var selectedZukaku = graphicsLayerSelectedZukaku.graphics.items;
 
-            // if (selectedZukaku.length >= 2){
-            //   sliderDiv.style.display = 'none';
-            //   useP1.innerHTML = strp2;
-            //   useP2.innerHTML = "";
-            //   attributeDiv.innerHTML = "";
-            //   featuresQuery.forEach(function(featureQuery) {
-            //     addSelectedZukakuAttribute(featureQuery);
-            //   });
-              
-            // };
-
           };
         };
 
@@ -1548,7 +1525,7 @@
   <body>
 
     <div class="wrapper">
-      <div class="js-modal modal-overlay modifier-class" data-modal="foo" id="modal">
+      <div class="js-modal modal-overlay" data-modal="foo" id="modal">
         <div class="modal-content column-12" role="dialog" aria-labelledby="modal">
           <a class="js-modal-toggle right" href="#" aria-label="close-modal" id="closeModal">
             <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
@@ -1560,14 +1537,18 @@
           consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
           cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
           proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-          <div class="text-right">
+          
+          <div class="right">
+            <fieldset class="fieldset-checkbox padding-right-2">
+              <label><input type="checkbox" id="notShowAgainChk">Don't show this message again.</label>
+            </fieldset>
             <button class="btn js-modal-toggle" id="closeModalBtn">Close</button>
             <!-- <button class="btn btn-clear js-modal-toggle">cancel</button> -->
           </div>
         </div>
       </div>
 
-      <div class="js-modal modal-overlay modifier-class" data-modal="foo" id="modalHelp">
+      <div class="js-modal modal-overlay" data-modal="foo" id="modalHelp">
         <div class="modal-content column-12" role="dialog" aria-labelledby="modal">
           <a class="js-modal-toggle right" href="#" aria-label="close-modal" id="closeModalHelp">
             <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
