@@ -19,7 +19,7 @@
       }
       #viewDiv {
         position: absolute;
-        left: 100px;
+        left: 75px;
         right: 0;
         top: 0;
         bottom: 0;
@@ -49,11 +49,12 @@
         top: 55px;
         left: 0;
         right: 0;
-        height: 100%;
-        width: 100px;
+        height: calc(100% - 55px);
+        width: 75px;
+        overflow-y: auto;
       }
       [class*="esri-icon"] {
-        font-size: 32px !important;
+        font-size: 25px !important;
       }
       
     </style>
@@ -219,6 +220,18 @@
           <div class="esri-icon-basemap"></div>
           <div>
             basemap
+          </div>
+        </div>
+        <div class="leader-1 trailer-1">
+          <div class="esri-icon-measure-line"></div>
+          <div>
+            measure line
+          </div>
+        </div>
+        <div class="leader-1 trailer-1">
+          <div class="esri-icon-measure-area"></div>
+          <div>
+            measure area
           </div>
         </div>
 
