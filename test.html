@@ -19,8 +19,8 @@
       }
       #viewDiv {
         position: absolute;
-        left: 0;
-        right: 100px;
+        left: 100px;
+        right: 0;
         top: 0;
         bottom: 0;
         height: 100%;
@@ -44,14 +44,17 @@
         font-size: 20px;
         overflow: hidden;
       }
-      #panelDiv {
+      #menuDiv {
         position: absolute;
         top: 55px;
+        left: 0;
         right: 0;
         height: 100%;
         width: 100px;
       }
-      
+      [class*="esri-icon"] {
+        font-size: 32px !important;
+      }
       
     </style>
     <link
@@ -192,7 +195,32 @@
         1:2.5M
       </button>
 
-      <div id="panelDiv">
+      <div id="menuDiv" class="text-center">
+        
+        <div class="leader-1 trailer-1">
+          <div class="esri-icon-description"></div>
+          <div>
+            info
+          </div>
+        </div>
+        <div class="leader-1 trailer-1">
+          <div class="esri-icon-layer-list"></div>
+          <div>
+            legend
+          </div>
+          </div>
+        <div class="leader-1 trailer-1">
+          <div class="esri-icon-search"></div>
+          <div>
+            search
+          </div>
+        </div>
+        <div class="leader-1 trailer-1">
+          <div class="esri-icon-basemap"></div>
+          <div>
+            basemap
+          </div>
+        </div>
 
       </div>
 
