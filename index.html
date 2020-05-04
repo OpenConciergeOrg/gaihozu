@@ -275,13 +275,6 @@
           menuTextDiv.setAttribute("menu-id", i);
           menuIconDiv.parentNode.insertBefore(menuTextDiv, menuIconDiv.nextSibling);
 
-          // マウスオーバー時のCSS
-          // listMenu[i].elm.addEventListener("mouseenter", function() {
-          //   listMenu[i].elm.classList.add("active-menu");
-          // }, false);
-          // listMenu[i].elm.addEventListener("mouseleave", function() {
-          //   listMenu[i].elm.classList.remove("active-menu");
-          // }, false);
         };
 
         function removeActiveMenu (indexes) {
@@ -305,7 +298,7 @@
         const view = new MapView({
           container: "viewDiv",
           map: map,
-          center: [118.4985351561923, 1.0326589312043144],
+          center: [118.4985351561923, -2.0326589312043144],
           zoom: 4,
           padding: {
             top: 55
@@ -543,32 +536,45 @@
         // 属性
         const viewDiv = document.getElementById("viewDiv");
         const attributeDiv = document.getElementById("attributeDiv");
+
+        function openAttributeDiv () {
+          viewDiv.style.left = "275px";
+          attributeDiv.style.display = "block";
+        };
+
+        function closeAttributeDiv () {
+          viewDiv.style.left = "75px";
+          attributeDiv.style.display = "none";
+        };
+
         listMenu[5].elm.onclick = function(){
           if (!listMenu[5].elm.classList.contains("active-menu")) {
             listMenu[5].elm.classList.add("active-menu");
-            viewDiv.style.left = "275px";
-            attributeDiv.style.display = "block";
+            openAttributeDiv();
           } else {
             listMenu[5].elm.classList.remove("active-menu");
-            viewDiv.style.left = "75px";
-            attributeDiv.style.display = "none";
+            closeAttributeDiv();
           };
         };
         
+        function refreshMenu () {
+          removeActiveMenu([-9999]);
+          view.ui.remove(basemapGallery, "bottom-left");
+          view.ui.remove(searchWidget, "bottom-left");
+          view.ui.remove(toolbarMeasureDiv, "bottom-left");
+          view.ui.remove(measurement, "bottom-right");
+          view.ui.remove(legend, "bottom-left");
+
+          measurement.clear();
+          distanceMeasureBtn.classList.remove("active");
+          areaMeasureBtn.classList.remove("active");
+          closeAttributeDiv();
+        }
 
         // メニューバーの余白をクリックした時
         menuDiv.addEventListener("click", function(event) {
           if (event.path.length <= 6) {
-            removeActiveMenu([-9999]);
-            view.ui.remove(basemapGallery, "bottom-left");
-            view.ui.remove(searchWidget, "bottom-left");
-            view.ui.remove(toolbarMeasureDiv, "bottom-left");
-            view.ui.remove(measurement, "bottom-right");
-            view.ui.remove(legend, "bottom-left");
-
-            measurement.clear();
-            distanceMeasureBtn.classList.remove("active");
-            areaMeasureBtn.classList.remove("active");
+            refreshMenu();
           }
         });
         
@@ -582,6 +588,7 @@
         ];
 
         function addScaleButton (index) {
+          console.log(index)
           // 縮尺ボタンを追加
           for (let i in listScale) {
             listScale[i].elm = document.createElement('button');
@@ -598,7 +605,7 @@
           }
         };
 
-        let scaleId = 0;
+        let scaleId = '0';
         view.when(function(){
 
           addScaleButton(scaleId);
@@ -684,21 +691,24 @@
           queryParams.returnGeometry = true;
           queryParams.outFields = ["*"];
 
-          
           // ベースマップギャラリーがアクティブな場合は削除
           if (document.getElementsByClassName("esri-basemap-gallery").length > 0) {
             document.getElementsByClassName("esri-basemap-gallery")[0].parentNode.removeChild(document.getElementsByClassName("esri-basemap-gallery")[0]);
             if (listMenu[1].elm.classList.contains("active-menu")) {
               listMenu[1].elm.classList.remove("active-menu");
             };
-          // 凡例ウィジェットがアクティブな場合は削除
           } else if (document.getElementsByClassName("esri-legend").length > 0) {
+            // 凡例ウィジェットがアクティブな場合は削除
             document.getElementsByClassName("esri-legend")[0].parentNode.removeChild(document.getElementsByClassName("esri-legend")[0]);
             if (listMenu[3].elm.classList.contains("active-menu")) {
               listMenu[3].elm.classList.remove("active-menu");
             };
-          // ビューがmapで、計測ウィジェットがアクティブでないときのみ
+          } else if (listMenu[0].elm.classList.contains("active-menu")) {
+            // 計測ウィジェットがアクティブな場合は削除
+            listMenu[0].elm.classList.remove("active-menu");
+            view.ui.remove(toolbarMeasureDiv);
           } else if (view.map === map && !measurement.activeWidget){
+            // ビューがmapで、計測ウィジェットがアクティブでないときのみ
             zukakuLayerView.queryFeatures(queryParams)
             .then(queryArcGISOnline)
             .then(addZukakuAttribute)
@@ -1028,6 +1038,8 @@
           // 背景図をセットする
           map.basemap = mapSecond.basemap;
 
+          refreshMenu();
+
           // 透過スライダーを非表示にする
           opacityDiv.style.display = "none";
 
@@ -1038,8 +1050,7 @@
           addScaleButton(scaleId);
 
           // 属性表示を閉じる
-          attributeDiv.style.display = "none";
-          viewDiv.style.left = "75px";
+          // closeAttributeDiv();
 
           // 縮尺制限を解除する
           view.constraints = {minZoom: 0, maxZoom: 23};
@@ -1069,8 +1080,6 @@
           listMenu[3].elm.style.display = "block";
           listMenu[5].elm.style.display = "none";
           listMenu[6].elm.style.display = "none";
-
-          removeActiveMenu([-9999]);
 
           view.watch('updating', function(evt){
             if(!evt){
