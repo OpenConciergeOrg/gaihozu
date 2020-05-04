@@ -122,9 +122,9 @@
       .esri-widget--button {
         background-color: #efefef !important;
         color: #464646 !important;
-        width: 40px !important;
+        /* width: 40px !important;
         height: 40px !important;
-        font-size: 16px !important;
+        font-size: 16px !important; */
       }
       .esri-widget--button.active,
       .esri-widget--button.active:hover,
@@ -314,6 +314,10 @@
         });
         map.add(zukakuFeatureLayer);
 
+        const graphicsLayerMouseOveredZukaku = new GraphicsLayer();
+
+        map.add(graphicsLayerMouseOveredZukaku);
+
         // フィーチャレイヤービュー
         let zukakuLayerView　;
         const defaultWhereClause = "georeference = 1";
@@ -326,6 +330,13 @@
             where: whereClause
           };
 
+          // ポインターが重なった時
+          // view.on('pointer-move', function(evt){
+          //   if (view.map === map) {
+          //     queryFeaturesMouseOvered(evt);
+          //   };
+          // });
+
         });
 
         function addUI (index) {
@@ -335,7 +346,9 @@
             view.ui.add(measurement, "bottom-right");
           } else if (index === 1) {
             view.ui.add(basemapGallery, "bottom-left");
-          } else if (index === 2) {
+          } else if (index === 2 && view.map === map) {
+            view.ui.add(searchWidgetWithSources, "bottom-left");
+          } else if (index === 2 && view.map === mapSecond) {
             view.ui.add(searchWidget, "bottom-left");
           } else if (index === 3) {
             view.ui.add(legend, "bottom-left");
@@ -351,7 +364,9 @@
             measurement.clear();
           } else if (index === 1) {
             view.ui.remove(basemapGallery, "bottom-left");
-          } else if (index === 2) {
+          } else if (index === 2 && view.map === map) {
+            view.ui.remove(searchWidgetWithSources, "bottom-left");
+          } else if (index === 2 && view.map === mapSecond) {
             view.ui.remove(searchWidget, "bottom-left");
           } else if (index === 3) {
             view.ui.remove(legend, "bottom-left");
@@ -361,36 +376,23 @@
 
         function removeOtherUI (index) {
 
-          if (index === 0) {
-            view.ui.remove(basemapGallery, "bottom-left");
-            view.ui.remove(searchWidget, "bottom-left");
-            view.ui.remove(legend, "bottom-left");
-          } else if (index === 1) {
+          if (index !== 0) {
             view.ui.remove(toolbarMeasureDiv, "bottom-left");
             view.ui.remove(measurement, "bottom-right");
             measurement.clear();
-            view.ui.remove(searchWidget, "bottom-left");
-            view.ui.remove(legend, "bottom-left");
-          } else if (index === 2) {
-            view.ui.remove(toolbarMeasureDiv, "bottom-left");
-            view.ui.remove(measurement, "bottom-right");
-            measurement.clear();
+          }
+          if (index !== 1) {
             view.ui.remove(basemapGallery, "bottom-left");
-            view.ui.remove(legend, "bottom-left");
-          } else if (index === 3) {
-            view.ui.remove(toolbarMeasureDiv, "bottom-left");
-            view.ui.remove(measurement, "bottom-right");
-            measurement.clear();
-            view.ui.remove(basemapGallery, "bottom-left");
-            view.ui.remove(searchWidget, "bottom-left");
-          } else {
-            view.ui.remove(toolbarMeasureDiv, "bottom-left");
-            view.ui.remove(measurement, "bottom-right");
-            measurement.clear();
-            view.ui.remove(basemapGallery, "bottom-left");
-            view.ui.remove(searchWidget, "bottom-left");
-            view.ui.remove(legend, "bottom-left");
+          }
+          if (index !== 2 && view.map === map) {
+            view.ui.remove(searchWidgetWithSources, "bottom-left");
           };
+          if (index !== 2 && view.map === mapSecond) {
+            view.ui.remove(searchWidget, "bottom-left");
+          };
+          if (index !== 3) {
+            view.ui.remove(legend, "bottom-left");
+          }
 
         };
 
@@ -460,8 +462,27 @@
         };
 
         // 検索ウィジェット
+        const sources = [{
+          layer: zukakuFeatureLayer,
+          searchFields: ["id"],
+          displayField: "id",
+          exactMatch: false,
+          outFields: ["*"],
+          name: "Search by ID",
+          placeholder: "example: TH008053",
+          maxResults: 6,
+          maxSuggestions: 6,
+          suggestionsEnabled: true,
+          minSuggestCharacters: 0
+        }];
+
         const searchWidget = new Search({
           view: view
+        });
+
+        const searchWidgetWithSources = new Search({
+          view: view,
+          sources: sources
         });
 
         listMenu[2].elm.onclick = function(){
@@ -515,12 +536,20 @@
           removeActiveMenu([4,5]);
         };
 
+        // 初回は強制的に表示
+        if(localStorage.getItem('flgNotShowAgain') === null) {
+          modal.classList.add("is-active");
+        };
+
         // 右上の×ボタン
         const closeModal = document.getElementById("closeModal");
         closeModal.onclick = function(){
           if (modal.classList.contains("is-active")) {
             modal.classList.remove("is-active");
             listMenu[4].elm.classList.remove("active-menu");
+          }
+          if(notShowAgainChk.checked) {
+            localStorage.setItem('flgNotShowAgain', "1");
           }
         };  
 
@@ -530,6 +559,9 @@
           if (modal.classList.contains("is-active")) {
             modal.classList.remove("is-active");
             listMenu[4].elm.classList.remove("active-menu");
+          }
+          if(notShowAgainChk.checked) {
+            localStorage.setItem('flgNotShowAgain', "1");
           }
         };
 
@@ -588,7 +620,7 @@
         ];
 
         function addScaleButton (index) {
-          console.log(index)
+
           // 縮尺ボタンを追加
           for (let i in listScale) {
             listScale[i].elm = document.createElement('button');
@@ -616,6 +648,9 @@
         document
         .querySelector(".esri-ui-top-left")
         .addEventListener("click", function(event) {
+          if (view.map === mapSecond) {
+            return;
+          }
           scaleId = event.target.getAttribute("scale-id");
           if (scaleId) {
             const nodes = document.querySelectorAll(".scale-btn-switch");
@@ -668,6 +703,61 @@
             };
           };   
         });
+
+        // // ポリゴンにマウスオーバー
+        // const symbolMouseOveredZukaku = {
+        //   type: "simple-fill", // autocasts as new SimpleFillSymbol()
+        //   color: [255, 255, 255, 0],
+        //   outline: {
+        //     // autocasts as new SimpleLineSymbol()
+        //     color: [0, 94, 148, 1],
+        //     width: 2
+        //   }
+        // };
+
+        // function queryFeaturesMouseOvered(evt){
+        //   const pointermove = view.toMap({x: evt.x, y: evt.y});
+        //   graphicsLayerMouseOveredZukaku.removeAll();
+          
+        //   // フィルターのかかったレイヤービューに対してクエリする
+        //   const queryParams = zukakuLayerView.filter.createQuery();
+        //   queryParams.geometry = pointermove;
+        //   queryParams.spatialRelationship = "intersects";
+        //   queryParams.returnGeometry = true;
+        //   queryParams.outFields = ["Shape__Area"];
+        //   queryParams.orderByFields = ["Shape__Area DESC"];
+
+        //   zukakuLayerView.queryFeatures(queryParams)
+        //   .then(addGraphicsMouseOveredFeatures)
+        //   .catch(function(error) {
+        //     console.log(error);
+        //   });
+
+        // };
+
+        // function addGraphicsMouseOveredFeatures (response){
+        //   const featuresQuery = response.features;
+        //   const length = featuresQuery.length;
+        //   // フィーチャがない場所にマウスオーバーした時
+        //   if (length === 0){
+        //     return;
+        //   } else {
+        //     featuresQuery.forEach(function(featureQuery) {
+
+        //       addZukakuGraphics(featureQuery, graphicsLayerMouseOveredZukaku, symbolMouseOveredZukaku);
+
+        //     });
+        //   };
+        // };
+
+        function addZukakuGraphics(feature, graphicsLayer, symbol){
+          // 取得したフィーチャをグラフィックスに追加
+          const graphicSelectedZukaku = new Graphic({  // graphic with point geometry
+            geometry: feature.geometry, // set geometry here
+            symbol: symbol // set symbol here
+          });
+          graphicsLayer.add(graphicSelectedZukaku);
+        };
 
         // ビューをクリック
         view.on("click", function(event) {
@@ -723,10 +813,7 @@
           basemap: map.basemap
         });;
         const defaultTransparency = 75;
-        // const northBtn = document.getElementById("northBtn");
-        // const southBtn = document.getElementById("southBtn");
-        // const westBtn = document.getElementById("westBtn");
-        // const eastBtn = document.getElementById("eastBtn");
+        
         let tileLayer;
         let northId;
         let southId;
@@ -868,9 +955,6 @@
           view.map = mapSecond;
           view.constraints = {minZoom: minLOD, maxZoom: maxLOD};
 
-          // ローダーの表示をとめる
-          loaderDiv.classList.remove("is-active");
-
           // メニューボタンの表示、非表示の切り替え
           listMenu[3].elm.style.display = "none";
           listMenu[5].elm.style.display = "block";
@@ -897,6 +981,9 @@
               };
             }
           });
+
+          // ローダーの表示をとめる
+          loaderDiv.classList.remove("is-active");
         };
 
         function showNextImage (event) {
@@ -1102,13 +1189,12 @@
           <a class="js-modal-toggle right" href="#" aria-label="close-modal" id="closeModal">
             <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
           </a>
-          <h3 class='trailer-half'>Modal!</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-          tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-          quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-          consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-          cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-          proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+          <h3 class='trailer-half'>About</h3>
+            <p>Gaihozu meaning “maps of outer lands” is the maps of areas outside the Japanese Islands by former Japanese Imperial Army before the end of the World War II. Despite the fact that these maps were prepared for military purpose, they contain the valuable records of detailed landscapes including landuse and landcover in the past. This site was designed with ArcGIS online technology to interactively view about 680 geo-referenced maps in Indonesian territory from the collection of Gaihozu at Tohoku University.</p>
+            <p>Clicking a shaded box on the index map enable you to show the corresponding map with its cartographic information, such as map scale and printed year. The histograms on the right-side of this site displays the count distributions of available maps by printed year and map scale.</p>
+            <p>If you need further information on Gaihozu, visit the <a href="http://chiri.es.tohoku.ac.jp/~gaihozu/index.php?lang=en-US" target="_blank">Gaihozu Digital Archive </a>maintained by the Tohoku University Library and the Institute of Geography, Graduate School of Science, Tohoku University.</p>
+            <p>Copyright: Human Geography Group at Tohoku University, 2020</p>
+            <p>Project team members: Nakaya, T., Nagata, S., Y. Isoda and R. Sekine (Tohoku University) + Y. Hoshida (<a href="http://www.openconcierge.org/" target="_blank">OpenConcierge</a>)</p>
           
           <div class="right">
             <fieldset class="fieldset-checkbox padding-right-2">
