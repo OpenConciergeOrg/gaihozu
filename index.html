@@ -491,6 +491,7 @@
           sources: sources
         });
 
+        // 検索結果の図郭はどの縮尺か分からないため表示されるかは分からない
         searchWidgetWithSources.on("search-complete", function(event){
           const scale_num = event.results[0].results[0].feature.attributes.scale_num;
           if ([1, 2, 3, 4].includes(scale_num)) {
@@ -1173,13 +1174,13 @@
           <a class="js-modal-toggle right" href="#" aria-label="close-modal" id="closeFirstModal">
             <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
           </a>
-          <h3 class='trailer-half'>Info</h3>
-          <div>Gaihozu meaning “maps of outer lands” is the maps of areas outside the Japanese Islands made by former Japanese Imperial Army before the end of the World War II. Despite the fact that these maps were prepared for military purpose, they contain the valuable records of detailed landscapes including landuse and landcover in the past. This site was designed with ArcGIS Online technology to interactively view about 680 geo-referenced maps in Indonesian territory from the collection of Gaihozu at Tohoku University.</div>
-          <div>Clicking a shaded box on the index map enable you to show the corresponding geo-referenced map with its metadata, such as map scale and printed year. Clicking a button of ratio like 1:500K switched the index map of the corresponding map scale (e.g. 1:500K means 1 / 500,000 map scale).</div>
-          <div>If you need further information on Gaihozu, visit the <a href="http://chiri.es.tohoku.ac.jp/~gaihozu/index.php?lang=en-US" target="_blank">Gaihozu Digital Archive </a> maintained by the Tohoku University Library and the Institute of Geography, Graduate School of Science, Tohoku University.</div>
-          <div>Copyright (C) 2020-  Human Geography Research Group at Tohoku University (Environmental Geography Lab at the Graduate School of Environmental Studies and the Institute of Geography, the Graduate School of Science, Tohoku University)</div>
-          <div>Project team members: Nakaya, T., Nagata, S., Y. Isoda and R. Sekine (Tohoku University) + Y. Hoshida (<a href="http://www.openconcierge.org/" target="_blank">OpenConcierge</a>)</div>
-          <br>
+          <h3 class='trailer-half'>Gaihozu Viewer : Indonesian-territory version (GV-I)</h3>
+          <p>Gaihozu meaning “maps of outer lands” is the maps of areas outside the Japanese Islands made by former Japanese Imperial Army before the end of the World War II. Despite the fact that these maps were prepared for military purpose, they contain the valuable records of detailed landscapes including landuse and landcover in the past. This site was designed with ArcGIS Online technology to interactively view about 680 geo-referenced maps in Indonesian territory from the collection of Gaihozu at Tohoku University.</p>
+          <p>Clicking a shaded box on the index map enable you to show the corresponding geo-referenced map with its metadata, such as map scale and printed year. Clicking a button of ratio like 1:500K switched the index map of the corresponding map scale (e.g. 1:500K means 1 / 500,000 map scale).</p>
+          <p>If you need further information on Gaihozu, visit the <a href="http://chiri.es.tohoku.ac.jp/~gaihozu/index.php?lang=en-US" target="_blank">Gaihozu Digital Archive </a> maintained by the Tohoku University Library and the Institute of Geography, Graduate School of Science, Tohoku University.</p>
+          <p>Copyright (C) 2020-  Human Geography Research Group at Tohoku University (Environmental Geography Lab at the Graduate School of Environmental Studies and the Institute of Geography, the Graduate School of Science, Tohoku University)</p>
+          <p>Project team members: Nakaya, T., Nagata, S., Y. Isoda and R. Sekine (Tohoku University) + Y. Hoshida (<a href="http://www.openconcierge.org/" target="_blank">OpenConcierge</a>)</p>
+
           <div class="right">
             <fieldset class="fieldset-checkbox padding-right-2">
               <label><input type="checkbox" id="notShowAgainChk">Don't show this message again.</label>
@@ -1195,13 +1196,13 @@
           <a class="js-modal-toggle right" href="#" aria-label="close-modal" id="closeInfoModal">
             <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
           </a>
-          <h3 class='trailer-half'>Info</h3>
-          <div>Gaihozu meaning “maps of outer lands” is the maps of areas outside the Japanese Islands made by former Japanese Imperial Army before the end of the World War II. Despite the fact that these maps were prepared for military purpose, they contain the valuable records of detailed landscapes including landuse and landcover in the past. This site was designed with ArcGIS Online technology to interactively view about 680 geo-referenced maps in Indonesian territory from the collection of Gaihozu at Tohoku University.</div>
-          <div>Clicking a shaded box on the index map enable you to show the corresponding geo-referenced map with its metadata, such as map scale and printed year. Clicking a button of ratio like 1:500K switched the index map of the corresponding map scale (e.g. 1:500K means 1 / 500,000 map scale).</div>
-          <div>If you need further information on Gaihozu, visit the <a href="http://chiri.es.tohoku.ac.jp/~gaihozu/index.php?lang=en-US" target="_blank">Gaihozu Digital Archive </a> maintained by the Tohoku University Library and the Institute of Geography, Graduate School of Science, Tohoku University.</div>
-          <div>Special thanks to Dr. Fatwa Ramdani (Brawijaya University, Indonesia) for his valuable comments to the earlier version of this project site and <a href="https://www.wingfield.gr.jp/" target="_blank">Mr. Kohsuke Hada</a> for his help on the identification of old map datum. This project was financially supported by JSPS KAKENHI 16H01965 (PI: Prof Keiji Yano).</div>
-          <div>Copyright (C) 2020-  Human Geography Research Group at Tohoku University (Environmental Geography Lab at the Graduate School of Environmental Studies and the Institute of Geography, the Graduate School of Science, Tohoku University)</div>
-          <div>Project team members: Nakaya, T., Nagata, S., Y. Isoda and R. Sekine (Tohoku University) + Y. Hoshida (<a href="http://www.openconcierge.org/" target="_blank">OpenConcierge</a>)</div>
+          <h3 class='trailer-half'>Gaihozu Viewer : Indonesian-territory version (GV-I)</h3>
+          <p>Gaihozu meaning “maps of outer lands” is the maps of areas outside the Japanese Islands made by former Japanese Imperial Army before the end of the World War II. Despite the fact that these maps were prepared for military purpose, they contain the valuable records of detailed landscapes including landuse and landcover in the past. This site was designed with ArcGIS Online technology to interactively view about 680 geo-referenced maps in Indonesian territory from the collection of Gaihozu at Tohoku University.</p>
+          <p>Clicking a shaded box on the index map enable you to show the corresponding geo-referenced map with its metadata, such as map scale and printed year. Clicking a button of ratio like 1:500K switched the index map of the corresponding map scale (e.g. 1:500K means 1 / 500,000 map scale).</p>
+          <p>If you need further information on Gaihozu, visit the <a href="http://chiri.es.tohoku.ac.jp/~gaihozu/index.php?lang=en-US" target="_blank">Gaihozu Digital Archive </a> maintained by the Tohoku University Library and the Institute of Geography, Graduate School of Science, Tohoku University.</p>
+          <p>Special thanks to Dr. Fatwa Ramdani (Brawijaya University, Indonesia) for his valuable comments to the earlier version of this project site and <a href="https://www.wingfield.gr.jp/" target="_blank">Mr. Kohsuke Hada</a> for his help on the identification of old map datum. This project was financially supported by JSPS KAKENHI 16H01965 (PI: Prof Keiji Yano).</p>
+          <p>Copyright (C) 2020-  Human Geography Research Group at Tohoku University (Environmental Geography Lab at the Graduate School of Environmental Studies and the Institute of Geography, the Graduate School of Science, Tohoku University)</p>
+          <p>Project team members: Nakaya, T., Nagata, S., Y. Isoda and R. Sekine (Tohoku University) + Y. Hoshida (<a href="http://www.openconcierge.org/" target="_blank">OpenConcierge</a>)</p>
           <div class="right">
             <button class="btn js-modal-toggle" id="closeInfoModalBtn">Close</button>
             <!-- <button class="btn btn-clear js-modal-toggle">cancel</button> -->
