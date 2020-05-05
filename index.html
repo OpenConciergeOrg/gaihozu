@@ -168,6 +168,11 @@
       article, aside, details, figcaption, figure, footer, header, hgroup, nav, section, summary{
         display: revert !important;
       }
+      .modal-content {
+        background-image: url("./img/Toh_E_S_N_RGB.gif") !important;
+        background-color:rgba(255,255,255,0.95) !important;
+        background-blend-mode:lighten !important;
+      }
     </style>
     <link
       rel="stylesheet"
@@ -191,15 +196,9 @@
     <script>
       require([
         "esri/views/MapView",
-        "esri/widgets/Expand",
         "esri/layers/FeatureLayer",
         "esri/Map",
-        // "esri/widgets/HistogramRangeSlider",
-        // "esri/renderers/smartMapping/statistics/histogram",
-        // "esri/widgets/HistogramRangeSlider/HistogramRangeSliderViewModel",
         "esri/widgets/Search",
-        "esri/layers/GraphicsLayer",
-        "esri/Graphic",
         "esri/portal/Portal",
         "esri/portal/PortalItem",
         "esri/core/watchUtils",
@@ -214,15 +213,9 @@
         "dojo/promise/all"
       ], function(
         MapView, 
-        Expand,
         FeatureLayer,
         Map,
-        // HistogramRangeSlider,
-        // histogram,
-        // HistogramRangeSliderVM,
         Search,
-        GraphicsLayer,
-        Graphic,
         Portal,
         PortalItem,
         watchUtils,
@@ -314,10 +307,6 @@
         });
         map.add(zukakuFeatureLayer);
 
-        const graphicsLayerMouseOveredZukaku = new GraphicsLayer();
-
-        map.add(graphicsLayerMouseOveredZukaku);
-
         // フィーチャレイヤービュー
         let zukakuLayerView　;
         const defaultWhereClause = "georeference = 1";
@@ -329,13 +318,6 @@
           zukakuLayerView.filter = {
             where: whereClause
           };
-
-          // ポインターが重なった時
-          // view.on('pointer-move', function(evt){
-          //   if (view.map === map) {
-          //     queryFeaturesMouseOvered(evt);
-          //   };
-          // });
 
         });
 
@@ -474,6 +456,30 @@
           maxSuggestions: 6,
           suggestionsEnabled: true,
           minSuggestCharacters: 0
+        }, {
+          layer: zukakuFeatureLayer,
+          searchFields: ["area3_en", "title"],
+          displayField: "area3_en",
+          exactMatch: false,
+          outFields: ["*"],
+          name: "Search by English Metadata",
+          placeholder: "example: Blad 76/XXVIII",
+          maxResults: 6,
+          maxSuggestions: 6,
+          suggestionsEnabled: true,
+          minSuggestCharacters: 0
+        }, {
+          layer: zukakuFeatureLayer,
+          searchFields: ["area3", "area_name"],
+          displayField: "area3",
+          exactMatch: false,
+          outFields: ["*"],
+          name: "Search by Japanese Metadata",
+          placeholder: "example: ボルネオ1/10万",
+          maxResults: 6,
+          maxSuggestions: 6,
+          suggestionsEnabled: true,
+          minSuggestCharacters: 0
         }];
 
         const searchWidget = new Search({
@@ -483,6 +489,22 @@
         const searchWidgetWithSources = new Search({
           view: view,
           sources: sources
+        });
+
+        searchWidgetWithSources.on("search-complete", function(event){
+          const scale_num = event.results[0].results[0].feature.attributes.scale_num;
+          if ([1, 2, 3, 4].includes(scale_num)) {
+            scaleId = '0';
+          } else if ([5, 6, 7].includes(scale_num)) {
+            scaleId = '1';
+          } else if ([8].includes(scale_num)) {
+            scaleId = '2';
+          } else if ([9, 10].includes(scale_num)) {
+            scaleId = '3';
+          } else if ([11].includes(scale_num)) {
+            scaleId = '4';
+          }
+          selectScaleid(scaleId);
         });
 
         listMenu[2].elm.onclick = function(){
@@ -521,32 +543,19 @@
           removeActiveMenu([3,5]);
         };
 
-        // モーダル
-        const modal = document.getElementById("modal");
-
-        listMenu[4].elm.onclick = function(){
-          if (!listMenu[4].elm.classList.contains("active-menu")) {
-            listMenu[4].elm.classList.add("active-menu");
-            modal.classList.add("is-active");
-            removeOtherUI(-9999);
-          } else {
-            listMenu[4].elm.classList.remove("active-menu");
-            modal.classList.remove("is-active");
-          }
-          removeActiveMenu([4,5]);
-        };
+        // モーダル（初期表示）
+        const firstModal= document.getElementById("firstModal");
 
         // 初回は強制的に表示
         if(localStorage.getItem('flgNotShowAgain') === null) {
-          modal.classList.add("is-active");
+          firstModal.classList.add("is-active");
         };
 
         // 右上の×ボタン
-        const closeModal = document.getElementById("closeModal");
-        closeModal.onclick = function(){
-          if (modal.classList.contains("is-active")) {
-            modal.classList.remove("is-active");
-            listMenu[4].elm.classList.remove("active-menu");
+        const closeFirstModal = document.getElementById("closeFirstModal");
+        closeFirstModal.onclick = function(){
+          if (firstModal.classList.contains("is-active")) {
+            firstModal.classList.remove("is-active");
           }
           if(notShowAgainChk.checked) {
             localStorage.setItem('flgNotShowAgain', "1");
@@ -554,14 +563,46 @@
         };  
 
         // 閉じるボタン
-        const closeModalBtn = document.getElementById("closeModalBtn");
-        closeModalBtn.onclick = function(){
-          if (modal.classList.contains("is-active")) {
-            modal.classList.remove("is-active");
-            listMenu[4].elm.classList.remove("active-menu");
+        const closeFirstModalBtn = document.getElementById("closeFirstModalBtn");
+        closeFirstModalBtn.onclick = function(){
+          if (firstModal.classList.contains("is-active")) {
+            firstModal.classList.remove("is-active");
           }
           if(notShowAgainChk.checked) {
             localStorage.setItem('flgNotShowAgain', "1");
+          }
+        };
+
+        // モーダル（info）
+        const infoModal = document.getElementById("infoModal");
+
+        listMenu[4].elm.onclick = function(){
+          if (!listMenu[4].elm.classList.contains("active-menu")) {
+            listMenu[4].elm.classList.add("active-menu");
+            infoModal.classList.add("is-active");
+            removeOtherUI(-9999);
+          } else {
+            listMenu[4].elm.classList.remove("active-menu");
+            infoModal.classList.remove("is-active");
+          }
+          removeActiveMenu([4,5]);
+        };
+
+        // 右上の×ボタン
+        const closeInfoModal = document.getElementById("closeInfoModal");
+        closeInfoModal.onclick = function(){
+          if (infoModal.classList.contains("is-active")) {
+            infoModal.classList.remove("is-active");
+            listMenu[4].elm.classList.remove("active-menu");
+          }
+        };  
+
+        // 閉じるボタン
+        const closeInfoModalBtn = document.getElementById("closeInfoModalBtn");
+        closeInfoModalBtn.onclick = function(){
+          if (infoModal.classList.contains("is-active")) {
+            infoModal.classList.remove("is-active");
+            listMenu[4].elm.classList.remove("active-menu");
           }
         };
 
@@ -592,10 +633,15 @@
         function refreshMenu () {
           removeActiveMenu([-9999]);
           view.ui.remove(basemapGallery, "bottom-left");
-          view.ui.remove(searchWidget, "bottom-left");
           view.ui.remove(toolbarMeasureDiv, "bottom-left");
           view.ui.remove(measurement, "bottom-right");
           view.ui.remove(legend, "bottom-left");
+
+          if (view.map === map) {
+            view.ui.remove(searchWidgetWithSources, "bottom-left");
+          } else if (view.map === mapSecond) {
+            view.ui.remove(searchWidget, "bottom-left");
+          };
 
           measurement.clear();
           distanceMeasureBtn.classList.remove("active");
@@ -644,14 +690,10 @@
 
         })
 
-        // 縮尺の切り替え
-        document
-        .querySelector(".esri-ui-top-left")
-        .addEventListener("click", function(event) {
+        function selectScaleid (scaleId) {
           if (view.map === mapSecond) {
             return;
           }
-          scaleId = event.target.getAttribute("scale-id");
           if (scaleId) {
             const nodes = document.querySelectorAll(".scale-btn-switch");
             for (var idx = 0; idx < nodes.length; idx++) {
@@ -683,6 +725,15 @@
               }
             }
           }
+        }
+
+        // 縮尺の切り替え
+        document
+        .querySelector(".esri-ui-top-left")
+        .addEventListener("click", function(event) {
+          scaleId = event.target.getAttribute("scale-id");
+          selectScaleid(scaleId);
+
         });
 
         // ローダーの表示を止める
@@ -704,64 +755,13 @@
           };   
         });
 
-        // // ポリゴンにマウスオーバー
-        // const symbolMouseOveredZukaku = {
-        //   type: "simple-fill", // autocasts as new SimpleFillSymbol()
-        //   color: [255, 255, 255, 0],
-        //   outline: {
-        //     // autocasts as new SimpleLineSymbol()
-        //     color: [0, 94, 148, 1],
-        //     width: 2
-        //   }
-        // };
-
-        // function queryFeaturesMouseOvered(evt){
-        //   const pointermove = view.toMap({x: evt.x, y: evt.y});
-        //   graphicsLayerMouseOveredZukaku.removeAll();
-          
-        //   // フィルターのかかったレイヤービューに対してクエリする
-        //   const queryParams = zukakuLayerView.filter.createQuery();
-        //   queryParams.geometry = pointermove;
-        //   queryParams.spatialRelationship = "intersects";
-        //   queryParams.returnGeometry = true;
-        //   queryParams.outFields = ["Shape__Area"];
-        //   queryParams.orderByFields = ["Shape__Area DESC"];
-
-        //   zukakuLayerView.queryFeatures(queryParams)
-        //   .then(addGraphicsMouseOveredFeatures)
-        //   .catch(function(error) {
-        //     console.log(error);
-        //   });
-
-        // };
-
-        // function addGraphicsMouseOveredFeatures (response){
-        //   const featuresQuery = response.features;
-        //   const length = featuresQuery.length;
-        //   // フィーチャがない場所にマウスオーバーした時
-        //   if (length === 0){
-        //     return;
-        //   } else {
-        //     featuresQuery.forEach(function(featureQuery) {
-
-        //       addZukakuGraphics(featureQuery, graphicsLayerMouseOveredZukaku, symbolMouseOveredZukaku);
-
-        //     });
-        //   };
-        // };
-
-        function addZukakuGraphics(feature, graphicsLayer, symbol){
-          // 取得したフィーチャをグラフィックスに追加
-          const graphicSelectedZukaku = new Graphic({  // graphic with point geometry
-            geometry: feature.geometry, // set geometry here
-            symbol: symbol // set symbol here
-          });
-          graphicsLayer.add(graphicSelectedZukaku);
-        };
-
         // ビューをクリック
         view.on("click", function(event) {
           if(view.map === map){
+            if (measurement.activeWidget) {
+              return;
+            };
+            refreshMenu();
             queryFeaturesClickedPoint(event);
           } else {
             return;
@@ -781,23 +781,7 @@
           queryParams.returnGeometry = true;
           queryParams.outFields = ["*"];
 
-          // ベースマップギャラリーがアクティブな場合は削除
-          if (document.getElementsByClassName("esri-basemap-gallery").length > 0) {
-            document.getElementsByClassName("esri-basemap-gallery")[0].parentNode.removeChild(document.getElementsByClassName("esri-basemap-gallery")[0]);
-            if (listMenu[1].elm.classList.contains("active-menu")) {
-              listMenu[1].elm.classList.remove("active-menu");
-            };
-          } else if (document.getElementsByClassName("esri-legend").length > 0) {
-            // 凡例ウィジェットがアクティブな場合は削除
-            document.getElementsByClassName("esri-legend")[0].parentNode.removeChild(document.getElementsByClassName("esri-legend")[0]);
-            if (listMenu[3].elm.classList.contains("active-menu")) {
-              listMenu[3].elm.classList.remove("active-menu");
-            };
-          } else if (listMenu[0].elm.classList.contains("active-menu")) {
-            // 計測ウィジェットがアクティブな場合は削除
-            listMenu[0].elm.classList.remove("active-menu");
-            view.ui.remove(toolbarMeasureDiv);
-          } else if (view.map === map && !measurement.activeWidget){
+          if (view.map === map && !measurement.activeWidget){
             // ビューがmapで、計測ウィジェットがアクティブでないときのみ
             zukakuLayerView.queryFeatures(queryParams)
             .then(queryArcGISOnline)
@@ -1184,33 +1168,56 @@
     
     <div class="wrapper">
 
-      <div class="js-modal modal-overlay" data-modal="foo" id="modal">
-        <div class="modal-content column-12" role="dialog" aria-labelledby="modal">
-          <a class="js-modal-toggle right" href="#" aria-label="close-modal" id="closeModal">
+      <div class="js-modal modal-overlay" data-modal="foo" id="firstModal">
+        <div class="modal-content column-20" role="dialog" aria-labelledby="modal">
+          <a class="js-modal-toggle right" href="#" aria-label="close-modal" id="closeFirstModal">
             <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
           </a>
-          <h3 class='trailer-half'>About</h3>
-            <p>Gaihozu meaning “maps of outer lands” is the maps of areas outside the Japanese Islands by former Japanese Imperial Army before the end of the World War II. Despite the fact that these maps were prepared for military purpose, they contain the valuable records of detailed landscapes including landuse and landcover in the past. This site was designed with ArcGIS online technology to interactively view about 680 geo-referenced maps in Indonesian territory from the collection of Gaihozu at Tohoku University.</p>
-            <p>Clicking a shaded box on the index map enable you to show the corresponding map with its cartographic information, such as map scale and printed year. The histograms on the right-side of this site displays the count distributions of available maps by printed year and map scale.</p>
-            <p>If you need further information on Gaihozu, visit the <a href="http://chiri.es.tohoku.ac.jp/~gaihozu/index.php?lang=en-US" target="_blank">Gaihozu Digital Archive </a>maintained by the Tohoku University Library and the Institute of Geography, Graduate School of Science, Tohoku University.</p>
-            <p>Copyright: Human Geography Group at Tohoku University, 2020</p>
-            <p>Project team members: Nakaya, T., Nagata, S., Y. Isoda and R. Sekine (Tohoku University) + Y. Hoshida (<a href="http://www.openconcierge.org/" target="_blank">OpenConcierge</a>)</p>
-          
+          <h3 class='trailer-half'>Info</h3>
+          <div>Gaihozu meaning “maps of outer lands” is the maps of areas outside the Japanese Islands made by former Japanese Imperial Army before the end of the World War II. Despite the fact that these maps were prepared for military purpose, they contain the valuable records of detailed landscapes including landuse and landcover in the past. This site was designed with ArcGIS Online technology to interactively view about 680 geo-referenced maps in Indonesian territory from the collection of Gaihozu at Tohoku University.</div>
+          <div>Clicking a shaded box on the index map enable you to show the corresponding geo-referenced map with its metadata, such as map scale and printed year. Clicking a button of ratio like 1:500K switched the index map of the corresponding map scale (e.g. 1:500K means 1 / 500,000 map scale).</div>
+          <div>If you need further information on Gaihozu, visit the <a href="http://chiri.es.tohoku.ac.jp/~gaihozu/index.php?lang=en-US" target="_blank">Gaihozu Digital Archive </a> maintained by the Tohoku University Library and the Institute of Geography, Graduate School of Science, Tohoku University.</div>
+          <div>Copyright (C) 2020-  Human Geography Research Group at Tohoku University (Environmental Geography Lab at the Graduate School of Environmental Studies and the Institute of Geography, the Graduate School of Science, Tohoku University)</div>
+          <div>Project team members: Nakaya, T., Nagata, S., Y. Isoda and R. Sekine (Tohoku University) + Y. Hoshida (<a href="http://www.openconcierge.org/" target="_blank">OpenConcierge</a>)</div>
+          <br>
           <div class="right">
             <fieldset class="fieldset-checkbox padding-right-2">
               <label><input type="checkbox" id="notShowAgainChk">Don't show this message again.</label>
             </fieldset>
-            <button class="btn js-modal-toggle" id="closeModalBtn">Close</button>
+            <button class="btn js-modal-toggle" id="closeFirstModalBtn">Close</button>
+            <!-- <button class="btn btn-clear js-modal-toggle">cancel</button> -->
+          </div>
+        </div>
+      </div>
+
+      <div class="js-modal modal-overlay" data-modal="foo" id="infoModal">
+        <div class="modal-content column-20" role="dialog" aria-labelledby="modal">
+          <a class="js-modal-toggle right" href="#" aria-label="close-modal" id="closeInfoModal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 32 32" class="svg-icon"><path d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z"/></svg>
+          </a>
+          <h3 class='trailer-half'>Info</h3>
+          <div>Gaihozu meaning “maps of outer lands” is the maps of areas outside the Japanese Islands made by former Japanese Imperial Army before the end of the World War II. Despite the fact that these maps were prepared for military purpose, they contain the valuable records of detailed landscapes including landuse and landcover in the past. This site was designed with ArcGIS Online technology to interactively view about 680 geo-referenced maps in Indonesian territory from the collection of Gaihozu at Tohoku University.</div>
+          <div>Clicking a shaded box on the index map enable you to show the corresponding geo-referenced map with its metadata, such as map scale and printed year. Clicking a button of ratio like 1:500K switched the index map of the corresponding map scale (e.g. 1:500K means 1 / 500,000 map scale).</div>
+          <div>If you need further information on Gaihozu, visit the <a href="http://chiri.es.tohoku.ac.jp/~gaihozu/index.php?lang=en-US" target="_blank">Gaihozu Digital Archive </a> maintained by the Tohoku University Library and the Institute of Geography, Graduate School of Science, Tohoku University.</div>
+          <div>Special thanks to Dr. Fatwa Ramdani (Brawijaya University, Indonesia) for his valuable comments to the earlier version of this project site and <a href="https://www.wingfield.gr.jp/" target="_blank">Mr. Kohsuke Hada</a> for his help on the identification of old map datum. This project was financially supported by JSPS KAKENHI 16H01965 (PI: Prof Keiji Yano).</div>
+          <div>Copyright (C) 2020-  Human Geography Research Group at Tohoku University (Environmental Geography Lab at the Graduate School of Environmental Studies and the Institute of Geography, the Graduate School of Science, Tohoku University)</div>
+          <div>Project team members: Nakaya, T., Nagata, S., Y. Isoda and R. Sekine (Tohoku University) + Y. Hoshida (<a href="http://www.openconcierge.org/" target="_blank">OpenConcierge</a>)</div>
+          <div class="right">
+            <button class="btn js-modal-toggle" id="closeInfoModalBtn">Close</button>
             <!-- <button class="btn btn-clear js-modal-toggle">cancel</button> -->
           </div>
         </div>
       </div>
 
       <div id="titleDiv" class="esri-widget">
+        
         <a class="top-nav-title margin-left-1">
+          
           Gaihozu Viewer
           <span class="tablet-hide phone-hide"> : Indonesian-territory version (GV-I)</span>
+          
         </a>
+        <img src="./img/Toh_E_S_N_G.gif" height="50px" width="50px">
       </div>
       
       <div id="viewDiv"></div>
