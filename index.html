@@ -75,6 +75,7 @@
       .menu-area {
         cursor : pointer;
       }
+
       @media screen and (min-width: 1367px) {
         .menu-area:hover {
           background-color: lightgray;
@@ -89,7 +90,6 @@
         margin: 0;
         height: 100%;
         width: 100%;
-        /* z-index: 4999 ; */
         position: absolute !important;
       }
       .loader-bars{
@@ -168,11 +168,11 @@
       article, aside, details, figcaption, figure, footer, header, hgroup, nav, section, summary{
         display: revert !important;
       }
-      .modal-content {
+      /* .modal-content {
         background-image: url("./img/Toh_E_S_N_RGB.gif") !important;
         background-color:rgba(255,255,255,0.95) !important;
         background-blend-mode:lighten !important;
-      }
+      } */
     </style>
     <link
       rel="stylesheet"
@@ -652,7 +652,7 @@
 
         // メニューバーの余白をクリックした時
         menuDiv.addEventListener("click", function(event) {
-          if (event.path.length <= 6) {
+          if (event.target.childElementCount >= 6) {
             refreshMenu();
           }
         });
@@ -692,9 +692,6 @@
         })
 
         function selectScaleid (scaleId) {
-          if (view.map === mapSecond) {
-            return;
-          }
           if (scaleId) {
             const nodes = document.querySelectorAll(".scale-btn-switch");
             for (var idx = 0; idx < nodes.length; idx++) {
@@ -732,9 +729,10 @@
         document
         .querySelector(".esri-ui-top-left")
         .addEventListener("click", function(event) {
-          scaleId = event.target.getAttribute("scale-id");
-          selectScaleid(scaleId);
-
+          if (view.map === map) {
+            scaleId = event.target.getAttribute("scale-id");
+            selectScaleid(scaleId);
+          }
         });
 
         // ローダーの表示を止める
@@ -797,7 +795,7 @@
         const mapSecond = new Map({
           basemap: map.basemap
         });;
-        const defaultTransparency = 75;
+        let defaultTransparency = 75;
         
         let tileLayer;
         let northId;
@@ -1004,8 +1002,8 @@
         };
 
         function transparencyChanged(event) {
-          const value = event.value;
-          tileLayer.opacity = value/100;
+          defaultTransparency = event.value;
+          tileLayer.opacity = defaultTransparency/100;
         };
 
         const arrayAtt = [
@@ -1180,7 +1178,7 @@
           <p>If you need further information on Gaihozu, visit the <a href="http://chiri.es.tohoku.ac.jp/~gaihozu/index.php?lang=en-US" target="_blank">Gaihozu Digital Archive </a> maintained by the Tohoku University Library and the Institute of Geography, Graduate School of Science, Tohoku University.</p>
           <p>Copyright (C) 2020-  Human Geography Research Group at Tohoku University (Environmental Geography Lab at the Graduate School of Environmental Studies and the Institute of Geography, the Graduate School of Science, Tohoku University)</p>
           <p>Project team members: Nakaya, T., Nagata, S., Y. Isoda and R. Sekine (Tohoku University) + Y. Hoshida (<a href="http://www.openconcierge.org/" target="_blank">OpenConcierge</a>)</p>
-
+          <img src="./img/Toh_E_S_N_RGB.gif" height="50px" width="50px">
           <div class="right">
             <fieldset class="fieldset-checkbox padding-right-2">
               <label><input type="checkbox" id="notShowAgainChk">Don't show this message again.</label>
@@ -1203,6 +1201,7 @@
           <p>Special thanks to Dr. Fatwa Ramdani (Brawijaya University, Indonesia) for his valuable comments to the earlier version of this project site and <a href="https://www.wingfield.gr.jp/" target="_blank">Mr. Kohsuke Hada</a> for his help on the identification of old map datum. This project was financially supported by JSPS KAKENHI 16H01965 (PI: Prof Keiji Yano).</p>
           <p>Copyright (C) 2020-  Human Geography Research Group at Tohoku University (Environmental Geography Lab at the Graduate School of Environmental Studies and the Institute of Geography, the Graduate School of Science, Tohoku University)</p>
           <p>Project team members: Nakaya, T., Nagata, S., Y. Isoda and R. Sekine (Tohoku University) + Y. Hoshida (<a href="http://www.openconcierge.org/" target="_blank">OpenConcierge</a>)</p>
+          <img src="./img/Toh_E_S_N_RGB.gif" height="50px" width="50px">
           <div class="right">
             <button class="btn js-modal-toggle" id="closeInfoModalBtn">Close</button>
             <!-- <button class="btn btn-clear js-modal-toggle">cancel</button> -->
