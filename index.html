@@ -114,17 +114,14 @@
         background-color: lightgray !important;
         color: #0079c1 !important;
       } 
-      #toolbarMeasureDiv {
+      /* #toolbarMeasureDiv {
         flex-direction: row;
         flex-wrap: nowrap;
         display: flex;
-      }
+      } */
       .esri-widget--button {
-        background-color: #efefef !important;
+        background-color: #f8f8f8 !important;
         color: #464646 !important;
-        /* width: 40px !important;
-        height: 40px !important;
-        font-size: 16px !important; */
       }
       .esri-widget--button.active,
       .esri-widget--button.active:hover,
@@ -147,7 +144,7 @@
         width: 100%;
         height: 60px;
       }
-      #opacityDiv {
+      #opacityMapDiv, #opacitySceneDiv {
         width: 250px;
         background: #f8f8f8;
         display: none;
@@ -156,34 +153,26 @@
       .esri-slider {
         background: #f8f8f8 !important;
       }
-      .direction {
+      /* .direction {
         width: 100px !important;
-      }
-      #opacityDiv{
-        display: none;
-      }
+      } */
       fieldset{
         float: left;
       }
       article, aside, details, figcaption, figure, footer, header, hgroup, nav, section, summary{
         display: revert !important;
       }
-      /* .modal-content {
-        background-image: url("./img/Toh_E_S_N_RGB.gif") !important;
-        background-color:rgba(255,255,255,0.95) !important;
-        background-blend-mode:lighten !important;
-      } */
     </style>
     <link
       rel="stylesheet"
       href="https://js.arcgis.com/4.15/esri/themes/light/main.css"
     />
     <link rel="stylesheet" href="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/css/calcite-web.min.css">
-    <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/js/calcite-web.min.js"></script>
+    <!-- <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/js/calcite-web.min.js"></script> -->
     <!-- interactive patterns need to be initialized -->
-    <script>
+    <!-- <script>
        calcite.init()
-    </script>
+    </script> -->
     <script>
       // set locale before JSAPI is loaded
       dojoConfig = {
@@ -210,7 +199,10 @@
         "esri/widgets/BasemapGallery/support/PortalBasemapsSource",
         "esri/widgets/Legend",
         "dojo/Deferred",
-        "dojo/promise/all"
+        "dojo/promise/all",
+        "esri/views/SceneView",
+        "esri/layers/ElevationLayer",
+        "esri/layers/BaseElevationLayer"
       ], function(
         MapView, 
         FeatureLayer,
@@ -227,11 +219,18 @@
         PortalBasemapsSource,
         Legend,
         Deferred,
-        all
+        all,
+        SceneView,
+        ElevationLayer,
+        BaseElevationLayer
       ) {
         
         const URL_FL = "https://services1.arcgis.com/qvPIahekAMWThrhc/arcgis/rest/services/zukaku/FeatureServer/0";
         const QUERYTXT = "owner: Y.Hoshida AND group: 3f221abcf0cc4633a868f8dd49f99f8b AND type: 'Map Service' AND tags: ";
+
+        //////////////////////////////////////////////
+        //   メニューボタンを画面に追加
+        /////////////////////////////////////////////
 
         // メニューのリスト
         const listMenu = [
@@ -241,9 +240,20 @@
           {'text': 'legend', 'icon': "esri-icon-layer-list", 'phone-hide': false},
           {'text': 'info', 'icon': "esri-icon-description", 'phone-hide': false},
           {'text': 'metadata', 'icon': "esri-icon-documentation", 'phone-hide': false},
+          {'text': '3D', 'icon': "esri-icon-globe", 'phone-hide': true},
           {'text': 'back to index map', 'icon': "esri-icon-close-circled", 'phone-hide': false}
         ];
         const menuDiv = document.getElementById("menuDiv");
+        const menuIndex = {
+          measurement: 0,
+          basemap: 1,
+          search: 2,
+          legend: 3,
+          info: 4,
+          metadata: 5,
+          threed: 6,
+          back: 7
+        };
 
         // メニューボタンを追加
         for (let i in listMenu) {
@@ -270,25 +280,132 @@
 
         };
 
-        function removeActiveMenu (indexes) {
-          for (let i in listMenu) {
-            if (!indexes.includes(Number(i))) {
-              listMenu[i].elm.classList.remove("active-menu");
-            };
-          };
-        };
+        // 検索画面では使わないボタンは非表示
+        listMenu[menuIndex.metadata].elm.style.display = "none";
+        listMenu[menuIndex.threed].elm.style.display = "none";
+        listMenu[menuIndex.back].elm.style.display = "none";
 
-        listMenu[5].elm.style.display = "none";
-        listMenu[6].elm.style.display = "none";
+        //////////////////////////////////////////////
+        //
+        //   Create a subclass of BaseElevationLayer
+        //
+        /////////////////////////////////////////////
+
+        // 倍率３倍
+        var ExaggeratedElevationLayer3 = BaseElevationLayer.createSubclass({
+          // Add an exaggeration property whose value will be used
+          // to multiply the elevations at each tile by a specified
+          // factor. In this case terrain will render 100x the actual elevation.
+
+          properties: {
+            exaggeration: 3
+          },
+
+          // The load() method is called when the layer is added to the map
+          // prior to it being rendered in the view.
+
+          load: function() {
+            this._elevation = new ElevationLayer({
+              url:
+                "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
+            });
+
+            // wait for the elevation layer to load before resolving load()
+            this.addResolvingPromise(this._elevation.load());
+          },
+
+          // Fetches the tile(s) visible in the view
+          fetchTile: function(level, row, col) {
+            // calls fetchTile() on the elevationlayer for the tiles
+            // visible in the view
+            return this._elevation.fetchTile(level, row, col).then(
+              function(data) {
+                var exaggeration = this.exaggeration;
+
+                // `data` is an object that contains the
+                // the width of the tile in pixels,
+                // the height of the tile in pixels,
+                // and the values of each pixel
+                for (var i = 0; i < data.values.length; i++) {
+                  // each value represents an elevation sample for the
+                  // given pixel position in the tile. Multiply this
+                  // by the exaggeration value
+                  data.values[i] = data.values[i] * exaggeration;
+                }
+
+                return data;
+              }.bind(this)
+            );
+          }
+        });
+
+        // 倍率１倍
+        var ExaggeratedElevationLayer1 = BaseElevationLayer.createSubclass({
+
+          properties: {
+            exaggeration: 1
+          },
+
+          load: function() {
+            this._elevation = new ElevationLayer({
+              url:
+                "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
+            });
+
+            this.addResolvingPromise(this._elevation.load());
+          },
+
+          fetchTile: function(level, row, col) {
+            return this._elevation.fetchTile(level, row, col).then(
+              function(data) {
+                var exaggeration = this.exaggeration;
+                for (var i = 0; i < data.values.length; i++) {
+                  data.values[i] = data.values[i] * exaggeration;
+                }
+                return data;
+              }.bind(this)
+            );
+          }
+        });
+        
+        // 倍率５倍
+        var ExaggeratedElevationLayer5 = BaseElevationLayer.createSubclass({
+
+          properties: {
+            exaggeration: 5
+          },
+
+          load: function() {
+            this._elevation = new ElevationLayer({
+              url:
+                "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
+            });
+
+            this.addResolvingPromise(this._elevation.load());
+          },
+
+          fetchTile: function(level, row, col) {
+            return this._elevation.fetchTile(level, row, col).then(
+              function(data) {
+                var exaggeration = this.exaggeration;
+                for (var i = 0; i < data.values.length; i++) {
+                  data.values[i] = data.values[i] * exaggeration;
+                }
+                return data;
+              }.bind(this)
+            );
+          }
+        });
 
         // マップ 
         const portal = new Portal();
 
         const map = new Map({
           basemap: 'streets-vector'
+          
         });
 
-        const view = new MapView({
+        let view = new MapView({
           container: "viewDiv",
           map: map,
           center: [118.4985351561923, -2.0326589312043144],
@@ -321,229 +438,367 @@
 
         });
 
-        function addUI (index) {
+        //////////////////////////////////////////////
+        //
+        //   メニューボタンの動作
+        //
+        /////////////////////////////////////////////
 
-          if (index === 0) {
-            view.ui.add(toolbarMeasureDiv, "bottom-left");
-            view.ui.add(measurement, "bottom-right");
-          } else if (index === 1) {
-            view.ui.add(basemapGallery, "bottom-left");
-          } else if (index === 2 && view.map === map) {
-            view.ui.add(searchWidgetWithSources, "bottom-left");
-          } else if (index === 2 && view.map === mapSecond) {
-            view.ui.add(searchWidget, "bottom-left");
-          } else if (index === 3) {
-            view.ui.add(legend, "bottom-left");
+        let measurement;
+        let toolbarMeasureDiv;
+        let basemapGallery;
+        let searchWidgetWithSources;
+        let searchWidget;
+        let legend;
+        let distanceMeasureBtn;
+        let areaMeasureBtn;
+        let clearMeasureBtn;
+
+        clickMenuBtn(view);
+
+        function clickMenuBtn(view){
+
+          //////////////////////////////////////////////
+          //   計測
+          /////////////////////////////////////////////
+          // 計測ボタン
+          toolbarMeasureDiv = document.createElement("div");
+          toolbarMeasureDiv.className = "esri-component esri-widget";
+
+          distanceMeasureBtn = document.createElement("button");
+          distanceMeasureBtn.className = "esri-widget--button esri-interactive esri-icon-measure-line";
+          distanceMeasureBtn.title = "Distance Measurement Tool";
+          toolbarMeasureDiv.appendChild(distanceMeasureBtn);
+          
+          areaMeasureBtn = document.createElement("button");
+          areaMeasureBtn.className = "esri-widget--button esri-interactive esri-icon-measure-area";
+          areaMeasureBtn.title = "Area Measurement Tool";
+          toolbarMeasureDiv.appendChild(areaMeasureBtn);
+
+          clearMeasureBtn = document.createElement("button");
+          clearMeasureBtn.className = "esri-widget--button esri-interactive esri-icon-trash";
+          clearMeasureBtn.title = "Area Measurement Tool";
+          toolbarMeasureDiv.appendChild(clearMeasureBtn);
+
+          // 計測ウィジェット
+          measurement = new Measurement({
+            view: view
+          });
+
+          // 計測ボタンクリック時のイベント
+          listMenu[menuIndex.measurement].elm.onclick = function(){
+            if (!listMenu[menuIndex.measurement].elm.classList.contains("active-menu")) {
+              listMenu[menuIndex.measurement].elm.classList.add("active-menu");
+              view.ui.add(toolbarMeasureDiv, "bottom-right");
+              view.ui.add(measurement, "bottom-right");
+              removeOtherUI(view, menuIndex.measurement);
+            } else {
+              listMenu[menuIndex.measurement].elm.classList.remove("active-menu");
+              
+              view.ui.remove(toolbarMeasureDiv, "bottom-left");
+              view.ui.remove(measurement, "bottom-right");
+              measurement.clear();
+
+              distanceMeasureBtn.classList.remove("active");
+              areaMeasureBtn.classList.remove("active");
+            }
+            removeActiveMenu([menuIndex.measurement,menuIndex.info,menuIndex.metadata]);
           };
 
-        };
+          distanceMeasureBtn.addEventListener("click", function() {
+            if (view.type === "2d") {
+              measurement.activeTool = "distance";
+            } else if (view.type === "3d") {
+              measurement.activeTool = "direct-line";
+            }
+            
+            distanceMeasureBtn.classList.add("active");
+            areaMeasureBtn.classList.remove("active");
+          });
 
-        function removeUI (index) {
+          areaMeasureBtn.addEventListener("click", function() {
+            measurement.activeTool = "area";
+            distanceMeasureBtn.classList.remove("active");
+            areaMeasureBtn.classList.add("active");
+          });
 
-          if (index === 0) {
-            view.ui.remove(toolbarMeasureDiv, "bottom-left");
-            view.ui.remove(measurement, "bottom-right");
+          clearMeasureBtn.addEventListener("click", function() {
             measurement.clear();
-          } else if (index === 1) {
-            view.ui.remove(basemapGallery, "bottom-left");
-          } else if (index === 2 && view.map === map) {
-            view.ui.remove(searchWidgetWithSources, "bottom-left");
-          } else if (index === 2 && view.map === mapSecond) {
-            view.ui.remove(searchWidget, "bottom-left");
-          } else if (index === 3) {
-            view.ui.remove(legend, "bottom-left");
-          };
-
-        };
-
-        function removeOtherUI (index) {
-
-          if (index !== 0) {
-            view.ui.remove(toolbarMeasureDiv, "bottom-left");
-            view.ui.remove(measurement, "bottom-right");
-            measurement.clear();
-          }
-          if (index !== 1) {
-            view.ui.remove(basemapGallery, "bottom-left");
-          }
-          if (index !== 2 && view.map === map) {
-            view.ui.remove(searchWidgetWithSources, "bottom-left");
-          };
-          if (index !== 2 && view.map === mapSecond) {
-            view.ui.remove(searchWidget, "bottom-left");
-          };
-          if (index !== 3) {
-            view.ui.remove(legend, "bottom-left");
-          }
-
-        };
-
-        // 計測ウィジェット
-        const toolbarMeasureDiv = document.getElementById("toolbarMeasureDiv");
-        const measurement = new Measurement({
-          view: view
-        });
-        
-        listMenu[0].elm.onclick = function(){
-          if (!listMenu[0].elm.classList.contains("active-menu")) {
-            listMenu[0].elm.classList.add("active-menu");
-            addUI(0);
-            removeOtherUI(0);
-          } else {
-            listMenu[0].elm.classList.remove("active-menu");
-            removeUI(0);
             distanceMeasureBtn.classList.remove("active");
             areaMeasureBtn.classList.remove("active");
+          });
+
+          //////////////////////////////////////////////
+          //   背景
+          /////////////////////////////////////////////
+          // ベースマップウィジェット
+          const portalSource = new PortalBasemapsSource({  
+            query:{title: "Vector Basemaps",owner: "Esri_cy_US"}    
+          });
+
+          basemapGallery = new BasemapGallery({       
+            view: view,     
+            container: document.createElement("div"),       
+            source: portalSource
+          }); 
+
+          // ベースマップボタンクリック時のイベント
+          listMenu[menuIndex.basemap].elm.onclick = function(){
+            if (!listMenu[menuIndex.basemap].elm.classList.contains("active-menu")) {
+              listMenu[menuIndex.basemap].elm.classList.add("active-menu");
+              view.ui.add(basemapGallery, "bottom-right");
+              removeOtherUI(view, menuIndex.basemap);
+            } else {
+              listMenu[menuIndex.basemap].elm.classList.remove("active-menu");
+              view.ui.remove(basemapGallery, "bottom-left");
+            }
+            removeActiveMenu([menuIndex.basemap,menuIndex.info,menuIndex.metadata]);
+          };
+          
+          //////////////////////////////////////////////
+          //   凡例
+          /////////////////////////////////////////////
+          // 凡例ウィジェット
+          legend = new Legend({
+            view: view,
+            layerInfos: [
+              {
+                layer: zukakuFeatureLayer,
+                title: "Printed year"
+              }
+            ]
+          });
+
+          // 凡例ボタンクリック時のイベント
+          listMenu[menuIndex.legend].elm.onclick = function(){
+            if (!listMenu[menuIndex.legend].elm.classList.contains("active-menu")) {
+              listMenu[menuIndex.legend].elm.classList.add("active-menu");
+              view.ui.add(legend, "bottom-right");
+              removeOtherUI(view, menuIndex.legend);
+            } else {
+              listMenu[menuIndex.legend].elm.classList.remove("active-menu");
+              view.ui.remove(legend, "bottom-right");
+            }
+            removeActiveMenu([menuIndex.legend,menuIndex.info,menuIndex.metadata]);
+          };
+
+          //////////////////////////////////////////////
+          //   2D/3D
+          /////////////////////////////////////////////
+          // 2D、3Dボタンクリック時のイベント
+          listMenu[menuIndex.threed].elm.onclick = function(){
+            loaderDiv.classList.add("is-active");
+            if (!listMenu[menuIndex.threed].elm.classList.contains("active-menu")) {
+              listMenu[menuIndex.threed].elm.classList.add("active-menu");
+            } else {
+              listMenu[menuIndex.threed].elm.classList.remove("active-menu");
+            }
+            removeActiveMenu([menuIndex.info,menuIndex.metadata]);
+            refreshMenu(view);
+            switchView();
+          };
+
+          //////////////////////////////////////////////
+          //   検索
+          /////////////////////////////////////////////
+          // 検索ウィジェット
+          // 検索画面はフィーチャレイヤーも検索できるようにする
+          // 閲覧画面ではジオコーディングのみ
+          const sources = [{
+            layer: zukakuFeatureLayer,
+            searchFields: ["id"],
+            displayField: "id",
+            exactMatch: false,
+            outFields: ["*"],
+            name: "Search by ID",
+            placeholder: "example: TH008053",
+            maxResults: 6,
+            maxSuggestions: 6,
+            suggestionsEnabled: true,
+            minSuggestCharacters: 0
+          }, {
+            layer: zukakuFeatureLayer,
+            searchFields: ["area3_en", "title"],
+            displayField: "area3_en",
+            exactMatch: false,
+            outFields: ["*"],
+            name: "Search by English Metadata",
+            placeholder: "example: Blad 76/XXVIII",
+            maxResults: 6,
+            maxSuggestions: 6,
+            suggestionsEnabled: true,
+            minSuggestCharacters: 0
+          }, {
+            layer: zukakuFeatureLayer,
+            searchFields: ["area3", "area_name"],
+            displayField: "area3",
+            exactMatch: false,
+            outFields: ["*"],
+            name: "Search by Japanese Metadata",
+            placeholder: "example: ボルネオ1/10万",
+            maxResults: 6,
+            maxSuggestions: 6,
+            suggestionsEnabled: true,
+            minSuggestCharacters: 0
+          }];
+          
+          searchWidgetWithSources = new Search({
+            view: view,
+            sources: sources
+          });
+
+          searchWidget = new Search({
+            view: view
+          });
+          
+
+          // 検索ボタンクリック時のイベント
+          listMenu[menuIndex.search].elm.onclick = function(){
+            if (!listMenu[menuIndex.search].elm.classList.contains("active-menu")) {
+              listMenu[menuIndex.search].elm.classList.add("active-menu");
+              
+              if (view.map === map) {
+                view.ui.add(searchWidgetWithSources, "bottom-right");
+              } else if (view.map === mapSecond) {
+                view.ui.add(searchWidget, "bottom-right");
+              }
+
+              removeOtherUI(view, menuIndex.search);
+            } else {
+              listMenu[menuIndex.search].elm.classList.remove("active-menu");
+              if (view.map === map) {
+                view.ui.remove(searchWidgetWithSources, "bottom-left");
+              } else if (view.map === mapSecond) {
+                view.ui.remove(searchWidget, "bottom-left");
+              }
+            };
+            removeActiveMenu([menuIndex.search,menuIndex.info,menuIndex.metadata]);
+          };
+
+          // 検索結果の図郭はどの縮尺か分からないため表示されるかは分からない
+          searchWidgetWithSources.on("search-complete", function(event){
+            const scale_num = event.results[0].results[0].feature.attributes.scale_num;
+            if ([1, 2, 3, 4].includes(scale_num)) {
+              scaleId = '0';
+            } else if ([5, 6, 7].includes(scale_num)) {
+              scaleId = '1';
+            } else if ([8].includes(scale_num)) {
+              scaleId = '2';
+            } else if ([9, 10].includes(scale_num)) {
+              scaleId = '3';
+            } else if ([11].includes(scale_num)) {
+              scaleId = '4';
+            }
+            selectScaleid(scaleId);
+          });
+
+          //////////////////////////////////////////////
+          //   モーダル
+          /////////////////////////////////////////////
+          listMenu[menuIndex.info].elm.onclick = function(){
+            if (!listMenu[menuIndex.info].elm.classList.contains("active-menu")) {
+              listMenu[menuIndex.info].elm.classList.add("active-menu");
+              infoModal.classList.add("is-active");
+              removeOtherUI(view, -9999);
+            } else {
+              listMenu[menuIndex.info].elm.classList.remove("active-menu");
+              infoModal.classList.remove("is-active");
+            }
+            removeActiveMenu([menuIndex.info,menuIndex.info,menuIndex.metadata]);
+          }; 
+        }
+
+        // メニューをクリックした際に他のウィジェットが開いていたら閉じる
+        function removeOtherUI (view, index) {
+
+          if (index !== menuIndex.measurement) {
+            view.ui.remove(toolbarMeasureDiv, "bottom-left");
+            view.ui.remove(measurement, "bottom-right");
+            measurement.clear();
           }
-          removeActiveMenu([0,5]);
+          if (index !== menuIndex.basemap) {
+            view.ui.remove(basemapGallery, "bottom-left");
+          }
+          if (index !== menuIndex.search && view.map === map) {
+            view.ui.remove(searchWidgetWithSources, "bottom-left");
+          };
+          if (index !== menuIndex.search && view.map === mapSecond) {
+            view.ui.remove(searchWidget, "bottom-left");
+          };
+          if (index !== menuIndex.legend) {
+            view.ui.remove(legend, "bottom-left");
+          }
+
         };
 
-        const distanceMeasureBtn = document.getElementById("distanceMeasureBtn");
-        const areaMeasureBtn = document.getElementById("areaMeasureBtn");
-        const clearMeasureBtn = document.getElementById("clearMeasureBtn");
+                 
+        // メニューボタンをクリックしたときに該当ボタンとinfoとメタデータ以外の見栄えを非アクティブにする
+        function removeActiveMenu (indexes) {
+          for (let i in listMenu) {
+            if (!indexes.includes(Number(i))) {
+              listMenu[i].elm.classList.remove("active-menu");
+            };
+          };
+        };
 
-        distanceMeasureBtn.addEventListener("click", function() {
-          measurement.activeTool = "distance";
-          distanceMeasureBtn.classList.add("active");
-          areaMeasureBtn.classList.remove("active");
-        });
+        // メニューボタンの初期化
+        function refreshMenu (view) {
+          removeActiveMenu([-9999]);
+          view.ui.remove(basemapGallery, "bottom-left");
+          view.ui.remove(toolbarMeasureDiv, "bottom-left");
+          view.ui.remove(measurement, "bottom-right");
+          view.ui.remove(legend, "bottom-left");
 
-        areaMeasureBtn.addEventListener("click", function() {
-          measurement.activeTool = "area";
-          distanceMeasureBtn.classList.remove("active");
-          areaMeasureBtn.classList.add("active");
-        });
+          if (view.map === map) {
+            view.ui.remove(searchWidgetWithSources, "bottom-left");
+          } else if (view.map === mapSecond) {
+            view.ui.remove(searchWidget, "bottom-left");
+          };
 
-        clearMeasureBtn.addEventListener("click", function() {
           measurement.clear();
           distanceMeasureBtn.classList.remove("active");
           areaMeasureBtn.classList.remove("active");
-        });
+          closeAttributeDiv();
+        }
 
-        // ベースマップウィジェット
-        const portalSource = new PortalBasemapsSource({  
-          query:{title: "Vector Basemaps",owner: "Esri_cy_US"}    
-        });
-                 
-        const basemapGallery = new BasemapGallery({       
-          view: view,     
-          container: document.createElement("div"),       
-          source: portalSource
-        }); 
-
-        listMenu[1].elm.onclick = function(){
-          if (!listMenu[1].elm.classList.contains("active-menu")) {
-            listMenu[1].elm.classList.add("active-menu");
-            addUI(1);
-            removeOtherUI(1);
-          } else {
-            listMenu[1].elm.classList.remove("active-menu");
-            removeUI(1);
+        // メニューバーの余白をクリックした時
+        menuDiv.addEventListener("click", function(event) {
+          if (event.target.childElementCount >= 6) {
+            refreshMenu(view);
           }
-          removeActiveMenu([1,5]);
+        });
+
+
+        //////////////////////////////////////////////
+        //   メタデータ
+        /////////////////////////////////////////////
+        // メタデータボタンクリック時のイベント
+        const viewDiv = document.getElementById("viewDiv");
+        const attributeDiv = document.getElementById("attributeDiv");
+
+        function openAttributeDiv () {
+          viewDiv.style.left = "275px";
+          attributeDiv.style.display = "block";
         };
 
-        // 検索ウィジェット
-        const sources = [{
-          layer: zukakuFeatureLayer,
-          searchFields: ["id"],
-          displayField: "id",
-          exactMatch: false,
-          outFields: ["*"],
-          name: "Search by ID",
-          placeholder: "example: TH008053",
-          maxResults: 6,
-          maxSuggestions: 6,
-          suggestionsEnabled: true,
-          minSuggestCharacters: 0
-        }, {
-          layer: zukakuFeatureLayer,
-          searchFields: ["area3_en", "title"],
-          displayField: "area3_en",
-          exactMatch: false,
-          outFields: ["*"],
-          name: "Search by English Metadata",
-          placeholder: "example: Blad 76/XXVIII",
-          maxResults: 6,
-          maxSuggestions: 6,
-          suggestionsEnabled: true,
-          minSuggestCharacters: 0
-        }, {
-          layer: zukakuFeatureLayer,
-          searchFields: ["area3", "area_name"],
-          displayField: "area3",
-          exactMatch: false,
-          outFields: ["*"],
-          name: "Search by Japanese Metadata",
-          placeholder: "example: ボルネオ1/10万",
-          maxResults: 6,
-          maxSuggestions: 6,
-          suggestionsEnabled: true,
-          minSuggestCharacters: 0
-        }];
-
-        const searchWidget = new Search({
-          view: view
-        });
-
-        const searchWidgetWithSources = new Search({
-          view: view,
-          sources: sources
-        });
-
-        // 検索結果の図郭はどの縮尺か分からないため表示されるかは分からない
-        searchWidgetWithSources.on("search-complete", function(event){
-          const scale_num = event.results[0].results[0].feature.attributes.scale_num;
-          if ([1, 2, 3, 4].includes(scale_num)) {
-            scaleId = '0';
-          } else if ([5, 6, 7].includes(scale_num)) {
-            scaleId = '1';
-          } else if ([8].includes(scale_num)) {
-            scaleId = '2';
-          } else if ([9, 10].includes(scale_num)) {
-            scaleId = '3';
-          } else if ([11].includes(scale_num)) {
-            scaleId = '4';
-          }
-          selectScaleid(scaleId);
-        });
-
-        listMenu[2].elm.onclick = function(){
-          if (!listMenu[2].elm.classList.contains("active-menu")) {
-            listMenu[2].elm.classList.add("active-menu");
-            addUI(2);
-            removeOtherUI(2);
-          } else {
-            listMenu[2].elm.classList.remove("active-menu");
-            removeUI(2);
-          }
-          removeActiveMenu([2,5]);
+        function closeAttributeDiv () {
+          viewDiv.style.left = "75px";
+          attributeDiv.style.display = "none";
         };
 
-        // 凡例
-        const legend = new Legend({
-          view: view,
-          layerInfos: [
-            {
-              layer: zukakuFeatureLayer,
-              title: "Printed year"
-            }
-          ]
-        });
+        listMenu[menuIndex.metadata].elm.onclick = function(){
+          if (!listMenu[menuIndex.metadata].elm.classList.contains("active-menu")) {
+            listMenu[menuIndex.metadata].elm.classList.add("active-menu");
+            openAttributeDiv();
+          } else {
+            listMenu[menuIndex.metadata].elm.classList.remove("active-menu");
+            closeAttributeDiv();
+          };
+        };
         
-
-        listMenu[3].elm.onclick = function(){
-          if (!listMenu[3].elm.classList.contains("active-menu")) {
-            listMenu[3].elm.classList.add("active-menu");
-            addUI(3);
-            removeOtherUI(3);
-          } else {
-            listMenu[3].elm.classList.remove("active-menu");
-            removeUI(3);
-          }
-          removeActiveMenu([3,5]);
-        };
-
+        //////////////////////////////////////////////
+        //   モーダル
+        /////////////////////////////////////////////
         // モーダル（初期表示）
         const firstModal= document.getElementById("firstModal");
 
@@ -577,19 +832,7 @@
         // モーダル（info）
         const infoModal = document.getElementById("infoModal");
 
-        listMenu[4].elm.onclick = function(){
-          if (!listMenu[4].elm.classList.contains("active-menu")) {
-            listMenu[4].elm.classList.add("active-menu");
-            infoModal.classList.add("is-active");
-            removeOtherUI(-9999);
-          } else {
-            listMenu[4].elm.classList.remove("active-menu");
-            infoModal.classList.remove("is-active");
-          }
-          removeActiveMenu([4,5]);
-        };
-
-        // 右上の×ボタン
+        // モーダルの右上の×ボタン
         const closeInfoModal = document.getElementById("closeInfoModal");
         closeInfoModal.onclick = function(){
           if (infoModal.classList.contains("is-active")) {
@@ -598,7 +841,7 @@
           }
         };  
 
-        // 閉じるボタン
+        // モーダルの閉じるボタン
         const closeInfoModalBtn = document.getElementById("closeInfoModalBtn");
         closeInfoModalBtn.onclick = function(){
           if (infoModal.classList.contains("is-active")) {
@@ -607,56 +850,12 @@
           }
         };
 
-        // 属性
-        const viewDiv = document.getElementById("viewDiv");
-        const attributeDiv = document.getElementById("attributeDiv");
-
-        function openAttributeDiv () {
-          viewDiv.style.left = "275px";
-          attributeDiv.style.display = "block";
-        };
-
-        function closeAttributeDiv () {
-          viewDiv.style.left = "75px";
-          attributeDiv.style.display = "none";
-        };
-
-        listMenu[5].elm.onclick = function(){
-          if (!listMenu[5].elm.classList.contains("active-menu")) {
-            listMenu[5].elm.classList.add("active-menu");
-            openAttributeDiv();
-          } else {
-            listMenu[5].elm.classList.remove("active-menu");
-            closeAttributeDiv();
-          };
-        };
         
-        function refreshMenu () {
-          removeActiveMenu([-9999]);
-          view.ui.remove(basemapGallery, "bottom-left");
-          view.ui.remove(toolbarMeasureDiv, "bottom-left");
-          view.ui.remove(measurement, "bottom-right");
-          view.ui.remove(legend, "bottom-left");
-
-          if (view.map === map) {
-            view.ui.remove(searchWidgetWithSources, "bottom-left");
-          } else if (view.map === mapSecond) {
-            view.ui.remove(searchWidget, "bottom-left");
-          };
-
-          measurement.clear();
-          distanceMeasureBtn.classList.remove("active");
-          areaMeasureBtn.classList.remove("active");
-          closeAttributeDiv();
-        }
-
-        // メニューバーの余白をクリックした時
-        menuDiv.addEventListener("click", function(event) {
-          if (event.target.childElementCount >= 6) {
-            refreshMenu();
-          }
-        });
         
+        //////////////////////////////////////////////
+        //   図郭の縮尺フィルターボタン
+        /////////////////////////////////////////////
+
         // 縮尺のリスト
         const listScale = [
           {'text': "- 1:150K (522)"}, 
@@ -754,19 +953,31 @@
           };   
         });
 
+        //////////////////////////////////////////////
+        //
+        //   図郭ポリゴンをクリック→外邦図を閲覧
+        //
+        /////////////////////////////////////////////
+
         // ビューをクリック
-        view.on("click", function(event) {
-          if(view.map === map){
-            if (measurement.activeWidget) {
+        function clickView(){
+          view.on("click", function(event) {
+            if(view.map === map){
+              if (measurement.activeWidget) {
+                return;
+              };
+              
+              
+              refreshMenu(view);
+              queryFeaturesClickedPoint(event);
+            } else {
               return;
             };
-            refreshMenu();
-            queryFeaturesClickedPoint(event);
-          } else {
-            return;
-          };
-          
-        });
+            
+          });
+        };
+
+        clickView();
 
         // ポリゴンをクリック
         function queryFeaturesClickedPoint(screenPoint) {
@@ -791,10 +1002,288 @@
           };
 
         };
-
+        
         const mapSecond = new Map({
-          basemap: map.basemap
-        });;
+        });
+        let objArrowBtn = [];
+
+        var appConfig = {
+          mapView: null,
+          sceneView: null,
+          activeView: null,
+          container: "viewDiv" // use same container for views
+        };
+
+
+        function createTileView (response) {
+          
+          const maxLOD = response.data.maxLOD;
+          const minLOD = response.data.minLOD;
+
+          // メニューボタンの表示、非表示の切り替え
+          listMenu[3].elm.style.display = "none";
+          listMenu[5].elm.style.display = "block";
+          listMenu[6].elm.style.display = "block";
+          listMenu[7].elm.style.display = "block";
+         
+
+          var initialViewParams = {
+            // zoom: 4,
+            // center: [118.4985351561923, -2.0326589312043144],
+            container: appConfig.container
+          };
+
+          // create 2D view and and set active
+          appConfig.mapView = view;
+
+          appConfig.mapView.map = mapSecond;
+
+          mapSecond.basemap = map.basemap;
+
+          // すでに追加されている外邦図を削除
+          mapSecond.removeAll();
+          mapSecond.add(tileLayer);
+          tileLayer.opacity = defaultTransparency/100;
+          
+          // create 3D view, won't initialize until container is set
+          initialViewParams.container = null;
+          initialViewParams.map = mapSecond;
+          
+          // マップ
+          if (listMenu[6].elm.firstElementChild.classList.contains("esri-icon-globe")) {
+            appConfig.sceneView = createView(initialViewParams, "3d", minLOD, maxLOD);
+            appConfig.activeView = appConfig.mapView;
+            appConfig.activeView.ui.empty("bottom-left");
+            appConfig.activeView.ui.empty("top-left");
+            appConfig.activeView.constraints = {minZoom: minLOD, maxZoom: maxLOD};
+            
+            tileLayer.when(function() {
+              // ビューの移動
+              appConfig.activeView.goTo(tileLayer.fullExtent)
+              // 透過度スライダーの追加
+              .then(function(){addOpacitySlider(opacityMapDiv, opacityMapSlider, appConfig.activeView)})
+              // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
+              .then(function(){addAllDirectionBtn2View(appConfig.activeView)});
+            });
+            
+          // シーン
+          } else if (listMenu[6].elm.firstElementChild.classList.contains("esri-icon-maps")) {
+            
+            appConfig.activeView = appConfig.sceneView;
+            appConfig.activeView.ui.empty("bottom-left");
+
+            tileLayer.when(function() {
+              // シーンの移動
+              appConfig.activeView.goTo(tileLayer.fullExtent)
+              .then(function(){
+                appConfig.activeView.goTo({
+                  tilt: viewTilt,
+                  heading: viewHeading
+                })
+              })
+              // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
+              .then(function(){addAllDirectionBtn2View(appConfig.activeView)});
+            });
+          }
+          
+        };
+
+
+
+        
+        
+        let viewTilt = 45;
+        let viewHeading = 0;
+        // マップとシーンの切り替え
+        function switchView() {
+          
+          const is3D = appConfig.activeView.type === "3d";
+          var activeViewpoint = appConfig.activeView.viewpoint.clone();
+
+          // remove the reference to the container for the previous view
+          appConfig.activeView.container = null;
+
+          if (is3D) {
+            // if the input view is a SceneView, set the viewpoint on the
+            // mapView instance. Set the container on the mapView and flag
+            // it as the active view
+            appConfig.mapView.viewpoint = activeViewpoint;
+            appConfig.mapView.container = appConfig.container;
+            appConfig.activeView = appConfig.mapView;
+            mapSecond.ground = {};
+
+            // 一度３Dにした後、２Dに戻すためには再度透過率スライダーと方位ボタンを追加する必要がある
+            view.ui.empty("top-left");
+            view.ui.empty("bottom-left");
+            addOpacitySlider(opacityMapDiv, opacityMapSlider, view);
+            addAllDirectionBtn2View(view);
+
+            clickMenuBtn(view);
+
+            // switchButton.value = "3D";
+            listMenu[6].elm.firstElementChild.classList.remove("esri-icon-maps");
+            listMenu[6].elm.firstElementChild.classList.add("esri-icon-globe");
+            listMenu[6].elm.lastElementChild.innerHTML = "3D";
+          } else {
+            appConfig.activeView = appConfig.sceneView;
+            appConfig.sceneView.viewpoint = activeViewpoint;
+
+            appConfig.sceneView.container = appConfig.container;
+            
+            mapSecond.ground = {
+              layers: [new ExaggeratedElevationLayer3()],
+              surfaceColor: [0, 0, 0]
+            };
+
+            listMenu[6].elm.firstElementChild.classList.remove("esri-icon-globe");
+            listMenu[6].elm.firstElementChild.classList.add("esri-icon-maps");
+            listMenu[6].elm.lastElementChild.innerHTML = "2D";
+
+            appConfig.activeView.ui.empty("top-right");
+            appConfig.activeView.ui.empty("bottom-left");
+
+            appConfig.activeView.when(function(){
+              appConfig.activeView.goTo(activeViewpoint)
+              .then(function(){
+                appConfig.activeView.goTo({
+                  tilt: viewTilt,
+                  heading: viewHeading
+                })
+              })
+              // 透過度スライダーの追加
+              .then(function(){addOpacitySlider(opacitySceneDiv, opacitySceneSlider, appConfig.activeView)})
+              // 高さ倍率ボタンの追加
+              .then(function(){addExaggerationButton(appConfig.activeView, exaggerationId)})
+              // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
+              .then(function(){addAllDirectionBtn2View(appConfig.activeView)})
+              // 高さ倍率ボタンクリック時のイベント
+              .then(function(){clickExaggerationBtn(appConfig.activeView)})
+              .then(function(){
+                clickMenuBtn(appConfig.activeView);
+              })
+              .then(function(){
+                watchUtils.whenTrue(appConfig.activeView, "stationary", function() {
+                  if (appConfig.activeView.map === mapSecond) {
+                    if (appConfig.activeView.extent) {
+                      viewTilt = appConfig.activeView.camera.tilt;
+                      viewHeading = appConfig.activeView.camera.heading;
+                    };
+                  };   
+                });
+              })
+            });
+            appConfig.activeView.watch('updating', function(evt){
+              if(!evt){
+                loaderDiv.classList.remove('is-active');
+              };
+            });            
+
+          }
+        }
+
+        // convenience function for creating a 2D or 3D view
+        function createView(params, type, minLOD, maxLOD) {
+          var tmpView;
+          var is2D = type === "2d";
+          if (is2D) {
+            // tmpView = new MapView(params);        
+            tmpView = view;
+          } else {
+            tmpView = new SceneView(params);
+            tmpView.padding = {top: 55};
+            tmpView.ui.empty("top-left");
+            console.log(maxLOD);
+            console.log(minLOD);
+            tmpView.constraints = {altitude: {min: maxLOD*1000}};
+
+            tmpView.watch('updating', function(evt){
+              if(!evt){
+                loaderDiv.classList.remove('is-active');
+              };
+            });
+            
+          }
+          return tmpView;
+        }
+
+        //////////////////////////////////////////////
+        //   高さの倍率の切り替えボタン
+        /////////////////////////////////////////////
+
+        // 高さ倍率のリスト
+        const listExaggeration = [
+          {'text': "1x"}, 
+          {'text': "3x"}, 
+          {'text': "5x"}
+        ];
+
+        // 高さ倍率ボタンを追加
+        function addExaggerationButton (view, index) {
+
+          for (let i in listExaggeration) {
+            listExaggeration[i].elm = document.createElement('button');
+            listExaggeration[i].elm.className = "esri-button exaggeration-btn-switch";
+            listExaggeration[i].elm.setAttribute("exaggeration-id", i);
+
+            if (i === String(index)) {
+              listExaggeration[i].elm.disabled = true;
+            }
+
+            listExaggeration[i].elm.innerHTML = listExaggeration[i].text;
+            viewDiv.parentNode.insertBefore(listExaggeration[i].elm, viewDiv.nextSibling);
+            view.ui.add(listExaggeration[i].elm, "top-right");
+          }
+        };
+
+        let exaggerationId = '1';
+
+        // 高さ倍率ボタンクリック時のイベント
+        function clickExaggerationBtn (view) {
+          document
+          .querySelector(".esri-ui-top-right")
+          .addEventListener("click", function(event) {
+            if (view.map === mapSecond) {
+              exaggerationId = event.target.getAttribute("exaggeration-id");
+              selectExaggerationId(exaggerationId);
+            }
+          });
+        };
+        
+
+        function selectExaggerationId (exaggerationId) {
+          if (exaggerationId) {
+            const nodes = document.querySelectorAll(".exaggeration-btn-switch");
+            for (var idx = 0; idx < nodes.length; idx++) {
+              const node = nodes[idx];
+              const exaggerationIndex = node.getAttribute("exaggeration-id");
+              if (exaggerationIndex === exaggerationId) {
+                node.disabled = true;
+                if (exaggerationId === '0') {
+                  mapSecond.ground = {
+                    layers: [new ExaggeratedElevationLayer1()],
+                    surfaceColor: [0, 0, 0]
+                  };
+                } else if (exaggerationId === '1') {
+                  mapSecond.ground = {
+                    layers: [new ExaggeratedElevationLayer3()],
+                    surfaceColor: [0, 0, 0]
+                  };
+                } else if (exaggerationId === '2') {
+                  mapSecond.ground = {
+                    layers: [new ExaggeratedElevationLayer5()],
+                    surfaceColor: [0, 0, 0]
+                  };
+                  
+                };
+                
+              } else {
+                node.disabled = false;
+              }
+            }
+          }
+        }
+
+
         let defaultTransparency = 75;
         
         let tileLayer;
@@ -839,11 +1328,6 @@
             return response;
           };
         };
-
-        
-
-        
-
         
 
         function addTileLayer(response){
@@ -853,11 +1337,6 @@
           tileLayer = new TileLayer({
             url: tileLayerUrl
           });
-          
-          // すでに追加されている外邦図を削除
-          mapSecond.removeAll();
-          mapSecond.add(tileLayer);
-          tileLayer.opacity = defaultTransparency/100;
 
           var options = {
             query: {
@@ -867,11 +1346,12 @@
           };
 
           esriRequest(tileLayerUrl, options)
-            .then(createTileView)
+            
+            .then(createTileView);
         };
 
-        const opacitySlider = new Slider({
-          container: "opacitySlider",
+        const opacityMapSlider = new Slider({
+          container: "opacityMapSlider",
           min: 0,
           max: 100,
           steps: 0.1,
@@ -882,7 +1362,41 @@
           }
         });
 
+        const opacitySceneSlider = new Slider({
+          container: "opacitySceneSlider",
+          min: 0,
+          max: 100,
+          steps: 0.1,
+          values: [defaultTransparency],
+          visibleElements: {
+            labels: false,
+            rangeLabels: true
+          }
+        });
 
+        //////////////////////////////////////////////
+        //   東西南北ボタン
+        /////////////////////////////////////////////
+
+        // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
+        function addAllDirectionBtn2View (view) {
+          all([createDirectionBtn(northId, "northBtn", "esri-icon-arrow-up-circled", "North"), 
+                  createDirectionBtn(southId, "southBtn", "esri-icon-arrow-down-circled", "South"),
+                  createDirectionBtn(westId, "westBtn", "esri-icon-arrow-left-circled", "West"),
+                  createDirectionBtn(eastId, "eastBtn", "esri-icon-arrow-right-circled", "East")
+                  ])
+          .then(function(results){
+            objArrowBtn = results;
+            for (let i in results) {
+              
+              if (results[i].firstElementChild) {
+                view.ui.add(results[i], "bottom-left");
+                results[i].addEventListener("click", showNextImage);
+              };
+            }
+          });
+        };
+        
         function createDirectionBtn (id, attId, classIcon, text) {
           const deferred = new Deferred();
           
@@ -895,6 +1409,7 @@
             .then(function(response){
 
               const arrowBtn = document.createElement('button');
+              // objArrowBtn[text] = document.createElement('button');
 
               if (response.features.length > 0){
                 const feature = response.features[0];
@@ -909,13 +1424,13 @@
 
                   const arrowIconDiv = document.createElement('div');
                   arrowIconDiv.className = "padding-right-half " + classIcon;
+                  arrowIconDiv.setAttribute("data-id", id);
                   arrowBtn.appendChild(arrowIconDiv);
 
                   arrowBtn.insertAdjacentHTML('beforeend', text);
 
                 }
               }
-
               deferred.resolve(arrowBtn);
 
             }).catch(function(error) {
@@ -926,53 +1441,11 @@
 
         };
 
-        function createTileView(response){
-
-          const maxLOD = response.data.maxLOD;
-          const minLOD = response.data.minLOD;
-
-          tileLayer.when(function() {
-            view.goTo(tileLayer.fullExtent);
-          });
-
-          view.map = mapSecond;
-          view.constraints = {minZoom: minLOD, maxZoom: maxLOD};
-
-          // メニューボタンの表示、非表示の切り替え
-          listMenu[3].elm.style.display = "none";
-          listMenu[5].elm.style.display = "block";
-          listMenu[6].elm.style.display = "block";
-
-          // 左上のUIの削除
-          view.ui.empty("top-left");
-
-          // 透過スライダーを追加
-          addOpacitySlider();
-
-          // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
-          all([createDirectionBtn(northId, "northBtn", "esri-icon-arrow-up-circled", "North"), 
-               createDirectionBtn(southId, "southBtn", "esri-icon-arrow-down-circled", "South"),
-               createDirectionBtn(westId, "westBtn", "esri-icon-arrow-left-circled", "West"),
-               createDirectionBtn(eastId, "eastBtn", "esri-icon-arrow-right-circled", "East")
-              ])
-          .then(function(results){
-            
-            for (let i in results) {
-              if (results[i].firstElementChild) {
-                view.ui.add(results[i], "top-left");
-                results[i].addEventListener("click", showNextImage);
-              };
-            }
-          });
-
-          // ローダーの表示をとめる
-          loaderDiv.classList.remove("is-active");
-        };
-
+        // 方位ボタンをクリックして隣接外邦図を表示
         function showNextImage (event) {
 
           const id = event.target.dataset.id;
-            
+          
           const queryParams = zukakuFeatureLayer.createQuery();
           // set a geometry for querying features by the view's extent
           queryParams.returnGeometry = true;
@@ -987,24 +1460,34 @@
           });
         };
 
+        //////////////////////////////////////////////
+        //   透過スライダー
+        /////////////////////////////////////////////
+
         // 透過スライダーを追加
-        const opacityDiv = document.getElementById("opacityDiv");
+        const opacityMapDiv = document.getElementById("opacityMapDiv");
+        const opacitySceneDiv = document.getElementById("opacitySceneDiv");
         
-        function addOpacitySlider () {
-          
+        function addOpacitySlider (opacityDiv, opacitySlider, view) {
           opacityDiv.style.display = "block";
           view.ui.add(opacityDiv, "top-left");
 
+          
           opacitySlider.on(
             ["thumb-change", "thumb-drag"],
             transparencyChanged
           );
+          
         };
 
         function transparencyChanged(event) {
           defaultTransparency = event.value;
           tileLayer.opacity = defaultTransparency/100;
         };
+
+        //////////////////////////////////////////////
+        //   メタデータ
+        /////////////////////////////////////////////
 
         const arrayAtt = [
           {"title": "記号", "att": "area3"},
@@ -1020,6 +1503,7 @@
           {"title": "枚数（実物）", "att": "copies"}
         ];
 
+        // 属性情報を追加
         function addZukakuAttribute (response) {
 
           if (typeof response === 'undefined') {
@@ -1099,19 +1583,40 @@
           };
         };
 
-        // back to index map
-        listMenu[6].elm.onclick = function(){
+        //////////////////////////////////////////////
+        //   閲覧画面から検索画面に戻る
+        /////////////////////////////////////////////
+        listMenu[7].elm.onclick = function(){
 
           loaderDiv.classList.add('is-active');
 
-          view.map = map;
+          view = new MapView({
+            container: "viewDiv",
+            map: map,
+            padding: {
+              top: 55
+            }
+          });
+
           // 背景図をセットする
           map.basemap = mapSecond.basemap;
 
-          refreshMenu();
+          // メニューボタンの初期化
+          mapSecond.ground = {};
+          listMenu[6].elm.firstElementChild.classList.remove("esri-icon-maps");
+          listMenu[6].elm.firstElementChild.classList.add("esri-icon-globe");
+          listMenu[6].elm.lastElementChild.innerHTML = "3D";
+          refreshMenu(view);
+
+          // メニューボタンの表示、非表示の切り替え
+          listMenu[3].elm.style.display = "block";
+          listMenu[5].elm.style.display = "none";
+          listMenu[6].elm.style.display = "none";
+          listMenu[7].elm.style.display = "none";
 
           // 透過スライダーを非表示にする
-          opacityDiv.style.display = "none";
+          opacityMapDiv.style.display = "none";
+          opacitySceneDiv.style.display = "none";
 
           // 左上のUIを全て削除する
           view.ui.empty("top-left");
@@ -1119,11 +1624,11 @@
           // 縮尺ボタンを追加する
           addScaleButton(scaleId);
 
-          // 属性表示を閉じる
-          // closeAttributeDiv();
-
           // 縮尺制限を解除する
           view.constraints = {minZoom: 0, maxZoom: 23};
+
+          clickView();
+          clickMenuBtn(view);
 
           view.on("layerview-create", function(event) {
             // The event contains the layer and its layer view that has just been
@@ -1146,15 +1651,22 @@
             });
           });
 
-          // メニューボタンの表示、非表示の切り替え
-          listMenu[3].elm.style.display = "block";
-          listMenu[5].elm.style.display = "none";
-          listMenu[6].elm.style.display = "none";
+          
 
           view.watch('updating', function(evt){
             if(!evt){
               loaderDiv.classList.remove('is-active');
             };
+          });
+
+          // 縮尺の切り替え
+          document
+          .querySelector(".esri-ui-top-left")
+          .addEventListener("click", function(event) {
+            if (view.map === map) {
+              scaleId = event.target.getAttribute("scale-id");
+              selectScaleid(scaleId);
+            }
           });
 
         };
@@ -1222,45 +1734,14 @@
       
       <div id="viewDiv"></div>
 
-      <div id="toolbarMeasureDiv" class="esri-component esri-widget">
-        <button
-          id="distanceMeasureBtn"
-          class="esri-widget--button esri-interactive esri-icon-measure-line"
-          title="Distance Measurement Tool"
-        ></button>
-        <button
-          id="areaMeasureBtn"
-          class="esri-widget--button esri-interactive esri-icon-measure-area"
-          title="Area Measurement Tool"
-        ></button>
-        <button
-          id="clearMeasureBtn"
-          class="esri-widget--button esri-interactive esri-icon-trash"
-          title="Clear Measurements"
-        ></button>
-      </div>
-
-      <div id="opacityDiv" class="esri-widget padding-leader-half padding-trailer-half padding-left-half padding-right-half">
+      <div id="opacityMapDiv" class="esri-widget padding-leader-half padding-trailer-half padding-left-half padding-right-half">
         <div class="padding-trailer-half">Opacity</div>
-        <div id="opacitySlider" class="slider"></div>
+        <div id="opacityMapSlider" class="slider"></div>
       </div>
-
-      <!-- <button class="esri-button direction" id="northBtn" type="button">
-        <div class="esri-icon-arrow-up-circled padding-right-half"></div>
-        north
-      </button>
-      <button class="esri-button direction" id="southBtn" type="button">
-        <div class="esri-icon-arrow-down-circled padding-right-half"></div>
-        south
-      </button>
-      <button class="esri-button direction" id="westBtn" type="button">
-        <div class="esri-icon-arrow-left-circled padding-right-half"></div>
-        west
-      </button>
-      <button class="esri-button direction" id="eastBtn" type="button">
-        <div class="esri-icon-arrow-right-circled padding-right-half"></div>
-        east
-      </button> -->
+      <div id="opacitySceneDiv" class="esri-widget padding-leader-half padding-trailer-half padding-left-half padding-right-half">
+        <div class="padding-trailer-half">Opacity</div>
+        <div id="opacitySceneSlider" class="slider"></div>
+      </div>
 
       <div class="loader is-active" id="loaderDiv">
         <div class="loader-bars"></div>
