@@ -1055,6 +1055,7 @@
         };
 
         function addTileLayer(response){
+          
           const itemId = response.results[0].id;
 
           const tileLayerUrl = response.results[0].url;
@@ -1071,24 +1072,41 @@
 
           esriRequest(tileLayerUrl, options)
             .then(createTileView)
-            .then(addCopyTileUrlBtn);
+            .then(function(){addCopyTileUrlBtn(itemId)});
         };
 
-        function addCopyTileUrlBtn () {
+        // マップビューワー or シーンビューワーで開く
+        function addCopyTileUrlBtn (itemId) {
           const lyrUrlBtn = document.createElement("button");
           lyrUrlBtn.className = "esri-button phone-hide";
           attributeDiv.insertBefore(lyrUrlBtn, attributeDiv.firstChild);
-          lyrUrlBtn.insertAdjacentHTML('beforeend', "Copy Tile Service URL");
-          console.log(tileLayer);
-          lyrUrlBtn.addEventListener("click", copyTileUrl);
+          lyrUrlBtn.insertAdjacentHTML('beforeend', "Open in ArcGIS Online");
+          // console.log(itemId);
+          lyrUrlBtn.addEventListener("click", function(){
+            if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "3D") {
+              window.open('https://www.arcgis.com/home/webmap/viewer.html?layers=' + itemId, '_blank');
+            } else if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "2D") {
+              window.open('https://www.arcgis.com/home/webscene/viewer.html?layers=' + itemId, '_blank');
+            }
+          });
         }
 
-        function copyTileUrl () {
-          const url = tileLayer.url;
-          if(navigator.clipboard){
-            navigator.clipboard.writeText(url);
-          }
-        };
+        // タイルURLのコピー
+        // function addCopyTileUrlBtn () {
+        //   const lyrUrlBtn = document.createElement("button");
+        //   lyrUrlBtn.className = "esri-button phone-hide";
+        //   attributeDiv.insertBefore(lyrUrlBtn, attributeDiv.firstChild);
+        //   lyrUrlBtn.insertAdjacentHTML('beforeend', "Copy Tile Service URL");
+        //   console.log(tileLayer);
+        //   lyrUrlBtn.addEventListener("click", copyTileUrl);
+        // }
+
+        // function copyTileUrl () {
+        //   const url = tileLayer.url;
+        //   if(navigator.clipboard){
+        //     navigator.clipboard.writeText(url);
+        //   }
+        // };
 
         // ビューを作成
         function createTileView (response) {
@@ -1613,7 +1631,7 @@
         //////////////////////////////////////////////
         //   閲覧画面から検索画面に戻る
         /////////////////////////////////////////////
-        listMenu[7].elm.onclick = function(){
+        listMenu[menuIndex.back].elm.onclick = function(){
 
           loaderDiv.classList.add('is-active');
 
