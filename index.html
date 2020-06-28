@@ -1191,6 +1191,9 @@
         let viewHeading = 0;
         const defaultViewTilt = 45;
         const defaultViewHeading = 0;
+
+        let exaggerationId = '1';
+
         // マップとシーンの切り替え
         function switchView() {
           
@@ -1227,11 +1230,11 @@
 
             appConfig.sceneView.container = appConfig.container;
             
-            // mapSecond.ground = {
-            //   layers: [new ExaggeratedElevationLayer3()],
-            //   surfaceColor: [0, 0, 0]
-            // };
-            selectExaggerationId(exaggerationId);
+            mapSecond.ground = {
+              layers: [new ExaggeratedElevationLayer3()],
+              surfaceColor: [0, 0, 0]
+            };
+            // selectExaggerationId(exaggerationId);
 
             listMenu[menuIndex.threed].elm.firstElementChild.classList.remove("esri-icon-globe");
             listMenu[menuIndex.threed].elm.firstElementChild.classList.add("esri-icon-maps");
@@ -1289,6 +1292,7 @@
           } else {
             tmpView = new SceneView(params);
             tmpView.padding = {top: 55};
+            
             tmpView.ui.empty("top-left");
             console.log(maxLOD);
             console.log(minLOD);
@@ -1333,7 +1337,7 @@
           }
         };
 
-        let exaggerationId = '1';
+        
 
         // 高さ倍率ボタンクリック時のイベント
         function clickExaggerationBtn (view) {
