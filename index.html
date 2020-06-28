@@ -37,6 +37,7 @@
         padding-left: 10px;
         padding-right: 10px;
         padding-bottom: 10px;
+        padding-top: 10px;
         border-color: #464646;
         border-width: 1px;
         border-left-style: solid;
@@ -286,9 +287,7 @@
         listMenu[menuIndex.back].elm.style.display = "none";
 
         //////////////////////////////////////////////
-        //
         //   Create a subclass of BaseElevationLayer
-        //
         /////////////////////////////////////////////
 
         // 倍率３倍
@@ -397,6 +396,9 @@
           }
         });
 
+        //////////////////////////////////////////////
+        //   図郭検索画面
+        /////////////////////////////////////////////
         // マップ 
         const portal = new Portal();
 
@@ -890,6 +892,7 @@
 
         })
 
+        // 縮尺ボタンクリック時の動作
         function selectScaleid (scaleId) {
           if (scaleId) {
             const nodes = document.querySelectorAll(".scale-btn-switch");
@@ -1002,29 +1005,102 @@
           };
 
         };
+
+        // AGOLから該当するタイルレイヤーを検索
+        function queryArcGISOnline(response){
+
+          const featuresQuery = response.features;
+
+          const length = featuresQuery.length;
+          // フィーチャがない場所をクリックしたとき
+          if (length === 0){
+            
+            return;
+
+          // タイルレイヤーを検索する
+          } else if (length === 1) {
+            loaderDiv.classList.add("is-active");
+
+            const feature = response.features[0];
+
+            const id = feature.attributes.id;
+            console.log(id);
+            northId = feature.attributes.north;
+            southId = feature.attributes.south;
+            westId = feature.attributes.west;
+            eastId = feature.attributes.east;
+            
+            portal.load().then(function() {
+              const queryParams = {
+                query: QUERYTXT + id,
+                sortField: "numViews",
+                sortOrder: "desc",
+                num: 20
+              };
+              portal.queryItems(queryParams).then(addTileLayer);
+            });
+            return response;
+          };
+        };
         
         const mapSecond = new Map({
         });
         let objArrowBtn = [];
 
-        var appConfig = {
+        const appConfig = {
           mapView: null,
           sceneView: null,
           activeView: null,
           container: "viewDiv" // use same container for views
         };
 
+        function addTileLayer(response){
+          const itemId = response.results[0].id;
 
+          const tileLayerUrl = response.results[0].url;
+          tileLayer = new TileLayer({
+            url: tileLayerUrl
+          });
+
+          var options = {
+            query: {
+              f: "json"
+            },
+            responseType: "json"
+          };
+
+          esriRequest(tileLayerUrl, options)
+            .then(createTileView)
+            .then(addCopyTileUrlBtn);
+        };
+
+        function addCopyTileUrlBtn () {
+          const lyrUrlBtn = document.createElement("button");
+          lyrUrlBtn.className = "esri-button phone-hide";
+          attributeDiv.insertBefore(lyrUrlBtn, attributeDiv.firstChild);
+          lyrUrlBtn.insertAdjacentHTML('beforeend', "Copy Tile Service URL");
+          console.log(tileLayer);
+          lyrUrlBtn.addEventListener("click", copyTileUrl);
+        }
+
+        function copyTileUrl () {
+          const url = tileLayer.url;
+          if(navigator.clipboard){
+            navigator.clipboard.writeText(url);
+          }
+        };
+
+        // ビューを作成
         function createTileView (response) {
           
           const maxLOD = response.data.maxLOD;
           const minLOD = response.data.minLOD;
 
           // メニューボタンの表示、非表示の切り替え
-          listMenu[3].elm.style.display = "none";
-          listMenu[5].elm.style.display = "block";
-          listMenu[6].elm.style.display = "block";
-          listMenu[7].elm.style.display = "block";
+          listMenu[menuIndex.legend].elm.style.display = "none";
+          listMenu[menuIndex.metadata].elm.style.display = "block";
+          listMenu[menuIndex.threed].elm.style.display = "block";
+          listMenu[menuIndex.back].elm.style.display = "block";
          
 
           var initialViewParams = {
@@ -1050,7 +1126,7 @@
           initialViewParams.map = mapSecond;
           
           // マップ
-          if (listMenu[6].elm.firstElementChild.classList.contains("esri-icon-globe")) {
+          if (listMenu[menuIndex.threed].elm.firstElementChild.classList.contains("esri-icon-globe")) {
             appConfig.sceneView = createView(initialViewParams, "3d", minLOD, maxLOD);
             appConfig.activeView = appConfig.mapView;
             appConfig.activeView.ui.empty("bottom-left");
@@ -1067,7 +1143,7 @@
             });
             
           // シーン
-          } else if (listMenu[6].elm.firstElementChild.classList.contains("esri-icon-maps")) {
+          } else if (listMenu[menuIndex.threed].elm.firstElementChild.classList.contains("esri-icon-maps")) {
             
             appConfig.activeView = appConfig.sceneView;
             appConfig.activeView.ui.empty("bottom-left");
@@ -1091,9 +1167,12 @@
 
 
         
-        
+        // ２D→３Dの際はtiltとheadingはデフォルト値を使用
+        // ３D内で遷移した場合はtiltとheadingは引き継ぐ
         let viewTilt = 45;
         let viewHeading = 0;
+        const defaultViewTilt = 45;
+        const defaultViewHeading = 0;
         // マップとシーンの切り替え
         function switchView() {
           
@@ -1121,23 +1200,24 @@
             clickMenuBtn(view);
 
             // switchButton.value = "3D";
-            listMenu[6].elm.firstElementChild.classList.remove("esri-icon-maps");
-            listMenu[6].elm.firstElementChild.classList.add("esri-icon-globe");
-            listMenu[6].elm.lastElementChild.innerHTML = "3D";
+            listMenu[menuIndex.threed].elm.firstElementChild.classList.remove("esri-icon-maps");
+            listMenu[menuIndex.threed].elm.firstElementChild.classList.add("esri-icon-globe");
+            listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "3D";
           } else {
             appConfig.activeView = appConfig.sceneView;
             appConfig.sceneView.viewpoint = activeViewpoint;
 
             appConfig.sceneView.container = appConfig.container;
             
-            mapSecond.ground = {
-              layers: [new ExaggeratedElevationLayer3()],
-              surfaceColor: [0, 0, 0]
-            };
+            // mapSecond.ground = {
+            //   layers: [new ExaggeratedElevationLayer3()],
+            //   surfaceColor: [0, 0, 0]
+            // };
+            selectExaggerationId(exaggerationId);
 
-            listMenu[6].elm.firstElementChild.classList.remove("esri-icon-globe");
-            listMenu[6].elm.firstElementChild.classList.add("esri-icon-maps");
-            listMenu[6].elm.lastElementChild.innerHTML = "2D";
+            listMenu[menuIndex.threed].elm.firstElementChild.classList.remove("esri-icon-globe");
+            listMenu[menuIndex.threed].elm.firstElementChild.classList.add("esri-icon-maps");
+            listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "2D";
 
             appConfig.activeView.ui.empty("top-right");
             appConfig.activeView.ui.empty("bottom-left");
@@ -1146,8 +1226,8 @@
               appConfig.activeView.goTo(activeViewpoint)
               .then(function(){
                 appConfig.activeView.goTo({
-                  tilt: viewTilt,
-                  heading: viewHeading
+                  tilt: defaultViewTilt,
+                  heading: defaultViewHeading
                 })
               })
               // 透過度スライダーの追加
@@ -1194,7 +1274,7 @@
             tmpView.ui.empty("top-left");
             console.log(maxLOD);
             console.log(minLOD);
-            tmpView.constraints = {altitude: {min: maxLOD*1000}};
+            // tmpView.constraints = {altitude: {min: maxLOD*1000}};
 
             tmpView.watch('updating', function(evt){
               if(!evt){
@@ -1230,7 +1310,7 @@
             }
 
             listExaggeration[i].elm.innerHTML = listExaggeration[i].text;
-            viewDiv.parentNode.insertBefore(listExaggeration[i].elm, viewDiv.nextSibling);
+            // viewDiv.parentNode.insertBefore(listExaggeration[i].elm, viewDiv.nextSibling);
             view.ui.add(listExaggeration[i].elm, "top-right");
           }
         };
@@ -1292,63 +1372,10 @@
         let westId;
         let eastId;
 
-        // AGOLから該当するタイルレイヤーを検索
-        function queryArcGISOnline(response){
-
-          const featuresQuery = response.features;
-          
-          const length = featuresQuery.length;
-          // フィーチャがない場所をクリックしたとき
-          if (length === 0){
-            
-            return;
-
-          // タイルレイヤーを検索する
-          } else if (length === 1) {
-            loaderDiv.classList.add("is-active");
-
-            const feature = response.features[0];
-
-            const id = feature.attributes.id;
-            console.log(id);
-            northId = feature.attributes.north;
-            southId = feature.attributes.south;
-            westId = feature.attributes.west;
-            eastId = feature.attributes.east;
-            
-            portal.load().then(function() {
-              const queryParams = {
-                query: QUERYTXT + id,
-                sortField: "numViews",
-                sortOrder: "desc",
-                num: 20
-              };
-              portal.queryItems(queryParams).then(addTileLayer);
-            });
-            return response;
-          };
-        };
+        
         
 
-        function addTileLayer(response){
-          const itemId = response.results[0].id;
-
-          const tileLayerUrl = response.results[0].url;
-          tileLayer = new TileLayer({
-            url: tileLayerUrl
-          });
-
-          var options = {
-            query: {
-              f: "json"
-            },
-            responseType: "json"
-          };
-
-          esriRequest(tileLayerUrl, options)
-            
-            .then(createTileView);
-        };
+        
 
         const opacityMapSlider = new Slider({
           container: "opacityMapSlider",
@@ -1603,16 +1630,16 @@
 
           // メニューボタンの初期化
           mapSecond.ground = {};
-          listMenu[6].elm.firstElementChild.classList.remove("esri-icon-maps");
-          listMenu[6].elm.firstElementChild.classList.add("esri-icon-globe");
-          listMenu[6].elm.lastElementChild.innerHTML = "3D";
+          listMenu[menuIndex.threed].elm.firstElementChild.classList.remove("esri-icon-maps");
+          listMenu[menuIndex.threed].elm.firstElementChild.classList.add("esri-icon-globe");
+          listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "3D";
           refreshMenu(view);
 
           // メニューボタンの表示、非表示の切り替え
-          listMenu[3].elm.style.display = "block";
-          listMenu[5].elm.style.display = "none";
-          listMenu[6].elm.style.display = "none";
-          listMenu[7].elm.style.display = "none";
+          listMenu[menuIndex.legend].elm.style.display = "block";
+          listMenu[menuIndex.metadata].elm.style.display = "none";
+          listMenu[menuIndex.threed].elm.style.display = "none";
+          listMenu[menuIndex.back].elm.style.display = "none";
 
           // 透過スライダーを非表示にする
           opacityMapDiv.style.display = "none";
