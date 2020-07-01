@@ -241,7 +241,7 @@
           {'text': 'legend', 'icon': "esri-icon-layer-list", 'phone-hide': false},
           {'text': 'info', 'icon': "esri-icon-description", 'phone-hide': false},
           {'text': 'metadata', 'icon': "esri-icon-documentation", 'phone-hide': false},
-          {'text': '3D', 'icon': "esri-icon-globe", 'phone-hide': true},
+          {'text': 'open in ArcGIS Online', 'icon': "esri-icon-applications", 'phone-hide': false},
           {'text': 'back to index map', 'icon': "esri-icon-close-circled", 'phone-hide': false}
         ];
         const menuDiv = document.getElementById("menuDiv");
@@ -1019,7 +1019,7 @@
 
           // タイルレイヤーを検索する
           } else if (length === 1) {
-            loaderDiv.classList.add("is-active");
+            // loaderDiv.classList.add("is-active");
 
             const feature = response.features[0];
 
@@ -1046,13 +1046,6 @@
         const mapSecond = new Map({
         });
         let objArrowBtn = [];
-
-        const appConfig = {
-          mapView: null,
-          sceneView: null,
-          activeView: null,
-          container: "viewDiv" // use same container for views
-        };
 
         function addTileLayer(response){
           
@@ -1120,65 +1113,49 @@
           listMenu[menuIndex.threed].elm.style.display = "block";
           listMenu[menuIndex.back].elm.style.display = "block";
          
+          const scene = new SceneView({
+            container: "viewDiv",
+            padding: {top: 55}
+          });
 
-          var initialViewParams = {
-            // zoom: 4,
-            // center: [118.4985351561923, -2.0326589312043144],
-            container: appConfig.container
+          scene.map = mapSecond;
+          mapSecond.basemap = map.basemap;
+          mapSecond.ground = {
+            layers: [new ExaggeratedElevationLayer3()],
+            surfaceColor: [0, 0, 0]
           };
 
-          // create 2D view and and set active
-          appConfig.mapView = view;
-
-          appConfig.mapView.map = mapSecond;
-
-          mapSecond.basemap = map.basemap;
 
           // すでに追加されている外邦図を削除
           mapSecond.removeAll();
           mapSecond.add(tileLayer);
           tileLayer.opacity = defaultTransparency/100;
-          
-          // create 3D view, won't initialize until container is set
-          initialViewParams.container = null;
-          initialViewParams.map = mapSecond;
-          
-          // マップ
-          if (listMenu[menuIndex.threed].elm.firstElementChild.classList.contains("esri-icon-globe")) {
-            appConfig.sceneView = createView(initialViewParams, "3d", minLOD, maxLOD);
-            appConfig.activeView = appConfig.mapView;
-            appConfig.activeView.ui.empty("bottom-left");
-            appConfig.activeView.ui.empty("top-left");
-            appConfig.activeView.constraints = {minZoom: minLOD, maxZoom: maxLOD};
-            
-            tileLayer.when(function() {
-              // ビューの移動
-              appConfig.activeView.goTo(tileLayer.fullExtent)
-              // 透過度スライダーの追加
-              .then(function(){addOpacitySlider(opacityMapDiv, opacityMapSlider, appConfig.activeView)})
-              // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
-              .then(function(){addAllDirectionBtn2View(appConfig.activeView)});
-            });
-            
-          // シーン
-          } else if (listMenu[menuIndex.threed].elm.firstElementChild.classList.contains("esri-icon-maps")) {
-            
-            appConfig.activeView = appConfig.sceneView;
-            appConfig.activeView.ui.empty("bottom-left");
 
-            tileLayer.when(function() {
-              // シーンの移動
-              appConfig.activeView.goTo(tileLayer.fullExtent)
-              .then(function(){
-                appConfig.activeView.goTo({
-                  tilt: viewTilt,
-                  heading: viewHeading
-                })
+          const activeViewpoint = view.viewpoint.clone();
+          scene.viewpoint = activeViewpoint;
+          
+
+          tileLayer.when(function() {
+            // シーンの移動
+            scene.goTo(tileLayer.fullExtent)
+            .then(function(){
+              scene.goTo({
+                tilt: viewTilt,
+                heading: viewHeading
               })
-              // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
-              .then(function(){addAllDirectionBtn2View(appConfig.activeView)});
-            });
-          }
+            })
+            // 透過度スライダーの追加
+            .then(function(){addOpacitySlider(opacitySceneDiv, opacitySceneSlider, scene)})
+            // 高さ倍率ボタンの追加
+            .then(function(){addExaggerationButton(scene, exaggerationId)})
+            // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
+            .then(function(){addAllDirectionBtn2View(scene)})
+            // 高さ倍率ボタンクリック時のイベント
+            .then(function(){clickExaggerationBtn(scene)})
+            .then(function(){
+              clickMenuBtn(scene);
+            })
+          });
           
         };
 
@@ -1194,119 +1171,6 @@
 
         let exaggerationId = '1';
 
-        // マップとシーンの切り替え
-        function switchView() {
-          
-          const is3D = appConfig.activeView.type === "3d";
-          var activeViewpoint = appConfig.activeView.viewpoint.clone();
-
-          // remove the reference to the container for the previous view
-          appConfig.activeView.container = null;
-
-          if (is3D) {
-            // if the input view is a SceneView, set the viewpoint on the
-            // mapView instance. Set the container on the mapView and flag
-            // it as the active view
-            appConfig.mapView.viewpoint = activeViewpoint;
-            appConfig.mapView.container = appConfig.container;
-            appConfig.activeView = appConfig.mapView;
-            mapSecond.ground = {};
-
-            // 一度３Dにした後、２Dに戻すためには再度透過率スライダーと方位ボタンを追加する必要がある
-            view.ui.empty("top-left");
-            view.ui.empty("bottom-left");
-            addOpacitySlider(opacityMapDiv, opacityMapSlider, view);
-            addAllDirectionBtn2View(view);
-
-            clickMenuBtn(view);
-
-            // switchButton.value = "3D";
-            listMenu[menuIndex.threed].elm.firstElementChild.classList.remove("esri-icon-maps");
-            listMenu[menuIndex.threed].elm.firstElementChild.classList.add("esri-icon-globe");
-            listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "3D";
-          } else {
-            appConfig.activeView = appConfig.sceneView;
-            appConfig.sceneView.viewpoint = activeViewpoint;
-
-            appConfig.sceneView.container = appConfig.container;
-            
-            mapSecond.ground = {
-              layers: [new ExaggeratedElevationLayer3()],
-              surfaceColor: [0, 0, 0]
-            };
-            // selectExaggerationId(exaggerationId);
-
-            listMenu[menuIndex.threed].elm.firstElementChild.classList.remove("esri-icon-globe");
-            listMenu[menuIndex.threed].elm.firstElementChild.classList.add("esri-icon-maps");
-            listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "2D";
-
-            appConfig.activeView.ui.empty("top-right");
-            appConfig.activeView.ui.empty("bottom-left");
-
-            appConfig.activeView.when(function(){
-              appConfig.activeView.goTo(activeViewpoint)
-              .then(function(){
-                appConfig.activeView.goTo({
-                  tilt: defaultViewTilt,
-                  heading: defaultViewHeading
-                })
-              })
-              // 透過度スライダーの追加
-              .then(function(){addOpacitySlider(opacitySceneDiv, opacitySceneSlider, appConfig.activeView)})
-              // 高さ倍率ボタンの追加
-              .then(function(){addExaggerationButton(appConfig.activeView, exaggerationId)})
-              // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
-              .then(function(){addAllDirectionBtn2View(appConfig.activeView)})
-              // 高さ倍率ボタンクリック時のイベント
-              .then(function(){clickExaggerationBtn(appConfig.activeView)})
-              .then(function(){
-                clickMenuBtn(appConfig.activeView);
-              })
-              .then(function(){
-                watchUtils.whenTrue(appConfig.activeView, "stationary", function() {
-                  if (appConfig.activeView.map === mapSecond) {
-                    if (appConfig.activeView.extent) {
-                      viewTilt = appConfig.activeView.camera.tilt;
-                      viewHeading = appConfig.activeView.camera.heading;
-                    };
-                  };   
-                });
-              })
-            });
-            appConfig.activeView.watch('updating', function(evt){
-              if(!evt){
-                loaderDiv.classList.remove('is-active');
-              };
-            });            
-
-          }
-        }
-
-        // convenience function for creating a 2D or 3D view
-        function createView(params, type, minLOD, maxLOD) {
-          var tmpView;
-          var is2D = type === "2d";
-          if (is2D) {
-            // tmpView = new MapView(params);        
-            tmpView = view;
-          } else {
-            tmpView = new SceneView(params);
-            tmpView.padding = {top: 55};
-            
-            tmpView.ui.empty("top-left");
-            console.log(maxLOD);
-            console.log(minLOD);
-            // tmpView.constraints = {altitude: {min: maxLOD*1000}};
-
-            tmpView.watch('updating', function(evt){
-              if(!evt){
-                loaderDiv.classList.remove('is-active');
-              };
-            });
-            
-          }
-          return tmpView;
-        }
 
         //////////////////////////////////////////////
         //   高さの倍率の切り替えボタン
