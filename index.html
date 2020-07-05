@@ -26,11 +26,11 @@
         height: 100%;
       }
       #attributeDiv {
-        top: 55px;
+        top: 56px;
         bottom: 0px;
         left: 75px;
         right: 0px;
-        height: calc(100% - 55px);
+        height: calc(100% - 56px);
         width: 180px;
         position: absolute;
         display: none;
@@ -38,7 +38,7 @@
         padding-right: 10px;
         padding-bottom: 10px;
         padding-top: 10px;
-        border-color: #464646;
+        border-color: #404040;
         border-width: 1px;
         border-left-style: solid;
         border-right-style: solid;
@@ -47,13 +47,13 @@
       }
       #titleDiv {
         position: absolute;
-        height: 55px;
+        height: 56px;
         left: 0px;
         right: 0px;
         width: 100%;
         display: flex;
         justify-content: space-between;
-        background: #464646;
+        background: #404040;
         z-index: 1;
       }
 
@@ -62,10 +62,10 @@
       }
       #menuDiv {
         position: absolute;
-        top: 55px;
+        top: 56px;
         left: 0;
         right: 0;
-        height: calc(100% - 55px);
+        height: calc(100% - 56px);
         width: 75px;
         overflow-y: auto;
         background: #f8f8f8;
@@ -86,24 +86,26 @@
       #backDiv, #metadataDiv {
         display: none;
       }
-      .loader{
+      /* #loaderDiv{
         padding: 0;
         margin: 0;
         height: 100%;
         width: 100%;
         position: absolute !important;
-      }
-      .loader-bars{
-        width: 100%;
-        height: 100%;
+      } */
+      #loaderDiv{
         position: absolute;
         top: 50%;
         left: 50%;
-        transform: translateY(-50%) translateX(-50%);
-        -webkit-transform: translateY(-50%) translateX(-50%);
+        transform: translate(-50%, -50%);
+        
+        /* padding: 15px 30px; */
+        /* background: rgba(0,0,0,0.4);
+        color: #fff; */
+        text-align: center;
       }
       .active-menu {
-        background-color: #464646 !important;
+        background-color: #404040 !important;
         color: #59d6ff !important;
       }
       button {
@@ -120,9 +122,11 @@
         flex-wrap: nowrap;
         display: flex;
       } */
+
+
       .esri-widget--button {
         background-color: #f8f8f8 !important;
-        color: #464646 !important;
+        color: #404040 !important;
       }
       .esri-widget--button.active,
       .esri-widget--button.active:hover,
@@ -135,6 +139,8 @@
       .esri-widget--button.active:focus path {
         fill: #e4e4e4 !important;
       }
+
+
       .esri-legend__layer-caption {
         display: none !important;
       }
@@ -145,11 +151,13 @@
         width: 100%;
         height: 60px;
       }
-      #opacityMapDiv, #opacitySceneDiv {
-        width: 250px;
+      #opacityMapDiv, #opacitySceneDiv{
+        width: 200px;
         background: #f8f8f8;
         display: none;
-        /* height: 60px; */
+        /* position: absolute; */
+        /* top: 70px;
+        left: 95px; */
       }
       .esri-slider {
         background: #f8f8f8 !important;
@@ -163,17 +171,69 @@
       article, aside, details, figcaption, figure, footer, header, hgroup, nav, section, summary{
         display: revert !important;
       }
+      /* #information {
+        height: 40px !important;
+      } */
+      #informationDiv {
+        right: 56px;
+        position: absolute;
+      }
+      #ex1xBtnDiv{
+        position: absolute;
+        right: 62px;
+        top: 71px;
+        display: none;
+      }
+      #ex3xBtnDiv{
+        position: absolute;
+        right: 62px;
+        top: 113px;
+        display: none;
+      }
+      #ex5xBtnDiv{
+        position: absolute;
+        right: 62px;
+        top: 155px;
+        display: none;
+      }
+      /* #scaleBtnDiv{
+        position: absolute;
+        top: 100px;
+        left: 100px;
+      } */
+      #loaderBackground {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+
+        background: rgba(0,0,0,.3);
+      }
     </style>
     <link
       rel="stylesheet"
       href="https://js.arcgis.com/4.15/esri/themes/light/main.css"
     />
     <link rel="stylesheet" href="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/css/calcite-web.min.css">
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://unpkg.com/@esri/calcite-components@1.0.0-beta.29/dist/calcite/calcite.css"
+    />
     <!-- <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/js/calcite-web.min.js"></script> -->
     <!-- interactive patterns need to be initialized -->
     <!-- <script>
        calcite.init()
     </script> -->
+    <script
+      type="module"
+      src="https://unpkg.com/@esri/calcite-components@1.0.0-beta.30/dist/calcite/calcite.esm.js"
+    ></script>
+    <script
+      nomodule=""
+      src="https://unpkg.com/@esri/calcite-components@1.0.0-beta.30/dist/calcite/calcite.js"
+    ></script>
     <script>
       // set locale before JSAPI is loaded
       dojoConfig = {
@@ -235,14 +295,14 @@
 
         // メニューのリスト
         const listMenu = [
-          {'text': 'measure ment', 'icon': "esri-icon-measure", 'phone-hide': true},
-          {'text': 'basemap', 'icon': "esri-icon-basemap", 'phone-hide': false},
-          {'text': 'search', 'icon': "esri-icon-search", 'phone-hide': true},
-          {'text': 'legend', 'icon': "esri-icon-layer-list", 'phone-hide': false},
-          {'text': 'info', 'icon': "esri-icon-description", 'phone-hide': false},
-          {'text': 'metadata', 'icon': "esri-icon-documentation", 'phone-hide': false},
-          {'text': 'open in ArcGIS Online', 'icon': "esri-icon-applications", 'phone-hide': false},
-          {'text': 'back to index map', 'icon': "esri-icon-close-circled", 'phone-hide': false}
+          {'text': 'measure ment', 'icon': "measure", 'phone-hide': true},
+          {'text': 'basemap', 'icon': "basemap", 'phone-hide': false},
+          {'text': 'search', 'icon': "search", 'phone-hide': true},
+          {'text': 'legend', 'icon': "legend", 'phone-hide': false},
+          {'text': 'metadata', 'icon': "access-string-results", 'phone-hide': false},
+          {'text': '2D', 'icon': "map", 'phone-hide': false},
+          {'text': 'open in ArcGIS Online', 'icon': "arcgis-online", 'phone-hide': false},
+          {'text': 'back to index map', 'icon': "x-circle", 'phone-hide': false}
         ];
         const menuDiv = document.getElementById("menuDiv");
         const menuIndex = {
@@ -250,9 +310,9 @@
           basemap: 1,
           search: 2,
           legend: 3,
-          info: 4,
-          metadata: 5,
-          threed: 6,
+          metadata: 4,
+          threed: 5,
+          agol: 6,
           back: 7
         };
 
@@ -268,11 +328,12 @@
           listMenu[i].elm.setAttribute("menu-id", i);
           menuDiv.insertBefore(listMenu[i].elm, menuDiv.firstChild);
           
-          const menuIconDiv = document.createElement('div');
-          menuIconDiv.className = listMenu[i]['icon'];
+          const menuIconDiv = document.createElement('calcite-icon');
           menuIconDiv.setAttribute("menu-id", i);
+          menuIconDiv.setAttribute("icon", listMenu[i]['icon']);
+          menuIconDiv.setAttribute("scale", "l");
           listMenu[i].elm.insertBefore(menuIconDiv, listMenu[i].elm.firstChild);
-          
+
           const menuTextDiv = document.createElement('div');
           menuTextDiv.className = "font-size--2";
           menuTextDiv.innerHTML = listMenu[i]['text'];
@@ -284,6 +345,7 @@
         // 検索画面では使わないボタンは非表示
         listMenu[menuIndex.metadata].elm.style.display = "none";
         listMenu[menuIndex.threed].elm.style.display = "none";
+        listMenu[menuIndex.agol].elm.style.display = "none";
         listMenu[menuIndex.back].elm.style.display = "none";
 
         //////////////////////////////////////////////
@@ -413,11 +475,11 @@
           center: [118.4985351561923, -2.0326589312043144],
           zoom: 4,
           padding: {
-            top: 55
+            top: 56
           }
         });
 
-        view.ui.remove("zoom");
+        view.ui.move("zoom", "top-right");
 
         const zukakuFeatureLayer = new FeatureLayer({
           url: URL_FL,
@@ -463,6 +525,7 @@
           //////////////////////////////////////////////
           //   計測
           /////////////////////////////////////////////
+
           // 計測ボタン
           toolbarMeasureDiv = document.createElement("div");
           toolbarMeasureDiv.className = "esri-component esri-widget";
@@ -497,8 +560,8 @@
             } else {
               listMenu[menuIndex.measurement].elm.classList.remove("active-menu");
               
-              view.ui.remove(toolbarMeasureDiv, "bottom-left");
-              view.ui.remove(measurement, "bottom-right");
+              view.ui.remove(toolbarMeasureDiv);
+              view.ui.remove(measurement);
               measurement.clear();
 
               distanceMeasureBtn.classList.remove("active");
@@ -552,7 +615,7 @@
               removeOtherUI(view, menuIndex.basemap);
             } else {
               listMenu[menuIndex.basemap].elm.classList.remove("active-menu");
-              view.ui.remove(basemapGallery, "bottom-left");
+              view.ui.remove(basemapGallery);
             }
             removeActiveMenu([menuIndex.basemap,menuIndex.info,menuIndex.metadata]);
           };
@@ -579,7 +642,7 @@
               removeOtherUI(view, menuIndex.legend);
             } else {
               listMenu[menuIndex.legend].elm.classList.remove("active-menu");
-              view.ui.remove(legend, "bottom-right");
+              view.ui.remove(legend);
             }
             removeActiveMenu([menuIndex.legend,menuIndex.info,menuIndex.metadata]);
           };
@@ -589,14 +652,15 @@
           /////////////////////////////////////////////
           // 2D、3Dボタンクリック時のイベント
           listMenu[menuIndex.threed].elm.onclick = function(){
-            loaderDiv.classList.add("is-active");
+            // startLoading();
+            // console.log("start");
             if (!listMenu[menuIndex.threed].elm.classList.contains("active-menu")) {
               listMenu[menuIndex.threed].elm.classList.add("active-menu");
             } else {
               listMenu[menuIndex.threed].elm.classList.remove("active-menu");
             }
             removeActiveMenu([menuIndex.info,menuIndex.metadata]);
-            refreshMenu(view);
+            // refreshMenu(view);
             switchView();
           };
 
@@ -669,9 +733,9 @@
             } else {
               listMenu[menuIndex.search].elm.classList.remove("active-menu");
               if (view.map === map) {
-                view.ui.remove(searchWidgetWithSources, "bottom-left");
+                view.ui.remove(searchWidgetWithSources);
               } else if (view.map === mapSecond) {
-                view.ui.remove(searchWidget, "bottom-left");
+                view.ui.remove(searchWidget);
               }
             };
             removeActiveMenu([menuIndex.search,menuIndex.info,menuIndex.metadata]);
@@ -694,41 +758,28 @@
             selectScaleid(scaleId);
           });
 
-          //////////////////////////////////////////////
-          //   モーダル
-          /////////////////////////////////////////////
-          listMenu[menuIndex.info].elm.onclick = function(){
-            if (!listMenu[menuIndex.info].elm.classList.contains("active-menu")) {
-              listMenu[menuIndex.info].elm.classList.add("active-menu");
-              infoModal.classList.add("is-active");
-              removeOtherUI(view, -9999);
-            } else {
-              listMenu[menuIndex.info].elm.classList.remove("active-menu");
-              infoModal.classList.remove("is-active");
-            }
-            removeActiveMenu([menuIndex.info,menuIndex.info,menuIndex.metadata]);
-          }; 
+           
         }
 
         // メニューをクリックした際に他のウィジェットが開いていたら閉じる
         function removeOtherUI (view, index) {
 
           if (index !== menuIndex.measurement) {
-            view.ui.remove(toolbarMeasureDiv, "bottom-left");
-            view.ui.remove(measurement, "bottom-right");
+            view.ui.remove(toolbarMeasureDiv);
+            view.ui.remove(measurement);
             measurement.clear();
           }
           if (index !== menuIndex.basemap) {
-            view.ui.remove(basemapGallery, "bottom-left");
+            view.ui.remove(basemapGallery);
           }
           if (index !== menuIndex.search && view.map === map) {
-            view.ui.remove(searchWidgetWithSources, "bottom-left");
+            view.ui.remove(searchWidgetWithSources);
           };
           if (index !== menuIndex.search && view.map === mapSecond) {
-            view.ui.remove(searchWidget, "bottom-left");
+            view.ui.remove(searchWidget);
           };
           if (index !== menuIndex.legend) {
-            view.ui.remove(legend, "bottom-left");
+            view.ui.remove(legend);
           }
 
         };
@@ -746,15 +797,15 @@
         // メニューボタンの初期化
         function refreshMenu (view) {
           removeActiveMenu([-9999]);
-          view.ui.remove(basemapGallery, "bottom-left");
-          view.ui.remove(toolbarMeasureDiv, "bottom-left");
-          view.ui.remove(measurement, "bottom-right");
-          view.ui.remove(legend, "bottom-left");
+          view.ui.remove(basemapGallery);
+          view.ui.remove(toolbarMeasureDiv);
+          view.ui.remove(measurement);
+          view.ui.remove(legend);
 
           if (view.map === map) {
-            view.ui.remove(searchWidgetWithSources, "bottom-left");
+            view.ui.remove(searchWidgetWithSources);
           } else if (view.map === mapSecond) {
-            view.ui.remove(searchWidget, "bottom-left");
+            view.ui.remove(searchWidget);
           };
 
           measurement.clear();
@@ -766,7 +817,12 @@
         // メニューバーの余白をクリックした時
         menuDiv.addEventListener("click", function(event) {
           if (event.target.childElementCount >= 6) {
-            refreshMenu(view);
+            if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "map") {
+              refreshMenu(sceneView);
+            } else {
+              refreshMenu(view);
+            }
+            
           }
         });
 
@@ -797,10 +853,38 @@
             closeAttributeDiv();
           };
         };
+
+        //////////////////////////////////////////////
+        //   ローディング
+        /////////////////////////////////////////////
         
+        const loaderBackground = document.getElementById("loaderBackground");
+        const loaderDiv = document.getElementById("loaderDiv");
+
+        function startLoading(){
+          loaderBackground.style.display = "block";
+          loaderDiv.setAttribute("is-active", null);
+        }
+
+        function endLoading(){
+          loaderBackground.style.display = "none";
+          loaderDiv.removeAttribute("is-active");
+        }
+
+
         //////////////////////////////////////////////
         //   モーダル
         /////////////////////////////////////////////
+
+        const information = document.getElementById("information");
+        information.onclick = function(){
+          if (!infoModal.classList.contains("is-active")) {
+            infoModal.classList.add("is-active");
+          } else {
+            infoModal.classList.remove("is-active");
+          }
+        };
+
         // モーダル（初期表示）
         const firstModal= document.getElementById("firstModal");
 
@@ -869,10 +953,10 @@
 
         function addScaleButton (index) {
 
-          // 縮尺ボタンを追加
+          // 縮尺ボタンを追加（PC、タブレット）
           for (let i in listScale) {
             listScale[i].elm = document.createElement('button');
-            listScale[i].elm.className = "esri-button scale-btn-switch";
+            listScale[i].elm.className = "esri-button scale-btn-switch phone-hide";
             listScale[i].elm.setAttribute("scale-id", i);
 
             if (i === String(index)) {
@@ -880,9 +964,44 @@
             }
 
             listScale[i].elm.innerHTML = listScale[i].text;
-            viewDiv.parentNode.insertBefore(listScale[i].elm, viewDiv.nextSibling);
+            
             view.ui.add(listScale[i].elm, "top-left");
           }
+
+          // 縮尺ボタンを追加（モバイル）
+          const scaleCalciteDropdown = document.createElement("calcite-dropdown");
+          // scaleCalciteDropdown.className = "phone-show";
+          
+          const scaleCalciteButton = document.createElement("calcite-button");
+          scaleCalciteButton.setAttribute("slot", "dropdown-trigger");
+          scaleCalciteButton.setAttribute("icon", "caret-square-down");
+          scaleCalciteButton.innerHTML = "Select Scale";
+          scaleCalciteDropdown.appendChild(scaleCalciteButton);
+
+          const scaleCalciteDropdownGroup = document.createElement("calcite-dropdown-group");
+          scaleCalciteDropdown.appendChild(scaleCalciteDropdownGroup);
+
+          for (let i in listScale) {
+            const scaleCalciteDropdownItem = document.createElement("calcite-dropdown-item");
+            
+            scaleCalciteDropdownItem.className = "scale-btn-switch";
+            scaleCalciteDropdownItem.setAttribute("scale-id", i);
+            scaleCalciteDropdownItem.innerHTML = listScale[i].text;
+            if (i === String(index)) {
+              scaleCalciteDropdownItem.setAttribute("active", null);
+            } else {
+              scaleCalciteDropdownItem.removeAttribute("active");
+            }
+            scaleCalciteDropdownGroup.appendChild(scaleCalciteDropdownItem);
+          };
+
+          view.ui.add(scaleCalciteDropdown, "top-left");
+
+          // dropdownScale.addEventListener("calciteDropdownItemSelect", function(event){
+          //   console.log(event);
+          // });
+
+
         };
 
         let scaleId = '0';
@@ -901,6 +1020,8 @@
               const scaleIndex = node.getAttribute("scale-id");
               if (scaleIndex === scaleId) {
                 node.disabled = true;
+                node.setAttribute("active", null);
+
                 if (scaleId === '0') {
                   whereClause = defaultWhereClause + " AND scale_num IN (1,2,3,4)" ;
                   
@@ -922,6 +1043,7 @@
                 };
               } else {
                 node.disabled = false;
+                node.removeAttribute("active");
               }
             }
           }
@@ -938,11 +1060,9 @@
         });
 
         // ローダーの表示を止める
-        const loaderDiv = document.getElementById("loaderDiv");
         view.watch('updating', function(evt){
           if(!evt){
-            loaderDiv.classList.remove('is-active');
-
+            endLoading();
           };
         });
 
@@ -969,8 +1089,6 @@
               if (measurement.activeWidget) {
                 return;
               };
-              
-              
               refreshMenu(view);
               queryFeaturesClickedPoint(event);
             } else {
@@ -1019,7 +1137,7 @@
 
           // タイルレイヤーを検索する
           } else if (length === 1) {
-            // loaderDiv.classList.add("is-active");
+            startLoading();
 
             const feature = response.features[0];
 
@@ -1065,22 +1183,25 @@
 
           esriRequest(tileLayerUrl, options)
             .then(createTileView)
-            .then(function(){addCopyTileUrlBtn(itemId)});
+            .then(function(){clickAGOLbtn(itemId)});
         };
 
+        //////////////////////////////////////////////
+        //   AGOL
+        /////////////////////////////////////////////
         // マップビューワー or シーンビューワーで開く
-        function addCopyTileUrlBtn (itemId) {
-          const lyrUrlBtn = document.createElement("button");
-          lyrUrlBtn.className = "esri-button phone-hide";
-          attributeDiv.insertBefore(lyrUrlBtn, attributeDiv.firstChild);
-          lyrUrlBtn.insertAdjacentHTML('beforeend', "Open in ArcGIS Online");
-          // console.log(itemId);
-          lyrUrlBtn.addEventListener("click", function(){
-            if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "3D") {
+        function clickAGOLbtn (itemId) {
+          // const lyrUrlBtn = document.createElement("button");
+          // lyrUrlBtn.className = "esri-button phone-hide";
+          // attributeDiv.insertBefore(lyrUrlBtn, attributeDiv.firstChild);
+          // lyrUrlBtn.insertAdjacentHTML('beforeend', "Open in ArcGIS Online");
+          // // console.log(itemId);
+          listMenu[menuIndex.agol].elm.addEventListener("click", function(){
+            // if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "3D") {
               window.open('https://www.arcgis.com/home/webmap/viewer.html?layers=' + itemId, '_blank');
-            } else if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "2D") {
-              window.open('https://www.arcgis.com/home/webscene/viewer.html?layers=' + itemId, '_blank');
-            }
+            // } else if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "2D") {
+              // window.open('https://www.arcgis.com/home/webscene/viewer.html?layers=' + itemId, '_blank');
+            // }
           });
         }
 
@@ -1101,6 +1222,14 @@
         //   }
         // };
 
+        const sceneView = new SceneView({
+          container: null,
+          padding: {top: 56}
+        });
+       
+        sceneView.ui.move(["zoom", "navigation-toggle", "compass"], "top-right");
+        
+
         // ビューを作成
         function createTileView (response) {
           
@@ -1111,51 +1240,85 @@
           listMenu[menuIndex.legend].elm.style.display = "none";
           listMenu[menuIndex.metadata].elm.style.display = "block";
           listMenu[menuIndex.threed].elm.style.display = "block";
+          listMenu[menuIndex.agol].elm.style.display = "block";
           listMenu[menuIndex.back].elm.style.display = "block";
          
-          const scene = new SceneView({
-            container: "viewDiv",
-            padding: {top: 55}
-          });
+          let activeViewpoint;
 
-          scene.map = mapSecond;
-          mapSecond.basemap = map.basemap;
-          mapSecond.ground = {
-            layers: [new ExaggeratedElevationLayer3()],
-            surfaceColor: [0, 0, 0]
-          };
-
-
+          if (view.viewpoint) {
+            activeViewpoint = view.viewpoint.clone();
+          } else if (sceneView.viewpoint) {
+            activeViewpoint = sceneView.viewpoint.clone();
+          }
+          
+          view.container = null;
+          
           // すでに追加されている外邦図を削除
           mapSecond.removeAll();
           mapSecond.add(tileLayer);
           tileLayer.opacity = defaultTransparency/100;
 
-          const activeViewpoint = view.viewpoint.clone();
-          scene.viewpoint = activeViewpoint;
           
+          sceneView.viewpoint = activeViewpoint;
+          
+          // マップ
+          if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "360-view") {
+            view.container = "viewDiv";
+            view.map = mapSecond;
+            mapSecond.ground = {};
+            // appConfig.activeView = appConfig.mapView;
+            view.ui.empty("bottom-left");
+            view.ui.empty("top-left");
+            view.constraints = {minZoom: minLOD, maxZoom: maxLOD};
+            
+            tileLayer.when(function() {
+              // ビューの移動
+              view.goTo(tileLayer.fullExtent)
+              // 透過度スライダーの追加
+              .then(function(){addOpacitySlider(opacityMapDiv, opacityMapSlider, view)})
+              // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
+              .then(function(){addAllDirectionBtn2View(view)});
+            });
+            
+          // シーン
+          } else if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "map") {
+            
 
-          tileLayer.when(function() {
-            // シーンの移動
-            scene.goTo(tileLayer.fullExtent)
-            .then(function(){
-              scene.goTo({
-                tilt: viewTilt,
-                heading: viewHeading
+            sceneView.container = "viewDiv";
+            sceneView.ui.empty("bottom-left");
+            selectExaggerationId(exaggerationId);       
+
+            sceneView.map = mapSecond;
+            mapSecond.basemap = map.basemap;
+
+            
+
+            tileLayer.when(function() {
+              // シーンの移動
+              sceneView.goTo(tileLayer.fullExtent)
+              .then(function(){
+                sceneView.goTo({
+                  tilt: viewTilt,
+                  heading: viewHeading
+                })
               })
-            })
-            // 透過度スライダーの追加
-            .then(function(){addOpacitySlider(opacitySceneDiv, opacitySceneSlider, scene)})
-            // 高さ倍率ボタンの追加
-            .then(function(){addExaggerationButton(scene, exaggerationId)})
-            // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
-            .then(function(){addAllDirectionBtn2View(scene)})
-            // 高さ倍率ボタンクリック時のイベント
-            .then(function(){clickExaggerationBtn(scene)})
-            .then(function(){
-              clickMenuBtn(scene);
-            })
-          });
+              // 透過度スライダーの追加
+              .then(function(){addOpacitySlider(opacitySceneDiv, opacitySceneSlider, sceneView)})
+              // 高さ倍率ボタンの追加
+              .then(function(){addExaggerationButton(sceneView, exaggerationId)})
+              // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
+              .then(function(){addAllDirectionBtn2View(sceneView)})
+              // 高さ倍率ボタンクリック時のイベント
+              .then(function(){clickExaggerationBtn(sceneView)})
+              .then(endLoading)
+              .then(function(){
+                
+                clickMenuBtn(sceneView);
+              })
+            });
+          }
+
+          
           
         };
 
@@ -1171,6 +1334,111 @@
 
         let exaggerationId = '1';
 
+        // マップとシーンの切り替え
+        function switchView() {
+          
+          // const is3D = appConfig.activeView.type === "3d";
+          // const activeViewpoint = appConfig.activeView.viewpoint.clone();
+
+          // remove the reference to the container for the previous view
+          // appConfig.activeView.container = null;
+
+          if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "2D") {
+
+            listMenu[menuIndex.threed].elm.firstElementChild.removeAttribute("icon");
+            listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "360-view");
+            listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "3D";
+
+            // if the input view is a SceneView, set the viewpoint on the
+            // mapView instance. Set the container on the mapView and flag
+            // it as the active view
+            // appConfig.mapView.viewpoint = activeViewpoint;
+            // appConfig.mapView.container = appConfig.container;
+            // appConfig.activeView = appConfig.mapView;
+            // mapSecond.ground = {};
+
+            const activeViewpoint = sceneView.viewpoint.clone();
+
+            sceneView.container = null;
+            view.container = "viewDiv";
+            view.viewpoint = activeViewpoint;
+            view.map = mapSecond;
+            mapSecond.ground = {};
+
+            // 一度３Dにした後、２Dに戻すためには再度透過率スライダーと方位ボタンを追加する必要がある
+            view.ui.empty("top-left");
+            view.ui.empty("bottom-left");
+            addOpacitySlider(opacityMapDiv, opacityMapSlider, view);
+
+            // tileLayer.when(function() {
+              // ビューの移動
+            // view.goTo(activeViewpoint);
+            // });
+            removeExaggerationButton();
+            addAllDirectionBtn2View(view);
+
+            clickMenuBtn(view);
+
+            
+          } else {
+
+            listMenu[menuIndex.threed].elm.firstElementChild.removeAttribute("icon");
+            listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "map");
+            listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "2D";
+
+            const activeViewpoint = view.viewpoint.clone();
+            sceneView.viewpoint = activeViewpoint;
+
+            view.container = null;
+
+
+            sceneView.container = "viewDiv";
+            sceneView.ui.empty("bottom-left");
+            selectExaggerationId(exaggerationId);
+
+            
+
+            sceneView.when(function(){
+              // sceneView.goTo(activeViewpoint)
+              // .then(function(){
+                sceneView.goTo({
+                  tilt: defaultViewTilt,
+                  heading: defaultViewHeading
+                })
+              // })
+              // 透過度スライダーの追加
+              // .then(function(){addOpacitySlider(opacitySceneDiv, opacitySceneSlider, appConfig.activeView)})
+              // 高さ倍率ボタンの追加
+              .then(function(){addExaggerationButton(sceneView, exaggerationId)})
+              // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
+              .then(function(){addAllDirectionBtn2View(sceneView)})
+              // 高さ倍率ボタンクリック時のイベント
+              .then(function(){clickExaggerationBtn(sceneView)})
+              .then(function(){
+                
+                clickMenuBtn(sceneView);
+              })
+              // .then(function(){
+              //   watchUtils.whenTrue(sceneView, "stationary", function() {
+              //     if (appConfig.activeView.map === mapSecond) {
+              //       if (appConfig.activeView.extent) {
+              //         viewTilt = appConfig.activeView.camera.tilt;
+              //         viewHeading = appConfig.activeView.camera.heading;
+              //       };
+              //     };   
+              //   });
+              // })
+            });
+            // appConfig.activeView.watch('updating', function(evt){
+            //   if(!evt){
+            //     loaderDiv.classList.remove('is-active');
+            //   };
+            // });            
+
+          }
+          // endLoading();
+        }
+
 
         //////////////////////////////////////////////
         //   高さの倍率の切り替えボタン
@@ -1183,30 +1451,47 @@
           {'text': "5x"}
         ];
 
+        const ex1xBtnDiv = document.getElementById("ex1xBtnDiv");
+        const ex3xBtnDiv = document.getElementById("ex3xBtnDiv");
+        const ex5xBtnDiv = document.getElementById("ex5xBtnDiv");
+
         // 高さ倍率ボタンを追加
         function addExaggerationButton (view, index) {
 
-          for (let i in listExaggeration) {
-            listExaggeration[i].elm = document.createElement('button');
-            listExaggeration[i].elm.className = "esri-button exaggeration-btn-switch";
-            listExaggeration[i].elm.setAttribute("exaggeration-id", i);
+          // const exaggerationBtnDiv = document.createElement('div');
 
-            if (i === String(index)) {
-              listExaggeration[i].elm.disabled = true;
-            }
+          // for (let i in listExaggeration) {
+          //   listExaggeration[i].elm = document.createElement('button');
+          //   listExaggeration[i].elm.className = "esri-button exaggeration-btn-switch";
+          //   listExaggeration[i].elm.setAttribute("exaggeration-id", i);
 
-            listExaggeration[i].elm.innerHTML = listExaggeration[i].text;
-            // viewDiv.parentNode.insertBefore(listExaggeration[i].elm, viewDiv.nextSibling);
-            view.ui.add(listExaggeration[i].elm, "top-right");
-          }
+          //   if (i === String(index)) {
+          //     listExaggeration[i].elm.disabled = true;
+          //   }
+
+          //   listExaggeration[i].elm.innerHTML = listExaggeration[i].text;
+          //   exaggerationBtnDiv.appendChild(listExaggeration[i].elm);
+            
+            
+          // }
+          // view.ui.add(exaggerationBtnDiv, "top-right");
+          ex1xBtnDiv.style.display = "block";
+          ex3xBtnDiv.style.display = "block";
+          ex5xBtnDiv.style.display = "block";
+          
         };
 
-        
+        // 高さ倍率ボタンを削除
+        function removeExaggerationButton () {
+          ex1xBtnDiv.style.display = "none";
+          ex3xBtnDiv.style.display = "none";
+          ex5xBtnDiv.style.display = "none";
+        }
 
         // 高さ倍率ボタンクリック時のイベント
         function clickExaggerationBtn (view) {
           document
-          .querySelector(".esri-ui-top-right")
+          .querySelector(".exaggeration-btn")
           .addEventListener("click", function(event) {
             if (view.map === mapSecond) {
               exaggerationId = event.target.getAttribute("exaggeration-id");
@@ -1501,35 +1786,43 @@
         /////////////////////////////////////////////
         listMenu[menuIndex.back].elm.onclick = function(){
 
-          loaderDiv.classList.add('is-active');
+          startLoading();
 
-          view = new MapView({
-            container: "viewDiv",
-            map: map,
-            padding: {
-              top: 55
-            }
-          });
+          sceneView.container = null;
+          view.container = "viewDiv";
+          view.map = map;
+
+          // view = new MapView({
+          //   container: "viewDiv",
+          //   map: map,
+          //   padding: {
+          //     top: 56
+          //   }
+          // });
 
           // 背景図をセットする
           map.basemap = mapSecond.basemap;
 
           // メニューボタンの初期化
           mapSecond.ground = {};
-          listMenu[menuIndex.threed].elm.firstElementChild.classList.remove("esri-icon-maps");
-          listMenu[menuIndex.threed].elm.firstElementChild.classList.add("esri-icon-globe");
-          listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "3D";
-          refreshMenu(view);
+          listMenu[menuIndex.threed].elm.firstElementChild.removeAttribute("icon");
+          listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "map");
+          listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "2D";
+          // refreshMenu(view);
 
           // メニューボタンの表示、非表示の切り替え
           listMenu[menuIndex.legend].elm.style.display = "block";
           listMenu[menuIndex.metadata].elm.style.display = "none";
           listMenu[menuIndex.threed].elm.style.display = "none";
+          listMenu[menuIndex.agol].elm.style.display = "none";
           listMenu[menuIndex.back].elm.style.display = "none";
 
           // 透過スライダーを非表示にする
           opacityMapDiv.style.display = "none";
           opacitySceneDiv.style.display = "none";
+
+          // 高さ倍率ボタンを非表示にする
+          removeExaggerationButton();
 
           // 左上のUIを全て削除する
           view.ui.empty("top-left");
@@ -1568,19 +1861,19 @@
 
           view.watch('updating', function(evt){
             if(!evt){
-              loaderDiv.classList.remove('is-active');
+              endLoading();
             };
           });
 
           // 縮尺の切り替え
-          document
-          .querySelector(".esri-ui-top-left")
-          .addEventListener("click", function(event) {
-            if (view.map === map) {
-              scaleId = event.target.getAttribute("scale-id");
-              selectScaleid(scaleId);
-            }
-          });
+          // document
+          // .querySelector(".esri-ui-top-left")
+          // .addEventListener("click", function(event) {
+          //   if (view.map === map) {
+          //     scaleId = event.target.getAttribute("scale-id");
+          //     selectScaleid(scaleId);
+          //   }
+          // });
 
         };
         
@@ -1589,6 +1882,10 @@
   </head>
 
   <body>
+
+    <!-- <div id="loaderBackground">
+      <calcite-loader id="loaderDiv" type="indeterminate" is-active text="loading..."></calcite-loader>
+    </div> -->
     
     <div class="wrapper">
 
@@ -1634,33 +1931,81 @@
         </div>
       </div>
 
+      
+
       <div id="titleDiv" class="esri-widget">
+
+        <div id="loaderBackground">
+          <calcite-loader id="loaderDiv" type="indeterminate" is-active text="loading..."></calcite-loader>
+        </div>
         
         <a class="top-nav-title margin-left-1">
           
           Gaihozu Viewer
+          
           <span class="tablet-hide phone-hide"> : Indonesian-territory version (GV-I)</span>
           
         </a>
-        <img src="./img/Toh_E_S_N_G.gif" height="50px" width="50px">
+        <div id="informationDiv">
+          <!-- <calcite-icon id="information" icon="information" scale="l" class="padding-right-half"></calcite-icon> -->
+          <calcite-button icon="information" id="information" color="dark" scale="l"></calcite-button>
+        </div>
+        <div class="text-right">
+          <img src="./img/Toh_E_S_N_G.gif" height="56px" width="56px">
+        </div>
+        
       </div>
       
       <div id="viewDiv"></div>
 
-      <div id="opacityMapDiv" class="esri-widget padding-leader-half padding-trailer-half padding-left-half padding-right-half">
+      <div id="opacityMapDiv" class="esri-widget padding-leader-half padding-trailer-half padding-left-half">
         <div class="padding-trailer-half">Opacity</div>
         <div id="opacityMapSlider" class="slider"></div>
       </div>
-      <div id="opacitySceneDiv" class="esri-widget padding-leader-half padding-trailer-half padding-left-half padding-right-half">
+      <div id="opacitySceneDiv" class="esri-widget padding-leader-half padding-trailer-half padding-left-half">
         <div class="padding-trailer-half">Opacity</div>
         <div id="opacitySceneSlider" class="slider"></div>
       </div>
 
-      <div class="loader is-active" id="loaderDiv">
-        <div class="loader-bars"></div>
-        <!-- <div class="loader-text">Loading...</div> -->
+      <div class="exaggeration-btn"> 
+        <div id="ex1xBtnDiv">
+          <button class="esri-button exaggeration-btn-switch esri-component phone-hide" exaggeration-id="0">1x</button>
+        </div>
+        <div id="ex3xBtnDiv">
+          <button class="esri-button exaggeration-btn-switch esri-component phone-hide" disabled exaggeration-id="1">3x</button>
+        </div>
+        <div id="ex5xBtnDiv">
+          <button class="esri-button exaggeration-btn-switch esri-component phone-hide" exaggeration-id="2">5x</button>
+        </div>
       </div>
 
+      <!-- <calcite-dropdown id="dropdownScale">
+        <calcite-button slot="dropdown-trigger">Select Scale</calcite-button>
+        <calcite-dropdown-group>
+          <calcite-dropdown-item scale-id="0" active>- 1:150K (522)</calcite-dropdown-item>
+          <calcite-dropdown-item scale-id="1">1:150K - 1:300K (104)</calcite-dropdown-item>
+          <calcite-dropdown-item scale-id="2">1:500K (40)</calcite-dropdown-item>
+        </calcite-dropdown-group>
+      </calcite-dropdown> -->
+      
+
+      <!-- <div id="scaleBtnDiv" class="esri-widget">
+        <button class="esri-component esri-button scale-btn-switch trailer-half leader-half" scale-id="0" disabled="">- 1:150K (522)</button>
+        <button class="esri-component esri-button scale-btn-switch esri-component" scale-id="1">1:150K - 1:300K (104)</button>
+        <button class="esri-component esri-button scale-btn-switch esri-component" scale-id="2">1:500K (40)</button>
+        <button class="esri-component esri-button scale-btn-switch esri-component" scale-id="3">1:750K - 1:1M (9)</button>
+        <button class="esri-component esri-button scale-btn-switch esri-component" scale-id="4">1:2.5M (5)</button>
+      </div> -->
+
+      <!-- <div id="opacitySceneDiv" class="esri-widget padding-leader-half padding-trailer-half padding-left-half padding-right-half">
+        <div class="padding-trailer-half">Opacity</div>
+        <div id="opacitySceneSlider" class="slider"></div>
+      </div> -->
+
+      <!-- <div class="loader is-active" id="loaderDiv">
+        <div class="loader-bars"></div>
+      </div> -->
+      
 
       <div id="menuDiv" class="text-center"></div>
 
