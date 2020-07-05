@@ -147,17 +147,13 @@
       .esri-legend {
         width: 200px !important;
       }
-      .slider {
-        width: 100%;
-        height: 60px;
-      }
+      /* .slider {
+        height: 150px !important;
+      } */
       #opacityMapDiv, #opacitySceneDiv{
         width: 200px;
         background: #f8f8f8;
         display: none;
-        /* position: absolute; */
-        /* top: 70px;
-        left: 95px; */
       }
       .esri-slider {
         background: #f8f8f8 !important;
@@ -1163,7 +1159,7 @@
         
         const mapSecond = new Map({
         });
-        let objArrowBtn = [];
+        // let objArrowBtn = [];
 
         function addTileLayer(response){
           
@@ -1226,6 +1222,10 @@
           container: null,
           padding: {top: 56}
         });
+
+        // sceneView.environment.lighting.date = Date.now();
+        // sceneView.environment.lighting.date = new Date("June 23, 2019 12:00:00 JST");
+        // sceneView.environment.lighting.directShadowsEnabled = true;
        
         sceneView.ui.move(["zoom", "navigation-toggle", "compass"], "top-right");
         
@@ -1305,7 +1305,13 @@
               // 透過度スライダーの追加
               .then(function(){addOpacitySlider(opacitySceneDiv, opacitySceneSlider, sceneView)})
               // 高さ倍率ボタンの追加
-              .then(function(){addExaggerationButton(sceneView, exaggerationId)})
+              .then(function(){
+                // if (!exaggerationBtnDiv) {
+                  sceneView.ui.remove(exaggerationBtnDiv);
+                  addExaggerationButton(sceneView, exaggerationId);
+                // }
+                
+              })
               // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
               .then(function(){addAllDirectionBtn2View(sceneView)})
               // 高さ倍率ボタンクリック時のイベント
@@ -1410,7 +1416,11 @@
               // 透過度スライダーの追加
               // .then(function(){addOpacitySlider(opacitySceneDiv, opacitySceneSlider, appConfig.activeView)})
               // 高さ倍率ボタンの追加
-              .then(function(){addExaggerationButton(sceneView, exaggerationId)})
+              .then(function(){
+                // if (!exaggerationBtnDiv) {
+                  addExaggerationButton(sceneView, exaggerationId);
+                // }
+              })
               // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
               .then(function(){addAllDirectionBtn2View(sceneView)})
               // 高さ倍率ボタンクリック時のイベント
@@ -1456,37 +1466,41 @@
         const ex3xBtnDiv = document.getElementById("ex3xBtnDiv");
         const ex5xBtnDiv = document.getElementById("ex5xBtnDiv");
 
+        let exaggerationBtnDiv;
+
         // 高さ倍率ボタンを追加
         function addExaggerationButton (view, index) {
 
-          // const exaggerationBtnDiv = document.createElement('div');
+          exaggerationBtnDiv = document.createElement('div');
+          exaggerationBtnDiv.className = "exaggeration-btn";
 
-          // for (let i in listExaggeration) {
-          //   listExaggeration[i].elm = document.createElement('button');
-          //   listExaggeration[i].elm.className = "esri-button exaggeration-btn-switch";
-          //   listExaggeration[i].elm.setAttribute("exaggeration-id", i);
+          for (let i in listExaggeration) {
+            listExaggeration[i].elm = document.createElement('button');
+            listExaggeration[i].elm.className = "esri-button exaggeration-btn-switch";
+            listExaggeration[i].elm.setAttribute("exaggeration-id", i);
 
-          //   if (i === String(index)) {
-          //     listExaggeration[i].elm.disabled = true;
-          //   }
+            if (i === String(index)) {
+              listExaggeration[i].elm.disabled = true;
+            }
 
-          //   listExaggeration[i].elm.innerHTML = listExaggeration[i].text;
-          //   exaggerationBtnDiv.appendChild(listExaggeration[i].elm);
+            listExaggeration[i].elm.innerHTML = listExaggeration[i].text;
+            exaggerationBtnDiv.appendChild(listExaggeration[i].elm);
             
             
-          // }
-          // view.ui.add(exaggerationBtnDiv, "top-right");
-          ex1xBtnDiv.style.display = "block";
-          ex3xBtnDiv.style.display = "block";
-          ex5xBtnDiv.style.display = "block";
+          }
+          view.ui.add(exaggerationBtnDiv, "top-right");
+          // ex1xBtnDiv.style.display = "block";
+          // ex3xBtnDiv.style.display = "block";
+          // ex5xBtnDiv.style.display = "block";
           
         };
 
         // 高さ倍率ボタンを削除
         function removeExaggerationButton () {
-          ex1xBtnDiv.style.display = "none";
-          ex3xBtnDiv.style.display = "none";
-          ex5xBtnDiv.style.display = "none";
+          // ex1xBtnDiv.style.display = "none";
+          // ex3xBtnDiv.style.display = "none";
+          // ex5xBtnDiv.style.display = "none";
+          sceneView.ui.remove(exaggerationBtnDiv);
         }
 
         // 高さ倍率ボタンクリック時のイベント
@@ -1566,6 +1580,7 @@
           min: 0,
           max: 100,
           steps: 0.1,
+          // layout: "vertical",
           values: [defaultTransparency],
           visibleElements: {
             labels: false,
@@ -1585,7 +1600,9 @@
                   createDirectionBtn(eastId, "eastBtn", "esri-icon-arrow-right-circled", "East")
                   ])
           .then(function(results){
-            objArrowBtn = results;
+            // objArrowBtn = results;
+            // const directionDiv = document.createElement("div");
+
             for (let i in results) {
               
               if (results[i].firstElementChild) {
@@ -1827,6 +1844,7 @@
 
           // 左上のUIを全て削除する
           view.ui.empty("top-left");
+          view.ui.empty("bottom-left");
 
           // 縮尺ボタンを追加する
           addScaleButton(scaleId);
