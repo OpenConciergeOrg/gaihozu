@@ -465,7 +465,7 @@
         const portal = new Portal();
 
         const map = new Map({
-          basemap: 'streets-vector'
+          basemap: 'streets-relief-vector'
           
         });
 
@@ -1368,6 +1368,7 @@
             // 一度３Dにした後、２Dに戻すためには再度透過率スライダーと方位ボタンを追加する必要がある
             view.ui.empty("top-left");
             view.ui.empty("bottom-left");
+            // view.ui.add("compass", "top-right",1);
             addOpacitySlider(opacityMapDiv, opacityMapSlider, view);
 
             // tileLayer.when(function() {
