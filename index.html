@@ -205,6 +205,7 @@
         height: 100%;
 
         background: rgba(0,0,0,.3);
+        
       }
     </style>
     <link
@@ -295,9 +296,9 @@
           {'text': 'basemap', 'icon': "basemap", 'phone-hide': false},
           {'text': 'search', 'icon': "search", 'phone-hide': true},
           {'text': 'legend', 'icon': "legend", 'phone-hide': false},
+          {'text': 'open in ArcGIS Online', 'icon': "arcgis-online", 'phone-hide': true},
           {'text': 'metadata', 'icon': "access-string-results", 'phone-hide': false},
           {'text': '2D', 'icon': "map", 'phone-hide': false},
-          {'text': 'open in ArcGIS Online', 'icon': "arcgis-online", 'phone-hide': true},
           {'text': 'back to index map', 'icon': "x-circle", 'phone-hide': false}
         ];
         const menuDiv = document.getElementById("menuDiv");
@@ -306,9 +307,9 @@
           basemap: 1,
           search: 2,
           legend: 3,
-          metadata: 4,
-          threed: 5,
-          agol: 6,
+          metadata: 5,
+          threed: 6,
+          agol: 4,
           back: 7
         };
 
@@ -813,12 +814,13 @@
         // メニューバーの余白をクリックした時
         menuDiv.addEventListener("click", function(event) {
           if (event.target.childElementCount >= 6) {
-            if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "map") {
+            if (listMenu[menuIndex.threed].elm.style.display === "none") {
+              refreshMenu(view);
+            } else if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "map") {
               refreshMenu(sceneView);
             } else {
               refreshMenu(view);
             }
-            
           }
         });
 
