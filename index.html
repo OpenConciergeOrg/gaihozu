@@ -260,7 +260,9 @@
         "dojo/promise/all",
         "esri/views/SceneView",
         "esri/layers/ElevationLayer",
-        "esri/layers/BaseElevationLayer"
+        "esri/layers/BaseElevationLayer",
+        "esri/widgets/Home",
+        "esri/widgets/Compass"
       ], function(
         MapView, 
         FeatureLayer,
@@ -280,7 +282,9 @@
         all,
         SceneView,
         ElevationLayer,
-        BaseElevationLayer
+        BaseElevationLayer,
+        Home,
+        Compass
       ) {
         
         const URL_FL = "https://services1.arcgis.com/qvPIahekAMWThrhc/arcgis/rest/services/zukaku/FeatureServer/0";
@@ -477,6 +481,17 @@
         });
 
         view.ui.move("zoom", "top-right");
+
+        const homeBtn2D = new Home({
+          view: view
+        });
+        view.ui.add(homeBtn2D, "top-right");
+
+        const compassWidget = new Compass({
+          view: view
+        });
+
+        view.ui.add(compassWidget, "top-right");
 
         const zukakuFeatureLayer = new FeatureLayer({
           url: URL_FL,
@@ -942,11 +957,16 @@
 
         // 縮尺のリスト
         const listScale = [
-          {'text': "- 1:150K (522)"}, 
-          {'text': "1:150K - 1:300K (104)"}, 
-          {'text': "1:500K (40)"}, 
-          {'text': "1:750K - 1:1M (9)"}, 
-          {'text': "1:2.5M (5)"}
+          // {'text': "- 1:150K (522)"}, 
+          // {'text': "1:150K - 1:300K (104)"}, 
+          // {'text': "1:500K (40)"}, 
+          // {'text': "1:750K - 1:1M (9)"}, 
+          // {'text': "1:2.5M (5)"}
+          {'text': "- 1:150,000 (522)"}, 
+          {'text': "1:150,000 - 1:300,000 (104)"}, 
+          {'text': "1:500,000 (40)"}, 
+          {'text': "1:750,000 - 1:1,000,000 (9)"}, 
+          {'text': "1:2,500,000 (5)"}
         ];
 
         function addScaleButton (index) {
@@ -1231,6 +1251,9 @@
        
         sceneView.ui.move(["zoom", "navigation-toggle", "compass"], "top-right");
         
+        const homeBtn = new Home({
+          view: sceneView
+        });
 
         // ビューを作成
         function createTileView (response) {
@@ -1297,12 +1320,31 @@
 
             tileLayer.when(function() {
               // シーンの移動
-              sceneView.goTo(tileLayer.fullExtent)
+              // sceneView.goTo(tileLayer.fullExtent)
+              // .then(function(){
+              //   sceneView.goTo({
+              //     tilt: viewTilt,
+              //     heading: viewHeading
+              //   })
+              // })
+              sceneView.goTo({
+                target: tileLayer.fullExtent,
+                tilt: viewTilt,
+                heading: viewHeading
+              })
               .then(function(){
-                sceneView.goTo({
-                  tilt: viewTilt,
-                  heading: viewHeading
-                })
+                
+                sceneView.ui.remove(homeBtn);
+                sceneView.ui.add(homeBtn, "top-right");
+                
+                sceneView.watch("camera.tilt", function(newValue) {
+                  // console.log("tilt changed: ", newValue);
+                  viewTilt = newValue;
+                });
+                sceneView.watch("camera.heading", function(newValue) {
+                  // console.log("heading changed: ", newValue);
+                  viewHeading = newValue;
+                });
               })
               // 透過度スライダーの追加
               .then(function(){addOpacitySlider(opacitySceneDiv, opacitySceneSlider, sceneView)})
@@ -1411,12 +1453,26 @@
               // sceneView.goTo(activeViewpoint)
               // .then(function(){
                 sceneView.goTo({
-                  tilt: defaultViewTilt,
-                  heading: defaultViewHeading
+                  tilt: viewTilt,
+                  heading: viewHeading
                 })
               // })
               // 透過度スライダーの追加
               // .then(function(){addOpacitySlider(opacitySceneDiv, opacitySceneSlider, appConfig.activeView)})
+              .then(function(){
+                
+                sceneView.ui.remove(homeBtn);
+                sceneView.ui.add(homeBtn, "top-right");
+                
+                sceneView.watch("camera.tilt", function(newValue) {
+                  // console.log("tilt changed: ", newValue);
+                  viewTilt = newValue;
+                });
+                sceneView.watch("camera.heading", function(newValue) {
+                  // console.log("heading changed: ", newValue);
+                  viewHeading = newValue;
+                });
+              })
               // 高さ倍率ボタンの追加
               .then(function(){
                 // if (!exaggerationBtnDiv) {
@@ -1811,6 +1867,7 @@
           sceneView.container = null;
           view.container = "viewDiv";
           view.map = map;
+          view.heading = 0;
 
           // view = new MapView({
           //   container: "viewDiv",
