@@ -210,13 +210,13 @@
     </style>
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.15/esri/themes/light/main.css"
+      href="https://js.arcgis.com/4.16/esri/themes/light/main.css"
     />
     <link rel="stylesheet" href="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/css/calcite-web.min.css">
     <link
       rel="stylesheet"
       type="text/css"
-      href="https://unpkg.com/@esri/calcite-components@1.0.0-beta.29/dist/calcite/calcite.css"
+      href="https://unpkg.com/@esri/calcite-components@1.0.0-beta.31/dist/calcite/calcite.css"
     />
     <!-- <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/js/calcite-web.min.js"></script> -->
     <!-- interactive patterns need to be initialized -->
@@ -225,11 +225,11 @@
     </script> -->
     <script
       type="module"
-      src="https://unpkg.com/@esri/calcite-components@1.0.0-beta.30/dist/calcite/calcite.esm.js"
+      src="https://unpkg.com/@esri/calcite-components@1.0.0-beta.31/dist/calcite/calcite.esm.js"
     ></script>
     <script
       nomodule=""
-      src="https://unpkg.com/@esri/calcite-components@1.0.0-beta.30/dist/calcite/calcite.js"
+      src="https://unpkg.com/@esri/calcite-components@1.0.0-beta.31/dist/calcite/calcite.js"
     ></script>
     <script>
       // set locale before JSAPI is loaded
@@ -238,7 +238,7 @@
         parseOnLoad: true
       };
     </script>
-    <script src="https://js.arcgis.com/4.15/"></script>
+    <script src="https://js.arcgis.com/4.16/"></script>
     
     <script>
       require([
@@ -1336,6 +1336,12 @@
                 
                 sceneView.ui.remove(homeBtn);
                 sceneView.ui.add(homeBtn, "top-right");
+
+                
+                const homeViewpoint = sceneView.viewpoint.clone();
+                console.log(homeViewpoint);
+                sceneView.viewpoint.camera = homeViewpoint.camera;
+                // sceneView.scale = homeViewpoint.scale;
                 
                 sceneView.watch("camera.tilt", function(newValue) {
                   // console.log("tilt changed: ", newValue);
@@ -1351,6 +1357,7 @@
               // 高さ倍率ボタンの追加
               .then(function(){
                 // if (!exaggerationBtnDiv) {
+                  sceneView.ui.empty("bottom-left");
                   sceneView.ui.remove(exaggerationBtnDiv);
                   addExaggerationButton(sceneView, exaggerationId);
                 // }
@@ -1425,7 +1432,7 @@
               // ビューの移動
             // view.goTo(activeViewpoint);
             // });
-            removeExaggerationButton();
+            sceneView.ui.remove(exaggerationBtnDiv);
             addAllDirectionBtn2View(view);
 
             clickMenuBtn(view);
@@ -1554,12 +1561,12 @@
         };
 
         // 高さ倍率ボタンを削除
-        function removeExaggerationButton () {
+        // function removeExaggerationButton () {
           // ex1xBtnDiv.style.display = "none";
           // ex3xBtnDiv.style.display = "none";
           // ex5xBtnDiv.style.display = "none";
-          sceneView.ui.remove(exaggerationBtnDiv);
-        }
+        //   sceneView.ui.remove(exaggerationBtnDiv);
+        // }
 
         // 高さ倍率ボタンクリック時のイベント
         function clickExaggerationBtn (view) {
@@ -1864,6 +1871,16 @@
 
           startLoading();
 
+          if (listMenu[menuIndex.threed].elm.style.display === "none") {
+            refreshMenu(view);
+          } else if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "map") {
+            refreshMenu(sceneView);
+          } else {
+            refreshMenu(view);
+          }
+
+          // closeAttributeDiv();
+
           sceneView.container = null;
           view.container = "viewDiv";
           view.map = map;
@@ -1899,7 +1916,7 @@
           opacitySceneDiv.style.display = "none";
 
           // 高さ倍率ボタンを非表示にする
-          removeExaggerationButton();
+          sceneView.ui.remove(exaggerationBtnDiv);
 
           // 左上のUIを全て削除する
           view.ui.empty("top-left");
