@@ -238,7 +238,7 @@
         parseOnLoad: true
       };
     </script>
-    <script src="https://js.arcgis.com/4.16/"></script>
+    <script src="https://js.arcgis.com/4.15/"></script>
     
     <script>
       require([
@@ -262,7 +262,8 @@
         "esri/layers/ElevationLayer",
         "esri/layers/BaseElevationLayer",
         "esri/widgets/Home",
-        "esri/widgets/Compass"
+        "esri/widgets/Compass",
+        "esri/Viewpoint"
       ], function(
         MapView, 
         FeatureLayer,
@@ -284,7 +285,8 @@
         ElevationLayer,
         BaseElevationLayer,
         Home,
-        Compass
+        Compass,
+        Viewpoint
       ) {
         
         const URL_FL = "https://services1.arcgis.com/qvPIahekAMWThrhc/arcgis/rest/services/zukaku/FeatureServer/0";
@@ -470,7 +472,7 @@
           
         });
 
-        let view = new MapView({
+        const view = new MapView({
           container: "viewDiv",
           map: map,
           center: [118.4985351561923, -2.0326589312043144],
@@ -558,6 +560,10 @@
           toolbarMeasureDiv.appendChild(clearMeasureBtn);
 
           // 計測ウィジェット
+          // if (measurement) {
+          //   measurement.destroy();
+          // }
+          
           measurement = new Measurement({
             view: view
           });
@@ -613,6 +619,10 @@
             query:{title: "Vector Basemaps",owner: "Esri_cy_US"}    
           });
 
+          // if (basemapGallery) {
+          //   basemapGallery.destroy();
+          // }
+          
           basemapGallery = new BasemapGallery({       
             view: view,     
             container: document.createElement("div"),       
@@ -636,6 +646,10 @@
           //   凡例
           /////////////////////////////////////////////
           // 凡例ウィジェット
+          // if (legend) {
+          //   legend.destroy();
+          // }
+          
           legend = new Legend({
             view: view,
             layerInfos: [
@@ -664,7 +678,7 @@
           /////////////////////////////////////////////
           // 2D、3Dボタンクリック時のイベント
           listMenu[menuIndex.threed].elm.onclick = function(){
-            // startLoading();
+            startLoading();
             // console.log("start");
             if (!listMenu[menuIndex.threed].elm.classList.contains("active-menu")) {
               listMenu[menuIndex.threed].elm.classList.add("active-menu");
@@ -720,14 +734,9 @@
             minSuggestCharacters: 0
           }];
           
-          searchWidgetWithSources = new Search({
-            view: view,
-            sources: sources
-          });
+          
 
-          searchWidget = new Search({
-            view: view
-          });
+          
           
 
           // 検索ボタンクリック時のイベント
@@ -736,8 +745,34 @@
               listMenu[menuIndex.search].elm.classList.add("active-menu");
               
               if (view.map === map) {
+                searchWidgetWithSources = new Search({
+                  view: view,
+                  sources: sources
+                });
                 view.ui.add(searchWidgetWithSources, "bottom-right");
+
+                // 検索結果の図郭はどの縮尺か分からないため表示されるかは分からない
+                searchWidgetWithSources.on("search-complete", function(event){
+                  const scale_num = event.results[0].results[0].feature.attributes.scale_num;
+                  if ([1, 2, 3, 4].includes(scale_num)) {
+                    scaleId = '0';
+                  } else if ([5, 6, 7].includes(scale_num)) {
+                    scaleId = '1';
+                  } else if ([8].includes(scale_num)) {
+                    scaleId = '2';
+                  } else if ([9, 10].includes(scale_num)) {
+                    scaleId = '3';
+                  } else if ([11].includes(scale_num)) {
+                    scaleId = '4';
+                  }
+                  selectScaleid(scaleId);
+                });
+
+
               } else if (view.map === mapSecond) {
+                searchWidget = new Search({
+                  view: view
+                });
                 view.ui.add(searchWidget, "bottom-right");
               }
 
@@ -753,22 +788,7 @@
             removeActiveMenu([menuIndex.search,menuIndex.info,menuIndex.metadata]);
           };
 
-          // 検索結果の図郭はどの縮尺か分からないため表示されるかは分からない
-          searchWidgetWithSources.on("search-complete", function(event){
-            const scale_num = event.results[0].results[0].feature.attributes.scale_num;
-            if ([1, 2, 3, 4].includes(scale_num)) {
-              scaleId = '0';
-            } else if ([5, 6, 7].includes(scale_num)) {
-              scaleId = '1';
-            } else if ([8].includes(scale_num)) {
-              scaleId = '2';
-            } else if ([9, 10].includes(scale_num)) {
-              scaleId = '3';
-            } else if ([11].includes(scale_num)) {
-              scaleId = '4';
-            }
-            selectScaleid(scaleId);
-          });
+          
 
            
         }
@@ -1201,7 +1221,7 @@
 
           esriRequest(tileLayerUrl, options)
             .then(createTileView)
-            .then(function(){clickAGOLbtn(itemId)});
+            // .then(function(){clickAGOLbtn(itemId)});
         };
 
         //////////////////////////////////////////////
@@ -1255,6 +1275,7 @@
           view: sceneView
         });
 
+
         // ビューを作成
         function createTileView (response) {
           
@@ -1270,13 +1291,15 @@
          
           let activeViewpoint;
 
-          if (view.viewpoint) {
+          if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "360-view") {
             activeViewpoint = view.viewpoint.clone();
-          } else if (sceneView.viewpoint) {
+          } else if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "map" && (sceneView.viewpoint)) {
             activeViewpoint = sceneView.viewpoint.clone();
+          } else if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "map" && (view.viewpoint)) {
+            activeViewpoint = view.viewpoint.clone();
+            sceneView.viewpoint = activeViewpoint;
           }
           
-          view.container = null;
           
           // すでに追加されている外邦図を削除
           mapSecond.removeAll();
@@ -1284,49 +1307,50 @@
           tileLayer.opacity = defaultTransparency/100;
 
           
-          sceneView.viewpoint = activeViewpoint;
+          
           
           // マップ
           if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "360-view") {
-            view.container = "viewDiv";
+
             view.map = mapSecond;
             mapSecond.ground = {};
-            // appConfig.activeView = appConfig.mapView;
-            view.ui.empty("bottom-left");
-            view.ui.empty("top-left");
-            view.constraints = {minZoom: minLOD, maxZoom: maxLOD};
+
+            // view.constraints = {minZoom: minLOD, maxZoom: maxLOD};
             
+            view.ui.empty("top-left");
+            view.ui.empty("bottom-left");
+            
+            addOpacitySlider(opacityMapDiv, opacityMapSlider, view);
+
             tileLayer.when(function() {
-              // ビューの移動
-              view.goTo(tileLayer.fullExtent)
-              // 透過度スライダーの追加
-              .then(function(){addOpacitySlider(opacityMapDiv, opacityMapSlider, view)})
-              // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
-              .then(function(){addAllDirectionBtn2View(view)});
+              view.goTo(tileLayer.fullExtent);
+              const vp = new Viewpoint({
+                targetGeometry: tileLayer.fullExtent
+              });
+              homeBtn2D.viewpoint = vp;
             });
+            sceneView.ui.remove(exaggerationBtnDiv);
+            addAllDirectionBtn2View(view);
+
             
           // シーン
           } else if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "map") {
             
+            sceneView.map = mapSecond;
+            mapSecond.basemap = map.basemap;
 
+
+
+            
             sceneView.container = "viewDiv";
             sceneView.ui.empty("bottom-left");
             selectExaggerationId(exaggerationId);       
 
-            sceneView.map = mapSecond;
-            mapSecond.basemap = map.basemap;
+            
 
             
 
             tileLayer.when(function() {
-              // シーンの移動
-              // sceneView.goTo(tileLayer.fullExtent)
-              // .then(function(){
-              //   sceneView.goTo({
-              //     tilt: viewTilt,
-              //     heading: viewHeading
-              //   })
-              // })
               sceneView.goTo({
                 target: tileLayer.fullExtent,
                 tilt: viewTilt,
@@ -1336,40 +1360,33 @@
                 
                 sceneView.ui.remove(homeBtn);
                 sceneView.ui.add(homeBtn, "top-right");
-
-                
-                const homeViewpoint = sceneView.viewpoint.clone();
-                console.log(homeViewpoint);
-                sceneView.viewpoint.camera = homeViewpoint.camera;
-                // sceneView.scale = homeViewpoint.scale;
+                const vp = new Viewpoint({
+                  targetGeometry: tileLayer.fullExtent
+                });
+                homeBtn.viewpoint = vp;
                 
                 sceneView.watch("camera.tilt", function(newValue) {
-                  // console.log("tilt changed: ", newValue);
                   viewTilt = newValue;
                 });
                 sceneView.watch("camera.heading", function(newValue) {
-                  // console.log("heading changed: ", newValue);
                   viewHeading = newValue;
                 });
+                
               })
               // 透過度スライダーの追加
               .then(function(){addOpacitySlider(opacitySceneDiv, opacitySceneSlider, sceneView)})
               // 高さ倍率ボタンの追加
               .then(function(){
-                // if (!exaggerationBtnDiv) {
-                  sceneView.ui.empty("bottom-left");
-                  sceneView.ui.remove(exaggerationBtnDiv);
-                  addExaggerationButton(sceneView, exaggerationId);
-                // }
-                
+                sceneView.ui.empty("bottom-left");
+                addExaggerationButton(sceneView, exaggerationId);
               })
               // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
               .then(function(){addAllDirectionBtn2View(sceneView)})
               // 高さ倍率ボタンクリック時のイベント
               .then(function(){clickExaggerationBtn(sceneView)})
-              .then(endLoading)
+              // .then()
               .then(function(){
-                
+                endLoading();
                 clickMenuBtn(sceneView);
               })
             });
@@ -1393,12 +1410,6 @@
 
         // マップとシーンの切り替え
         function switchView() {
-          
-          // const is3D = appConfig.activeView.type === "3d";
-          // const activeViewpoint = appConfig.activeView.viewpoint.clone();
-
-          // remove the reference to the container for the previous view
-          // appConfig.activeView.container = null;
 
           if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "2D") {
 
@@ -1406,36 +1417,33 @@
             listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "360-view");
             listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "3D";
 
-            // if the input view is a SceneView, set the viewpoint on the
-            // mapView instance. Set the container on the mapView and flag
-            // it as the active view
-            // appConfig.mapView.viewpoint = activeViewpoint;
-            // appConfig.mapView.container = appConfig.container;
-            // appConfig.activeView = appConfig.mapView;
-            // mapSecond.ground = {};
-
-            const activeViewpoint = sceneView.viewpoint.clone();
-
             sceneView.container = null;
             view.container = "viewDiv";
-            view.viewpoint = activeViewpoint;
+
+            clickMenuBtn(view);
+
+
+
             view.map = mapSecond;
             mapSecond.ground = {};
 
             // 一度３Dにした後、２Dに戻すためには再度透過率スライダーと方位ボタンを追加する必要がある
             view.ui.empty("top-left");
             view.ui.empty("bottom-left");
-            // view.ui.add("compass", "top-right",1);
+
             addOpacitySlider(opacityMapDiv, opacityMapSlider, view);
 
-            // tileLayer.when(function() {
-              // ビューの移動
-            // view.goTo(activeViewpoint);
-            // });
+            tileLayer.when(function() {
+            
+              view.goTo(tileLayer.fullExtent);
+              const vp = new Viewpoint({
+                targetGeometry: tileLayer.fullExtent
+              });
+              homeBtn2D.viewpoint = vp;
+            });
             sceneView.ui.remove(exaggerationBtnDiv);
             addAllDirectionBtn2View(view);
 
-            clickMenuBtn(view);
 
             
           } else {
@@ -1450,6 +1458,8 @@
             view.container = null;
 
 
+
+
             sceneView.container = "viewDiv";
             sceneView.ui.empty("bottom-left");
             selectExaggerationId(exaggerationId);
@@ -1457,34 +1467,29 @@
             
 
             sceneView.when(function(){
-              // sceneView.goTo(activeViewpoint)
-              // .then(function(){
-                sceneView.goTo({
-                  tilt: viewTilt,
-                  heading: viewHeading
-                })
-              // })
-              // 透過度スライダーの追加
-              // .then(function(){addOpacitySlider(opacitySceneDiv, opacitySceneSlider, appConfig.activeView)})
+              sceneView.goTo({
+                tilt: viewTilt,
+                heading: viewHeading
+              })
               .then(function(){
                 
                 sceneView.ui.remove(homeBtn);
                 sceneView.ui.add(homeBtn, "top-right");
+                const vp = new Viewpoint({
+                  targetGeometry: tileLayer.fullExtent
+                });
+                homeBtn.viewpoint = vp;
                 
                 sceneView.watch("camera.tilt", function(newValue) {
-                  // console.log("tilt changed: ", newValue);
                   viewTilt = newValue;
                 });
                 sceneView.watch("camera.heading", function(newValue) {
-                  // console.log("heading changed: ", newValue);
                   viewHeading = newValue;
                 });
               })
               // 高さ倍率ボタンの追加
               .then(function(){
-                // if (!exaggerationBtnDiv) {
-                  addExaggerationButton(sceneView, exaggerationId);
-                // }
+                addExaggerationButton(sceneView, exaggerationId);
               })
               // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
               .then(function(){addAllDirectionBtn2View(sceneView)})
@@ -1494,25 +1499,10 @@
                 
                 clickMenuBtn(sceneView);
               })
-              // .then(function(){
-              //   watchUtils.whenTrue(sceneView, "stationary", function() {
-              //     if (appConfig.activeView.map === mapSecond) {
-              //       if (appConfig.activeView.extent) {
-              //         viewTilt = appConfig.activeView.camera.tilt;
-              //         viewHeading = appConfig.activeView.camera.heading;
-              //       };
-              //     };   
-              //   });
-              // })
-            });
-            // appConfig.activeView.watch('updating', function(evt){
-            //   if(!evt){
-            //     loaderDiv.classList.remove('is-active');
-            //   };
-            // });            
+            });      
 
           }
-          // endLoading();
+          endLoading();
         }
 
 
@@ -1950,15 +1940,16 @@
               target: viewCenter,
               zoom: viewZoom
             });
+            endLoading();
           });
 
           
 
-          view.watch('updating', function(evt){
-            if(!evt){
-              endLoading();
-            };
-          });
+          // view.watch('updating', function(evt){
+          //   if(!evt){
+              
+          //   };
+          // });
 
           // 縮尺の切り替え
           // document
