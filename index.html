@@ -207,6 +207,57 @@
         background: rgba(0,0,0,.3);
         
       }
+      .esri-layer-list__item-container{
+        display: none !important;
+      }
+      .esri-legend__layer-row{
+        border: 1px solid #959595 !important;
+        display: flex !important;
+        position: relative !important;
+        align-items: center !important;
+      }
+      .esri-layer-list{
+        width: 100% !important;
+      }
+      .esri-interactive-legend--selected-indicator-container {
+        display: -ms-flexbox;
+        display: flex;
+        -ms-flex-align: center;
+        align-items: center;
+        position: absolute;
+        left: 0;
+        height: 100%;
+      }
+      .esri-interactive-legend--selected-indicator {
+        background-color: #0079c1;
+        width: 3px;
+        height: 100%;
+        border-radius: 2.5px;
+      }
+      div.disabled[active~="true"] {
+        cursor: not-allowed;
+        background: lightgray;
+        box-shadow: none;
+      }
+      div[active~="true"] {
+        cursor : pointer;
+        background: white;
+        box-shadow: -1px 0px 1px 0px #cccccc, 1px 0px 1px 0px #cccccc, 0px -1px 1px 0px #cccccc, 0px 1px 1px 0px #cccccc;
+      }
+      
+      
+      div[active~="false"] {
+        cursor : pointer;
+        border: 1px solid #cccccc;
+        background: transparent;
+      }
+      #layerlistDiv {
+        background: rgb(245, 245, 245);
+      }
+      svg{
+        width: 22px;
+        height: 22px;
+      }
     </style>
     <link
       rel="stylesheet"
@@ -255,7 +306,7 @@
         "esri/widgets/Measurement",
         "esri/widgets/BasemapGallery",
         "esri/widgets/BasemapGallery/support/PortalBasemapsSource",
-        "esri/widgets/Legend",
+        // "esri/widgets/Legend",
         "dojo/Deferred",
         "dojo/promise/all",
         "esri/views/SceneView",
@@ -263,7 +314,10 @@
         "esri/layers/BaseElevationLayer",
         "esri/widgets/Home",
         "esri/widgets/Compass",
-        "esri/Viewpoint"
+        "esri/Viewpoint",
+        "esri/widgets/LayerList"
+        // "esri/widgets/LayerList/LayerListViewModel",
+        // "esri/smartMapping/statistics/summaryStatistics"
       ], function(
         MapView, 
         FeatureLayer,
@@ -278,7 +332,7 @@
         Measurement,
         BasemapGallery,
         PortalBasemapsSource,
-        Legend,
+        // Legend,
         Deferred,
         all,
         SceneView,
@@ -286,7 +340,10 @@
         BaseElevationLayer,
         Home,
         Compass,
-        Viewpoint
+        Viewpoint,
+        LayerList
+        // LayerListViewModel,
+        // summaryStatistics
       ) {
         
         const URL_FL = "https://services1.arcgis.com/qvPIahekAMWThrhc/arcgis/rest/services/zukaku/FeatureServer/0";
@@ -472,7 +529,7 @@
           
         });
 
-        const view = new MapView({
+        let view = new MapView({
           container: "viewDiv",
           map: map,
           center: [118.4985351561923, -2.0326589312043144],
@@ -502,19 +559,447 @@
         });
         map.add(zukakuFeatureLayer);
 
+        
+
         // フィーチャレイヤービュー
         let zukakuLayerView　;
         const defaultWhereClause = "georeference = 1";
-        let whereClause = defaultWhereClause + " AND scale_num IN (1,2,3,4)" ;
+        let scaleWhereclause = " AND scale_num IN (1,2,3,4)";
+        let whereClause = defaultWhereClause + scaleWhereclause;
+        let yearWhereclause = " AND 1=1";
+        let lstYear = ['1939', '1940', '1941', '1942', '1943', '1944'];
+        const defaultYear = ['1939', '1940', '1941', '1942', '1943', '1944'];
+        let lstFeatureCntByYear;
+        let orgLstYear;
+        let lenValidYear;
 
         view.whenLayerView(zukakuFeatureLayer).then(function(layerView) {
-
           zukakuLayerView = layerView;
           zukakuLayerView.filter = {
             where: whereClause
           };
-
+          queryByAllYears();
+          
         });
+        
+        // promise.allで各出版年ごとの結果を受け取る
+        function queryByAllYears () {
+          // https://t-salad.com/node-for-asynchronous/
+          const tasks = [];
+          for (let i=0; i<lstYear.length; i++) {
+            tasks.push(
+              queryByYear(lstYear[i])
+            );
+          };
+          Promise.all(tasks).then(function(results){
+
+            var indices = [];
+            var idx = results.indexOf(0);
+            while (idx != -1) {
+              indices.push(idx);
+              idx = results.indexOf(0, idx + 1);
+            }
+            for (var i = indices.length - 1; i >= 0 ; i--){
+              lstYear.splice(indices[i], 1);
+            }
+            lenValidYear = lstYear.length;
+            orgLstYear = [];
+            for (let i=0; i<lenValidYear; i++) {
+              orgLstYear.push(lstYear[i]);
+            };
+            lstFeatureCntByYear = results;
+
+            // console.log(results); [0, 24, 0, 42, 423, 33] 出版年ごとのフィーチャ数
+            // console.log(indices); [0, 2] フィーチャ数が0のインデックス
+            // console.log(lstYear); ["1940", "1942", "1943", "1944"] フィーチャが存在する出版年
+            // console.log(lenValidYear); 4 フィーチャが存在する出版年の数、show allボタンの活性化に使用
+            // console.log(orgLstYear); ["1940", "1942", "1943", "1944"] show allボタンで戻す際に使用、参照渡しではなく値渡し
+
+            addLegendYear();            
+            
+          });
+        };
+
+        // 出版年ごとにフィーチャ数をクエリ
+        function queryByYear (year) {
+          return new Promise(function(resolve, reject){
+            const queryYearParams = zukakuFeatureLayer.createQuery();
+            queryYearParams.where = whereClause + " AND print_year_en IN (" + year + ")";
+            zukakuFeatureLayer.queryFeatureCount(queryYearParams).then(function(result){
+              resolve(result);
+            });
+          });
+        }
+        
+        // 出版年のリストからwhere句を作成
+        function createYearWhereClause (lst) {
+          yearWhereclause = " AND print_year_en IN ("
+          for (var i=0; i<lst.length; i++) {
+            if (i === 0) {
+              yearWhereclause += lst[i];
+            } else {
+              yearWhereclause += ("," + lst[i]);
+            }
+          }
+          yearWhereclause += ")";
+        };
+          
+        
+        
+        
+        let showAllBtn;
+
+        // 凡例を作成
+        function addLegendYear () {
+          
+          // フィーチャレイヤーの個別値を取得
+          const uniqueValueInfos = zukakuFeatureLayer.renderer.uniqueValueInfos;
+
+          if (document.getElementById('layerlistDiv')) {
+            document.getElementById('layerlistDiv').remove();
+          }
+
+          const layerlistDiv = document.createElement("div");
+          layerlistDiv.className = "layer-list esri-widget padding-leader-half padding-trailer-half padding-left-half padding-right-half";
+          layerlistDiv.setAttribute('id', 'layerlistDiv');
+          // デフォルトは非表示
+          layerlistDiv.style.display = "none";
+          
+          const titleH3 = document.createElement("div");
+          titleH3.innerHTML = "Printed Year";
+          layerlistDiv.appendChild(titleH3);
+
+          // show all ボタン
+          showAllBtn = document.createElement("calcite-button");
+          showAllBtn.className = "leader-quarter";
+          showAllBtn.setAttribute("id", "showAllYearBtn");
+          showAllBtn.setAttribute("scale", "s");
+          showAllBtn.setAttribute("width", "full");
+          showAllBtn.setAttribute("appearance", "clear");
+          showAllBtn.setAttribute("disabled", null);
+          showAllBtn.innerHTML = "show all";
+          layerlistDiv.appendChild(showAllBtn);
+
+          for (var i=0; i<uniqueValueInfos.length; i++) {
+
+            // なぜかhtmlの要素をべた書きしないと表示されなかった
+            let legendLayerRow = '\
+              <div class="esri-legend__layer-row leader-quarter';
+            // if (lstYear.indexOf(uniqueValueInfos[i].label) < 0) {
+            //   legendLayerRow += ' disabled';
+            // }
+            legendLayerRow += '" active=true year-id='
+              + uniqueValueInfos[i].label + '>';
+            // if (lstYear.indexOf(uniqueValueInfos[i].label) !== -1) {
+              legendLayerRow += '<div class="esri-interactive-legend--selected-indicator-container">\
+                <div class="esri-interactive-legend--selected-indicator" year-id='
+                + uniqueValueInfos[i].label+ '></div>\
+                </div>';
+            // };
+            legendLayerRow += '<div class="esri-legend__layer-cell esri-legend__layer-cell--symbols padding-left-1" year-id='
+                  + uniqueValueInfos[i].label + '>\
+                  <div class="esri-legend__symbol">\
+                    <div style="opacity: 0.51;" year-id=' 
+                      + uniqueValueInfos[i].label + '>\
+                      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22">\
+                        <defs></defs>\
+                        <g transform="matrix(1,0,0,1,11,11)">\
+                          <path year-id='
+                          + uniqueValueInfos[i].label + 
+                          ' fill="rgba('
+                          + uniqueValueInfos[i].symbol.color.r + ","
+                          + uniqueValueInfos[i].symbol.color.g + ","
+                          + uniqueValueInfos[i].symbol.color.b + ","
+                          + uniqueValueInfos[i].symbol.color.a +
+                          ')" fill-rule="evenodd" stroke="rgba(255, 255, 255, 0.25098039215686274)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="none" stroke-miterlimit="4" d="M -10,-10 L 10,0 L 10,10 L -10,10 L -10,-10 Z"></path>\
+                        </g>\
+                      </svg>\
+                    </div>\
+                  </div>\
+                </div>\
+                <div class="esri-legend__layer-cell esri-legend__layer-cell--info" year-id='
+                  + uniqueValueInfos[i].label + '>'
+                  + uniqueValueInfos[i].label +
+                '</div>\
+              </div>';
+
+            layerlistDiv.insertAdjacentHTML("beforeend", legendLayerRow);
+
+          };
+
+          
+
+          view.ui.add(layerlistDiv, "bottom-right");
+
+          showPrintedYearOnLegend();
+
+          // 縮尺ボタン押下時、凡例ボタンがアクティブな場合はレイヤーリストウィジェットを開いたままにしておく
+          if (listMenu[menuIndex.legend].elm.classList.contains("active-menu")) {
+            layerlistDiv.style.display = "block";
+          }
+
+          // 各出版年ボタンクリック時の動作
+          document
+          .querySelector(".layer-list")
+          .addEventListener("click", function(event) {
+            if (view.map === map && event.target.getAttribute("year-id")) {
+              yearId = event.target.getAttribute("year-id");
+              selectYearid(yearId);
+            }
+          });
+
+          // show allボタンクリック時の動作
+          showAllBtn.addEventListener("click", function(event) {
+            showAllYear();
+          });
+          
+
+        };
+
+        // 選択された縮尺に出版年のフィーチャにあるかないかを、ボタンの状態に反映させる
+        function showPrintedYearOnLegend () {
+          const nodes = document.querySelectorAll(".esri-legend__layer-row");
+          // console.log(lstFeatureCntByYear);
+          // console.log(lstYear);
+          for (var idx = 0; idx < nodes.length; idx++) {
+            const node = nodes[idx];
+            const yearIndex = node.getAttribute("year-id");
+            // console.log(yearIndex);
+            // if (lstYear.indexOf(yearIndex) < 0) {
+            if (lstFeatureCntByYear[idx] === 0) {
+              node.classList.add("disabled");
+              node.firstElementChild.firstElementChild.style.setProperty('display', 'none', 'important');
+            } else {
+              node.lastElementChild.innerHTML = yearIndex + " (" + lstFeatureCntByYear[idx] + ")";
+              node.firstElementChild.firstElementChild.style.setProperty('display', 'flex', 'important');
+              node.classList.remove("disabled");
+
+              if (lstYear.indexOf(yearIndex) > -1) {
+                node.setAttribute("active", "true");
+              } else {
+                node.firstElementChild.firstElementChild.style.setProperty('display', 'none', 'important');
+                node.setAttribute("active", "false");
+              }
+            }
+            
+          };
+        };
+
+        // 出版年のボタンクリック時の動作
+        function selectYearid (yearId) {
+          if (yearId) {
+            const nodes = document.querySelectorAll(".esri-legend__layer-row");
+            for (var idx = 0; idx < nodes.length; idx++) {
+              const node = nodes[idx];
+              const yearIndex = node.getAttribute("year-id");
+
+              if (yearIndex === yearId && !node.classList.contains('disabled')) {
+                if (node.getAttribute("active") === "true") {
+                  node.firstElementChild.firstElementChild.style.setProperty('display', 'none', 'important');
+                  node.setAttribute("active", "false");
+                  // lstYearから該当の出版年を削除
+                  const index = lstYear.indexOf(yearId);
+                  lstYear.splice(index, 1);
+                  
+                } else if (node.getAttribute("active") === "false") {
+                
+                  node.setAttribute("active", "true");
+                  node.firstElementChild.firstElementChild.style.setProperty('display', 'flex', 'important');
+                  // lstYearに該当の出版年を追加
+                  lstYear.push(yearId);
+                } 
+                
+              }
+            }
+
+            createYearWhereClause(lstYear);
+                
+            whereClause = defaultWhereClause + scaleWhereclause + yearWhereclause;
+            zukakuLayerView.filter = {
+              where: whereClause
+            };
+
+            setStatusShowAllBtn();
+            
+          }
+        }
+
+        // show allボタンの状態を変える
+        function setStatusShowAllBtn () {
+          if (lenValidYear !== lstYear.length) {
+            showAllBtn.removeAttribute("disabled");
+            showAllBtn.setAttribute("appearance", "solid");
+          } else if (lenValidYear === lstYear.length) {
+            showAllBtn.setAttribute("disabled", null);
+            showAllBtn.setAttribute("appearance", "clear");
+          };
+        }
+        
+        // show allボタンクリック時の動作
+        function showAllYear(){
+
+          showAllBtn.setAttribute("disabled", null);
+          showAllBtn.setAttribute("appearance", "clear");
+
+          // lstYearをデフォルト値に戻す
+          lstYear = [];
+          for (let i=0; i<orgLstYear.length; i++) {
+            lstYear.push(orgLstYear[i]);
+          };
+          
+          showPrintedYearOnLegend();
+
+          createYearWhereClause(lstYear);
+                
+          whereClause = defaultWhereClause + scaleWhereclause + yearWhereclause;
+          zukakuLayerView.filter = {
+            where: whereClause
+          };
+        };
+
+
+
+
+          // const layerList1 = new LayerList({
+          //   view: view,
+          //   listItemCreatedFunction: function(event){
+          //     const item = event.item;
+          //     const uniqueValueInfos = item.layer.renderer.uniqueValueInfos;
+          //     // console.log(uniqueValueInfos);
+              
+          //     const layerlistDiv = document.createElement("div");
+
+          //     const showAllBtn = document.createElement("calcite-button");
+          //     showAllBtn.setAttribute("scale", "s");
+          //     showAllBtn.setAttribute("width", "full");
+          //     showAllBtn.setAttribute("appearance", "clear");
+          //     showAllBtn.setAttribute("disabled", "true");
+          //     showAllBtn.innerHTML = "show all";
+          //     layerlistDiv.appendChild(showAllBtn);
+
+          //     for (var i=0; i<uniqueValueInfos.length; i++) {
+          //       // const selectedIndicatorContainer = document.createElement("div");
+          //       // selectedIndicatorContainer.className = "esri-interactive-legend--selected-indicator-container";
+
+          //       // const selectedIndicator = document.createElement("div");
+          //       // selectedIndicator.className = "esri-interactive-legend--selected-indicator";
+          //       // selectedIndicatorContainer.appendChild(selectedIndicator);
+
+
+          //       // const legendLayerCell = document.createElement("div");
+          //       // legendLayerCell.className = "esri-legend__layer-cell esri-legend__layer-cell--symbols padding-left-1";
+
+          //       // const legendSymbol = document.createElement("div");
+          //       // legendSymbol.className = "esri-legend__symbol";
+          //       // legendLayerCell.appendChild(legendSymbol);
+
+          //       // const opacityDiv = document.createElement("div");
+          //       // opacityDiv.style.opacity = 0.51;
+          //       // legendSymbol.appendChild(opacityDiv);
+
+          //       // const svg = document.createElement("svg");
+          //       // svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+          //       // svg.setAttribute("width", "22");
+          //       // svg.setAttribute("height", "22");
+          //       // opacityDiv.appendChild(svg);
+
+          //       // const defs = document.createElement("defs");
+          //       // svg.appendChild(defs);
+
+          //       // const g = document.createElement("g");
+          //       // g.setAttribute("transform", "matrix(1,0,0,1,11,11)");
+          //       // svg.appendChild(g);
+
+          //       // const path = document.createElement("path");
+          //       // path.setAttribute("fill", "rgba(" + uniqueValueInfos[i].symbol.color.r + "," + uniqueValueInfos[i].symbol.color.g + "," + uniqueValueInfos[i].symbol.color.b + "," + uniqueValueInfos[i].symbol.color.a + ")");
+          //       // path.setAttribute("fill-rule", "evenodd");
+          //       // path.setAttribute("stroke", "rgba(255, 255, 255, 0.25098039215686274)");
+          //       // path.setAttribute("stroke-width", "2");
+          //       // path.setAttribute("stroke-linecap", "round");
+          //       // path.setAttribute("stroke-linejoin", "round");
+          //       // path.setAttribute("stroke-dasharray", "none");
+          //       // path.setAttribute("stroke-miterlimit", "4");
+          //       // path.setAttribute("d", "M -10,-10 L 10,0 L 10,10 L -10,10 L -10,-10 Z");
+          //       // g.appendChild(path);
+          //       // svg.innerHTML = '<defs></defs>\
+          //       //                <g transform="matrix(1,0,0,1,11,11)"\
+          //       //                  <path fill="rgba(255, 0, 0, 1)" fill-rule="evenodd" stroke="rgba(255, 255, 255, 0.25098039215686274)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="none" stroke-miterlimit="4" d="M -10,-10 L 10,0 L 10,10 L -10,10 L -10,-10 Z"></path>\
+          //       //                </g>';
+
+          //       // const legendLayerCellInfo = document.createElement("div");
+          //       // legendLayerCellInfo.className = "esri-legend__layer-cell esri-legend__layer-cell--info";
+          //       // legendLayerCellInfo.innerHTML = uniqueValueInfos[i].label;
+
+
+          //       // const legendLayerRow = document.createElement("div");
+          //       // legendLayerRow.className = "esri-legend__layer-row leader-quarter shadow-selected";
+          //       // legendLayerRow.appendChild(selectedIndicatorContainer);
+          //       // legendLayerRow.appendChild(legendLayerCell);
+          //       // legendLayerRow.appendChild(legendLayerCellInfo);
+                
+          //       // layerlistDiv.appendChild(legendLayerRow);
+
+                
+
+          //       const legendLayerRow = '\
+          //         <div class="esri-legend__layer-row leader-quarter shadow-selected year-btn-switch" year-id='
+          //           + i + '>\
+          //           <div class="esri-interactive-legend--selected-indicator-container">\
+          //             <div class="esri-interactive-legend--selected-indicator"></div>\
+          //           </div>\
+          //           <div class="esri-legend__layer-cell esri-legend__layer-cell--symbols padding-left-1">\
+          //             <div class="esri-legend__symbol">\
+          //               <div style="opacity: 0.51;">\
+          //                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22">\
+          //                   <defs></defs>\
+          //                   <g transform="matrix(1,0,0,1,11,11)">\
+          //                     <path fill="rgba('
+          //                     + uniqueValueInfos[i].symbol.color.r + ","
+          //                     + uniqueValueInfos[i].symbol.color.g + ","
+          //                     + uniqueValueInfos[i].symbol.color.b + ","
+          //                     + uniqueValueInfos[i].symbol.color.a +
+          //                     ')" fill-rule="evenodd" stroke="rgba(255, 255, 255, 0.25098039215686274)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="none" stroke-miterlimit="4" d="M -10,-10 L 10,0 L 10,10 L -10,10 L -10,-10 Z"></path>\
+          //                   </g>\
+          //                 </svg>\
+          //               </div>\
+          //             </div>\
+          //           </div>\
+          //           <div class="esri-legend__layer-cell esri-legend__layer-cell--info">'
+          //           + uniqueValueInfos[i].label +
+          //           '</div>\
+          //         </div>';
+
+          //       layerlistDiv.insertAdjacentHTML("beforeend", legendLayerRow
+          //       );
+
+          //     }
+
+          //     item.panel = {
+          //       content: layerlistDiv,
+          //       // className: "esri-icon-chart",
+          //       open: item.visible
+          //     };
+
+              
+
+          //   }
+          // });
+          // view.ui.add(layerList1, "bottom-left");
+
+          // console.log(layerList1);
+
+          // document
+          // .querySelector(".year-btn-switch")
+          // .addEventListener("click", function(event) {
+          //   console.log(event);
+          //   // if (view.map === map) {
+          //   //   scaleId = event.target.getAttribute("scale-id");
+          //   //   selectScaleid(scaleId);
+          //   // }
+          // });
+
+        
+        
 
         //////////////////////////////////////////////
         //
@@ -527,7 +1012,7 @@
         let basemapGallery;
         let searchWidgetWithSources;
         let searchWidget;
-        let legend;
+        // let legend;
         let distanceMeasureBtn;
         let areaMeasureBtn;
         let clearMeasureBtn;
@@ -559,11 +1044,7 @@
           clearMeasureBtn.title = "Area Measurement Tool";
           toolbarMeasureDiv.appendChild(clearMeasureBtn);
 
-          // 計測ウィジェット
-          // if (measurement) {
-          //   measurement.destroy();
-          // }
-          
+          // 計測ウィジェット        
           measurement = new Measurement({
             view: view
           });
@@ -646,29 +1127,27 @@
           //   凡例
           /////////////////////////////////////////////
           // 凡例ウィジェット
-          // if (legend) {
-          //   legend.destroy();
-          // }
-          
-          legend = new Legend({
-            view: view,
-            layerInfos: [
-              {
-                layer: zukakuFeatureLayer,
-                title: "Printed year"
-              }
-            ]
-          });
+          // legend = new Legend({
+          //   view: view,
+          //   layerInfos: [
+          //     {
+          //       layer: zukakuFeatureLayer,
+          //       title: "Printed year"
+          //     }
+          //   ]
+          // });
 
           // 凡例ボタンクリック時のイベント
           listMenu[menuIndex.legend].elm.onclick = function(){
             if (!listMenu[menuIndex.legend].elm.classList.contains("active-menu")) {
               listMenu[menuIndex.legend].elm.classList.add("active-menu");
-              view.ui.add(legend, "bottom-right");
+              // view.ui.add(legend, "bottom-right");
+              layerlistDiv.style.display = "block";
               removeOtherUI(view, menuIndex.legend);
             } else {
               listMenu[menuIndex.legend].elm.classList.remove("active-menu");
-              view.ui.remove(legend);
+              // view.ui.remove(legend);
+              layerlistDiv.style.display = "none";
             }
             removeActiveMenu([menuIndex.legend,menuIndex.info,menuIndex.metadata]);
           };
@@ -811,7 +1290,8 @@
             view.ui.remove(searchWidget);
           };
           if (index !== menuIndex.legend) {
-            view.ui.remove(legend);
+            // view.ui.remove(legend);
+            layerlistDiv.style.display = "none";
           }
 
         };
@@ -832,10 +1312,12 @@
           view.ui.remove(basemapGallery);
           view.ui.remove(toolbarMeasureDiv);
           view.ui.remove(measurement);
-          view.ui.remove(legend);
+          // view.ui.remove(legend);
+          
 
           if (view.map === map) {
             view.ui.remove(searchWidgetWithSources);
+            layerlistDiv.style.display = "none";
           } else if (view.map === mapSecond) {
             view.ui.remove(searchWidget);
           };
@@ -1035,14 +1517,11 @@
 
           view.ui.add(scaleCalciteDropdown, "top-left");
 
-          // dropdownScale.addEventListener("calciteDropdownItemSelect", function(event){
-          //   console.log(event);
-          // });
-
 
         };
 
         let scaleId = '0';
+        
         view.when(function(){
 
           addScaleButton(scaleId);
@@ -1061,41 +1540,57 @@
                 node.setAttribute("active", null);
 
                 if (scaleId === '0') {
-                  whereClause = defaultWhereClause + " AND scale_num IN (1,2,3,4)" ;
+                  scaleWhereclause = " AND scale_num IN (1,2,3,4)";
                   
                 } else if (scaleId === '1') {
-                  whereClause = defaultWhereClause + " AND scale_num IN (5,6,7)" ;
+                  scaleWhereclause = " AND scale_num IN (5,6,7)" ;
                   
                 } else if (scaleId === '2') {
-                  whereClause = defaultWhereClause + " AND scale_num IN (8)" ;
+                  scaleWhereclause = " AND scale_num IN (8)" ;
                   
                 } else if (scaleId === '3') {
-                  whereClause = defaultWhereClause + " AND scale_num IN (9,10)" ;
+                  scaleWhereclause = " AND scale_num IN (9,10)" ;
                   
                 } else if (scaleId === '4') {
-                  whereClause = defaultWhereClause + " AND scale_num IN (11)" ;
+                  scaleWhereclause = " AND scale_num IN (11)" ;
                   
                 };
-                zukakuLayerView.filter = {
-                  where: whereClause
-                };
+                
               } else {
                 node.disabled = false;
                 node.removeAttribute("active");
               }
             }
+            whereClause = defaultWhereClause + scaleWhereclause;
+            zukakuLayerView.filter = {
+              where: whereClause
+            };
+
+            // 出版年のリストを初期化
+            lstYear = [];
+            for (let i=0; i<defaultYear.length; i++) {
+              lstYear.push(defaultYear[i]);
+            };
+            // レイヤーリストウィジェットを更新
+            queryByAllYears();
+
+            
           }
         }
 
         // 縮尺の切り替え
-        document
-        .querySelector(".esri-ui-top-left")
-        .addEventListener("click", function(event) {
-          if (view.map === map) {
-            scaleId = event.target.getAttribute("scale-id");
-            selectScaleid(scaleId);
-          }
-        });
+        function clickScaleBtn () {
+          document
+          .querySelector(".esri-ui-top-left")
+          .addEventListener("click", function(event) {
+            if (view.map === map) {
+              scaleId = event.target.getAttribute("scale-id");
+              selectScaleid(scaleId);
+            }
+          });
+        };
+        clickScaleBtn();
+        
 
         // ローダーの表示を止める
         view.watch('updating', function(evt){
@@ -1221,7 +1716,7 @@
 
           esriRequest(tileLayerUrl, options)
             .then(createTileView)
-            // .then(function(){clickAGOLbtn(itemId)});
+            .then(function(){clickAGOLbtn(itemId)});
         };
 
         //////////////////////////////////////////////
@@ -1236,7 +1731,8 @@
           // // console.log(itemId);
           listMenu[menuIndex.agol].elm.addEventListener("click", function(){
             // if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "3D") {
-              window.open('https://www.arcgis.com/home/webmap/viewer.html?layers=' + itemId, '_blank');
+              // window.open('https://www.arcgis.com/home/webmap/viewer.html?layers=' + itemId, '_blank');
+              window.open('https://www.arcgis.com/apps/mapviewer/index.html?layers=' + itemId, '_blank');
             // } else if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "2D") {
               // window.open('https://www.arcgis.com/home/webscene/viewer.html?layers=' + itemId, '_blank');
             // }
@@ -1295,6 +1791,7 @@
             activeViewpoint = view.viewpoint.clone();
           } else if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "map" && (sceneView.viewpoint)) {
             activeViewpoint = sceneView.viewpoint.clone();
+            sceneView.viewpoint = activeViewpoint;
           } else if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "map" && (view.viewpoint)) {
             activeViewpoint = view.viewpoint.clone();
             sceneView.viewpoint = activeViewpoint;
@@ -1378,6 +1875,7 @@
               // 高さ倍率ボタンの追加
               .then(function(){
                 sceneView.ui.empty("bottom-left");
+                sceneView.ui.remove(exaggerationBtnDiv);
                 addExaggerationButton(sceneView, exaggerationId);
               })
               // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
@@ -1396,15 +1894,8 @@
           
         };
 
-
-
-        
-        // ２D→３Dの際はtiltとheadingはデフォルト値を使用
-        // ３D内で遷移した場合はtiltとheadingは引き継ぐ
         let viewTilt = 45;
         let viewHeading = 0;
-        const defaultViewTilt = 45;
-        const defaultViewHeading = 0;
 
         let exaggerationId = '1';
 
@@ -1416,6 +1907,8 @@
             listMenu[menuIndex.threed].elm.firstElementChild.removeAttribute("icon");
             listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "360-view");
             listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "3D";
+
+            const activeViewpoint = sceneView.viewpoint.clone();
 
             sceneView.container = null;
             view.container = "viewDiv";
@@ -1435,7 +1928,8 @@
 
             tileLayer.when(function() {
             
-              view.goTo(tileLayer.fullExtent);
+              view.goTo(activeViewpoint);
+              // view.goTo(tileLayer.fullExtent);
               const vp = new Viewpoint({
                 targetGeometry: tileLayer.fullExtent
               });
@@ -1456,10 +1950,6 @@
             sceneView.viewpoint = activeViewpoint;
 
             view.container = null;
-
-
-
-
             sceneView.container = "viewDiv";
             sceneView.ui.empty("bottom-left");
             selectExaggerationId(exaggerationId);
@@ -1467,7 +1957,9 @@
             
 
             sceneView.when(function(){
+              // console.log(viewTilt);
               sceneView.goTo({
+                target: activeViewpoint,
                 tilt: viewTilt,
                 heading: viewHeading
               })
@@ -1868,21 +2360,23 @@
           } else {
             refreshMenu(view);
           }
-
-          // closeAttributeDiv();
-
           sceneView.container = null;
-          view.container = "viewDiv";
+
+          // view.container = "viewDiv";
+
+          view.destroy();
+          view = new MapView({
+            container: "viewDiv",
+            map: map,
+            center: [118.4985351561923, -2.0326589312043144],
+            zoom: 5,
+            padding: {
+              top: 56
+            }
+          });
+          
           view.map = map;
           view.heading = 0;
-
-          // view = new MapView({
-          //   container: "viewDiv",
-          //   map: map,
-          //   padding: {
-          //     top: 56
-          //   }
-          // });
 
           // 背景図をセットする
           map.basemap = mapSecond.basemap;
@@ -1892,8 +2386,7 @@
           listMenu[menuIndex.threed].elm.firstElementChild.removeAttribute("icon");
           listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "map");
           listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "2D";
-          // refreshMenu(view);
-
+          
           // メニューボタンの表示、非表示の切り替え
           listMenu[menuIndex.legend].elm.style.display = "block";
           listMenu[menuIndex.metadata].elm.style.display = "none";
@@ -1908,15 +2401,24 @@
           // 高さ倍率ボタンを非表示にする
           sceneView.ui.remove(exaggerationBtnDiv);
 
+          view.ui.move("zoom", "top-right");
+          view.ui.add(homeBtn2D, "top-right");
+          view.ui.add(compassWidget, "top-right");
+
           // 左上のUIを全て削除する
           view.ui.empty("top-left");
           view.ui.empty("bottom-left");
 
+          // 縮尺制限を解除する
+          // view.constraints = {minZoom: 0, maxZoom: 23};
+
           // 縮尺ボタンを追加する
           addScaleButton(scaleId);
+          clickScaleBtn();
 
-          // 縮尺制限を解除する
-          view.constraints = {minZoom: 0, maxZoom: 23};
+          // 凡例
+          addLegendYear();
+          setStatusShowAllBtn();
 
           clickView();
           clickMenuBtn(view);
@@ -1926,8 +2428,8 @@
             // created. Here we check for the creation of a layer view for a layer with
             // a specific id, and log the layer view
             if (event.layer.title === "図郭") {
-              // The LayerView for the desired layer
               zukakuLayerView = event.layerView;
+              
               zukakuLayerView.filter = {
                 where: whereClause
               };
@@ -1942,24 +2444,6 @@
             });
             endLoading();
           });
-
-          
-
-          // view.watch('updating', function(evt){
-          //   if(!evt){
-              
-          //   };
-          // });
-
-          // 縮尺の切り替え
-          // document
-          // .querySelector(".esri-ui-top-left")
-          // .addEventListener("click", function(event) {
-          //   if (view.map === map) {
-          //     scaleId = event.target.getAttribute("scale-id");
-          //     selectScaleid(scaleId);
-          //   }
-          // });
 
         };
         
