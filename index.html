@@ -532,8 +532,8 @@
         let view = new MapView({
           container: "viewDiv",
           map: map,
-          center: [118.4985351561923, -2.0326589312043144],
-          zoom: 5,
+          // center: [118.4985351561923, -2.0326589312043144],
+          // zoom: 5,
           padding: {
             top: 56
           }
@@ -541,16 +541,13 @@
 
         view.ui.move("zoom", "top-right");
 
-        const homeBtn2D = new Home({
-          view: view
+        let homeBtn2D = new Home({
+          // view: view
         });
         view.ui.add(homeBtn2D, "top-right");
+        
 
-        const compassWidget = new Compass({
-          view: view
-        });
-
-        view.ui.add(compassWidget, "top-right");
+        
 
         const zukakuFeatureLayer = new FeatureLayer({
           url: URL_FL,
@@ -572,15 +569,37 @@
         let lstFeatureCntByYear;
         let orgLstYear;
         let lenValidYear;
+        let startExtent;
+        let compassWidget;
 
         view.whenLayerView(zukakuFeatureLayer).then(function(layerView) {
           zukakuLayerView = layerView;
           zukakuLayerView.filter = {
             where: whereClause
           };
+          
+          goToFeatureLayerViewExtent();
           queryByAllYears();
           
         });
+
+        // フィーチャレイヤーのエクステントに移動
+        function goToFeatureLayerViewExtent () {
+          const queryParams = zukakuFeatureLayer.createQuery();
+          queryParams.where = whereClause;
+          zukakuFeatureLayer.queryExtent(queryParams).then(function(results){
+            startExtent = results.extent;
+            view.goTo(startExtent);
+            view.extent = startExtent;
+            homeBtn2D.view = view;
+
+            compassWidget = new Compass({
+              view: view
+            });
+
+            view.ui.add(compassWidget, "top-right");
+          });
+        }
         
         // promise.allで各出版年ごとの結果を受け取る
         function queryByAllYears () {
@@ -1318,6 +1337,7 @@
           if (view.map === map) {
             view.ui.remove(searchWidgetWithSources);
             layerlistDiv.style.display = "none";
+            // view.ui.remove(layerlistDiv);
           } else if (view.map === mapSecond) {
             view.ui.remove(searchWidget);
           };
@@ -1817,7 +1837,7 @@
             view.ui.empty("top-left");
             view.ui.empty("bottom-left");
             
-            addOpacitySlider(opacityMapDiv, opacityMapSlider, view);
+            addOpacitySlider(view);
 
             tileLayer.when(function() {
               view.goTo(tileLayer.fullExtent);
@@ -1871,7 +1891,7 @@
                 
               })
               // 透過度スライダーの追加
-              .then(function(){addOpacitySlider(opacitySceneDiv, opacitySceneSlider, sceneView)})
+              .then(function(){addOpacitySlider(sceneView)})
               // 高さ倍率ボタンの追加
               .then(function(){
                 sceneView.ui.empty("bottom-left");
@@ -1924,7 +1944,8 @@
             view.ui.empty("top-left");
             view.ui.empty("bottom-left");
 
-            addOpacitySlider(opacityMapDiv, opacityMapSlider, view);
+            // addOpacitySlider(opacityMapDiv, opacityMapSlider, view);
+            addOpacitySlider(view);
 
             tileLayer.when(function() {
             
@@ -2110,30 +2131,7 @@
 
         
 
-        const opacityMapSlider = new Slider({
-          container: "opacityMapSlider",
-          min: 0,
-          max: 100,
-          steps: 0.1,
-          values: [defaultTransparency],
-          visibleElements: {
-            labels: false,
-            rangeLabels: true
-          }
-        });
-
-        const opacitySceneSlider = new Slider({
-          container: "opacitySceneSlider",
-          min: 0,
-          max: 100,
-          steps: 0.1,
-          // layout: "vertical",
-          values: [defaultTransparency],
-          visibleElements: {
-            labels: false,
-            rangeLabels: true
-          }
-        });
+        
 
         //////////////////////////////////////////////
         //   東西南北ボタン
@@ -2228,18 +2226,32 @@
         /////////////////////////////////////////////
 
         // 透過スライダーを追加
-        const opacityMapDiv = document.getElementById("opacityMapDiv");
+        // const opacityMapDiv = document.getElementById("opacityMapDiv");
         const opacitySceneDiv = document.getElementById("opacitySceneDiv");
-        
-        function addOpacitySlider (opacityDiv, opacitySlider, view) {
-          opacityDiv.style.display = "block";
-          view.ui.add(opacityDiv, "top-left");
 
+        const opacitySceneSlider = new Slider({
+          container: "opacitySceneSlider",
+          min: 0,
+          max: 100,
+          steps: 0.1,
+          // layout: "vertical",
+          values: [defaultTransparency],
+          visibleElements: {
+            labels: false,
+            rangeLabels: true
+          }
+        });
+
+        function addOpacitySlider (view) {
           
-          opacitySlider.on(
+          opacitySceneDiv.style.display = "block";
+          view.ui.add(opacitySceneDiv, "top-left");
+
+          opacitySceneSlider.on(
             ["thumb-change", "thumb-drag"],
             transparencyChanged
           );
+          
           
         };
 
@@ -2368,14 +2380,19 @@
           view = new MapView({
             container: "viewDiv",
             map: map,
-            center: [118.4985351561923, -2.0326589312043144],
-            zoom: 5,
+            // center: [118.4985351561923, -2.0326589312043144],
+            // zoom: 5,
+            extent: startExtent,
             padding: {
               top: 56
             }
           });
+
+          homeBtn2D = new Home({
+            view: view
+          });
           
-          view.map = map;
+          // view.map = map;
           view.heading = 0;
 
           // 背景図をセットする
@@ -2395,11 +2412,15 @@
           listMenu[menuIndex.back].elm.style.display = "none";
 
           // 透過スライダーを非表示にする
-          opacityMapDiv.style.display = "none";
           opacitySceneDiv.style.display = "none";
 
           // 高さ倍率ボタンを非表示にする
           sceneView.ui.remove(exaggerationBtnDiv);
+
+          view.extent = startExtent;
+          compassWidget = new Compass({
+            view: view
+          });
 
           view.ui.move("zoom", "top-right");
           view.ui.add(homeBtn2D, "top-right");
@@ -2433,6 +2454,7 @@
               zukakuLayerView.filter = {
                 where: whereClause
               };
+              
             };
           });
 
@@ -2528,10 +2550,10 @@
       
       <div id="viewDiv"></div>
 
-      <div id="opacityMapDiv" class="esri-widget padding-leader-half padding-trailer-half padding-left-half">
+      <!-- <div id="opacityMapDiv" class="esri-widget padding-leader-half padding-trailer-half padding-left-half">
         <div class="padding-trailer-half">Opacity</div>
         <div id="opacityMapSlider" class="slider"></div>
-      </div>
+      </div> -->
       <div id="opacitySceneDiv" class="esri-widget padding-leader-half padding-trailer-half padding-left-half">
         <div class="padding-trailer-half">Opacity</div>
         <div id="opacitySceneSlider" class="slider"></div>
