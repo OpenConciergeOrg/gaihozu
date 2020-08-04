@@ -1602,10 +1602,12 @@
             listMenu[menuIndex.threed].elm.firstElementChild.removeAttribute("icon");
             listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "map");
             listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "2D";
+            refreshMenu(sceneView);
           } else if (is3D === false) {
             listMenu[menuIndex.threed].elm.firstElementChild.removeAttribute("icon");
             listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "360-view");
             listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "3D";
+            refreshMenu(view);
           }
 
           let activeViewpoint;
@@ -2023,7 +2025,6 @@
           min: 0,
           max: 100,
           steps: 0.1,
-          // layout: "vertical",
           values: [defaultTransparency],
           visibleElements: {
             labels: false,
