@@ -86,22 +86,11 @@
       #backDiv, #metadataDiv {
         display: none;
       }
-      /* #loaderDiv{
-        padding: 0;
-        margin: 0;
-        height: 100%;
-        width: 100%;
-        position: absolute !important;
-      } */
       #loaderDiv{
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        
-        /* padding: 15px 30px; */
-        /* background: rgba(0,0,0,0.4);
-        color: #fff; */
         text-align: center;
       }
       .active-menu {
@@ -117,13 +106,6 @@
         background-color: lightgray !important;
         color: #0079c1 !important;
       } 
-      /* #toolbarMeasureDiv {
-        flex-direction: row;
-        flex-wrap: nowrap;
-        display: flex;
-      } */
-
-
       .esri-widget--button {
         background-color: #f8f8f8 !important;
         color: #404040 !important;
@@ -139,18 +121,13 @@
       .esri-widget--button.active:focus path {
         fill: #e4e4e4 !important;
       }
-
-
       .esri-legend__layer-caption {
         display: none !important;
       }
       .esri-legend {
         width: 200px !important;
       }
-      /* .slider {
-        height: 150px !important;
-      } */
-      #opacityMapDiv, #opacitySceneDiv{
+      #opacityDiv{
         width: 200px;
         background: #f8f8f8;
         display: none;
@@ -158,18 +135,12 @@
       .esri-slider {
         background: #f8f8f8 !important;
       }
-      /* .direction {
-        width: 100px !important;
-      } */
       fieldset{
         float: left;
       }
       article, aside, details, figcaption, figure, footer, header, hgroup, nav, section, summary{
         display: revert !important;
       }
-      /* #information {
-        height: 40px !important;
-      } */
       #informationDiv {
         right: 56px;
         position: absolute;
@@ -192,20 +163,13 @@
         top: 155px;
         display: none;
       }
-      /* #scaleBtnDiv{
-        position: absolute;
-        top: 100px;
-        left: 100px;
-      } */
       #loaderBackground {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-
         background: rgba(0,0,0,.3);
-        
       }
       .esri-layer-list__item-container{
         display: none !important;
@@ -244,8 +208,6 @@
         background: white;
         box-shadow: -1px 0px 1px 0px #cccccc, 1px 0px 1px 0px #cccccc, 0px -1px 1px 0px #cccccc, 0px 1px 1px 0px #cccccc;
       }
-      
-      
       div[active~="false"] {
         cursor : pointer;
         border: 1px solid #cccccc;
@@ -267,7 +229,7 @@
     <link
       rel="stylesheet"
       type="text/css"
-      href="https://unpkg.com/@esri/calcite-components@1.0.0-beta.31/dist/calcite/calcite.css"
+      href="https://unpkg.com/@esri/calcite-components@1.0.0-beta.36/dist/calcite/calcite.css"
     />
     <!-- <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/js/calcite-web.min.js"></script> -->
     <!-- interactive patterns need to be initialized -->
@@ -276,11 +238,11 @@
     </script> -->
     <script
       type="module"
-      src="https://unpkg.com/@esri/calcite-components@1.0.0-beta.31/dist/calcite/calcite.esm.js"
+      src="https://unpkg.com/@esri/calcite-components@1.0.0-beta.36/dist/calcite/calcite.esm.js"
     ></script>
     <script
       nomodule=""
-      src="https://unpkg.com/@esri/calcite-components@1.0.0-beta.31/dist/calcite/calcite.js"
+      src="https://unpkg.com/@esri/calcite-components@1.0.0-beta.36/dist/calcite/calcite.js"
     ></script>
     <script>
       // set locale before JSAPI is loaded
@@ -290,7 +252,7 @@
       };
     </script>
     <script src="https://js.arcgis.com/4.16/"></script>
-    
+    <!-- <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script> -->
     <script>
       require([
         "esri/views/MapView",
@@ -306,7 +268,6 @@
         "esri/widgets/Measurement",
         "esri/widgets/BasemapGallery",
         "esri/widgets/BasemapGallery/support/PortalBasemapsSource",
-        // "esri/widgets/Legend",
         "dojo/Deferred",
         "dojo/promise/all",
         "esri/views/SceneView",
@@ -316,8 +277,6 @@
         "esri/widgets/Compass",
         "esri/Viewpoint",
         "esri/widgets/LayerList"
-        // "esri/widgets/LayerList/LayerListViewModel",
-        // "esri/smartMapping/statistics/summaryStatistics"
       ], function(
         MapView, 
         FeatureLayer,
@@ -332,7 +291,6 @@
         Measurement,
         BasemapGallery,
         PortalBasemapsSource,
-        // Legend,
         Deferred,
         all,
         SceneView,
@@ -342,12 +300,11 @@
         Compass,
         Viewpoint,
         LayerList
-        // LayerListViewModel,
-        // summaryStatistics
       ) {
         
         const URL_FL = "https://services1.arcgis.com/qvPIahekAMWThrhc/arcgis/rest/services/zukaku/FeatureServer/0";
         const QUERYTXT = "owner: Y.Hoshida AND group: 3f221abcf0cc4633a868f8dd49f99f8b AND type: 'Map Service' AND tags: ";
+        const PADDINGTOP = 56;
 
         //////////////////////////////////////////////
         //   メニューボタンを画面に追加
@@ -535,7 +492,7 @@
           // center: [118.4985351561923, -2.0326589312043144],
           // zoom: 5,
           padding: {
-            top: 56
+            top: PADDINGTOP
           }
         });
 
@@ -571,7 +528,8 @@
         let lenValidYear;
         let startExtent;
         let compassWidget;
-
+        const showAllBtn = document.createElement("calcite-button");
+        
         view.whenLayerView(zukakuFeatureLayer).then(function(layerView) {
           zukakuLayerView = layerView;
           zukakuLayerView.filter = {
@@ -591,12 +549,12 @@
             startExtent = results.extent;
             view.goTo(startExtent);
             view.extent = startExtent;
+            // ホームウィジェットの範囲を設定
             homeBtn2D.view = view;
 
             compassWidget = new Compass({
               view: view
             });
-
             view.ui.add(compassWidget, "top-right");
           });
         }
@@ -663,11 +621,6 @@
           yearWhereclause += ")";
         };
           
-        
-        
-        
-        let showAllBtn;
-
         // 凡例を作成
         function addLegendYear () {
           
@@ -689,7 +642,6 @@
           layerlistDiv.appendChild(titleH3);
 
           // show all ボタン
-          showAllBtn = document.createElement("calcite-button");
           showAllBtn.className = "leader-quarter";
           showAllBtn.setAttribute("id", "showAllYearBtn");
           showAllBtn.setAttribute("scale", "s");
@@ -746,8 +698,6 @@
 
           };
 
-          
-
           view.ui.add(layerlistDiv, "bottom-right");
 
           showPrintedYearOnLegend();
@@ -778,13 +728,9 @@
         // 選択された縮尺に出版年のフィーチャにあるかないかを、ボタンの状態に反映させる
         function showPrintedYearOnLegend () {
           const nodes = document.querySelectorAll(".esri-legend__layer-row");
-          // console.log(lstFeatureCntByYear);
-          // console.log(lstYear);
           for (var idx = 0; idx < nodes.length; idx++) {
             const node = nodes[idx];
             const yearIndex = node.getAttribute("year-id");
-            // console.log(yearIndex);
-            // if (lstYear.indexOf(yearIndex) < 0) {
             if (lstFeatureCntByYear[idx] === 0) {
               node.classList.add("disabled");
               node.firstElementChild.firstElementChild.style.setProperty('display', 'none', 'important');
@@ -792,7 +738,6 @@
               node.lastElementChild.innerHTML = yearIndex + " (" + lstFeatureCntByYear[idx] + ")";
               node.firstElementChild.firstElementChild.style.setProperty('display', 'flex', 'important');
               node.classList.remove("disabled");
-
               if (lstYear.indexOf(yearIndex) > -1) {
                 node.setAttribute("active", "true");
               } else {
@@ -800,7 +745,6 @@
                 node.setAttribute("active", "false");
               }
             }
-            
           };
         };
 
@@ -876,150 +820,6 @@
           };
         };
 
-
-
-
-          // const layerList1 = new LayerList({
-          //   view: view,
-          //   listItemCreatedFunction: function(event){
-          //     const item = event.item;
-          //     const uniqueValueInfos = item.layer.renderer.uniqueValueInfos;
-          //     // console.log(uniqueValueInfos);
-              
-          //     const layerlistDiv = document.createElement("div");
-
-          //     const showAllBtn = document.createElement("calcite-button");
-          //     showAllBtn.setAttribute("scale", "s");
-          //     showAllBtn.setAttribute("width", "full");
-          //     showAllBtn.setAttribute("appearance", "clear");
-          //     showAllBtn.setAttribute("disabled", "true");
-          //     showAllBtn.innerHTML = "show all";
-          //     layerlistDiv.appendChild(showAllBtn);
-
-          //     for (var i=0; i<uniqueValueInfos.length; i++) {
-          //       // const selectedIndicatorContainer = document.createElement("div");
-          //       // selectedIndicatorContainer.className = "esri-interactive-legend--selected-indicator-container";
-
-          //       // const selectedIndicator = document.createElement("div");
-          //       // selectedIndicator.className = "esri-interactive-legend--selected-indicator";
-          //       // selectedIndicatorContainer.appendChild(selectedIndicator);
-
-
-          //       // const legendLayerCell = document.createElement("div");
-          //       // legendLayerCell.className = "esri-legend__layer-cell esri-legend__layer-cell--symbols padding-left-1";
-
-          //       // const legendSymbol = document.createElement("div");
-          //       // legendSymbol.className = "esri-legend__symbol";
-          //       // legendLayerCell.appendChild(legendSymbol);
-
-          //       // const opacityDiv = document.createElement("div");
-          //       // opacityDiv.style.opacity = 0.51;
-          //       // legendSymbol.appendChild(opacityDiv);
-
-          //       // const svg = document.createElement("svg");
-          //       // svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-          //       // svg.setAttribute("width", "22");
-          //       // svg.setAttribute("height", "22");
-          //       // opacityDiv.appendChild(svg);
-
-          //       // const defs = document.createElement("defs");
-          //       // svg.appendChild(defs);
-
-          //       // const g = document.createElement("g");
-          //       // g.setAttribute("transform", "matrix(1,0,0,1,11,11)");
-          //       // svg.appendChild(g);
-
-          //       // const path = document.createElement("path");
-          //       // path.setAttribute("fill", "rgba(" + uniqueValueInfos[i].symbol.color.r + "," + uniqueValueInfos[i].symbol.color.g + "," + uniqueValueInfos[i].symbol.color.b + "," + uniqueValueInfos[i].symbol.color.a + ")");
-          //       // path.setAttribute("fill-rule", "evenodd");
-          //       // path.setAttribute("stroke", "rgba(255, 255, 255, 0.25098039215686274)");
-          //       // path.setAttribute("stroke-width", "2");
-          //       // path.setAttribute("stroke-linecap", "round");
-          //       // path.setAttribute("stroke-linejoin", "round");
-          //       // path.setAttribute("stroke-dasharray", "none");
-          //       // path.setAttribute("stroke-miterlimit", "4");
-          //       // path.setAttribute("d", "M -10,-10 L 10,0 L 10,10 L -10,10 L -10,-10 Z");
-          //       // g.appendChild(path);
-          //       // svg.innerHTML = '<defs></defs>\
-          //       //                <g transform="matrix(1,0,0,1,11,11)"\
-          //       //                  <path fill="rgba(255, 0, 0, 1)" fill-rule="evenodd" stroke="rgba(255, 255, 255, 0.25098039215686274)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="none" stroke-miterlimit="4" d="M -10,-10 L 10,0 L 10,10 L -10,10 L -10,-10 Z"></path>\
-          //       //                </g>';
-
-          //       // const legendLayerCellInfo = document.createElement("div");
-          //       // legendLayerCellInfo.className = "esri-legend__layer-cell esri-legend__layer-cell--info";
-          //       // legendLayerCellInfo.innerHTML = uniqueValueInfos[i].label;
-
-
-          //       // const legendLayerRow = document.createElement("div");
-          //       // legendLayerRow.className = "esri-legend__layer-row leader-quarter shadow-selected";
-          //       // legendLayerRow.appendChild(selectedIndicatorContainer);
-          //       // legendLayerRow.appendChild(legendLayerCell);
-          //       // legendLayerRow.appendChild(legendLayerCellInfo);
-                
-          //       // layerlistDiv.appendChild(legendLayerRow);
-
-                
-
-          //       const legendLayerRow = '\
-          //         <div class="esri-legend__layer-row leader-quarter shadow-selected year-btn-switch" year-id='
-          //           + i + '>\
-          //           <div class="esri-interactive-legend--selected-indicator-container">\
-          //             <div class="esri-interactive-legend--selected-indicator"></div>\
-          //           </div>\
-          //           <div class="esri-legend__layer-cell esri-legend__layer-cell--symbols padding-left-1">\
-          //             <div class="esri-legend__symbol">\
-          //               <div style="opacity: 0.51;">\
-          //                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22">\
-          //                   <defs></defs>\
-          //                   <g transform="matrix(1,0,0,1,11,11)">\
-          //                     <path fill="rgba('
-          //                     + uniqueValueInfos[i].symbol.color.r + ","
-          //                     + uniqueValueInfos[i].symbol.color.g + ","
-          //                     + uniqueValueInfos[i].symbol.color.b + ","
-          //                     + uniqueValueInfos[i].symbol.color.a +
-          //                     ')" fill-rule="evenodd" stroke="rgba(255, 255, 255, 0.25098039215686274)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="none" stroke-miterlimit="4" d="M -10,-10 L 10,0 L 10,10 L -10,10 L -10,-10 Z"></path>\
-          //                   </g>\
-          //                 </svg>\
-          //               </div>\
-          //             </div>\
-          //           </div>\
-          //           <div class="esri-legend__layer-cell esri-legend__layer-cell--info">'
-          //           + uniqueValueInfos[i].label +
-          //           '</div>\
-          //         </div>';
-
-          //       layerlistDiv.insertAdjacentHTML("beforeend", legendLayerRow
-          //       );
-
-          //     }
-
-          //     item.panel = {
-          //       content: layerlistDiv,
-          //       // className: "esri-icon-chart",
-          //       open: item.visible
-          //     };
-
-              
-
-          //   }
-          // });
-          // view.ui.add(layerList1, "bottom-left");
-
-          // console.log(layerList1);
-
-          // document
-          // .querySelector(".year-btn-switch")
-          // .addEventListener("click", function(event) {
-          //   console.log(event);
-          //   // if (view.map === map) {
-          //   //   scaleId = event.target.getAttribute("scale-id");
-          //   //   selectScaleid(scaleId);
-          //   // }
-          // });
-
-        
-        
-
         //////////////////////////////////////////////
         //
         //   メニューボタンの動作
@@ -1031,10 +831,15 @@
         let basemapGallery;
         let searchWidgetWithSources;
         let searchWidget;
-        // let legend;
         let distanceMeasureBtn;
         let areaMeasureBtn;
         let clearMeasureBtn;
+        // ビューの中心座標
+        let viewCenter;
+        // ビューのズームレベル
+        let viewZoom;
+        // ビューの回転角度
+        let viewRotation;
 
         clickMenuBtn(view);
 
@@ -1119,10 +924,6 @@
             query:{title: "Vector Basemaps",owner: "Esri_cy_US"}    
           });
 
-          // if (basemapGallery) {
-          //   basemapGallery.destroy();
-          // }
-          
           basemapGallery = new BasemapGallery({       
             view: view,     
             container: document.createElement("div"),       
@@ -1145,27 +946,15 @@
           //////////////////////////////////////////////
           //   凡例
           /////////////////////////////////////////////
-          // 凡例ウィジェット
-          // legend = new Legend({
-          //   view: view,
-          //   layerInfos: [
-          //     {
-          //       layer: zukakuFeatureLayer,
-          //       title: "Printed year"
-          //     }
-          //   ]
-          // });
 
           // 凡例ボタンクリック時のイベント
           listMenu[menuIndex.legend].elm.onclick = function(){
             if (!listMenu[menuIndex.legend].elm.classList.contains("active-menu")) {
               listMenu[menuIndex.legend].elm.classList.add("active-menu");
-              // view.ui.add(legend, "bottom-right");
               layerlistDiv.style.display = "block";
               removeOtherUI(view, menuIndex.legend);
             } else {
               listMenu[menuIndex.legend].elm.classList.remove("active-menu");
-              // view.ui.remove(legend);
               layerlistDiv.style.display = "none";
             }
             removeActiveMenu([menuIndex.legend,menuIndex.info,menuIndex.metadata]);
@@ -1177,14 +966,12 @@
           // 2D、3Dボタンクリック時のイベント
           listMenu[menuIndex.threed].elm.onclick = function(){
             startLoading();
-            // console.log("start");
             if (!listMenu[menuIndex.threed].elm.classList.contains("active-menu")) {
               listMenu[menuIndex.threed].elm.classList.add("active-menu");
             } else {
               listMenu[menuIndex.threed].elm.classList.remove("active-menu");
             }
             removeActiveMenu([menuIndex.info,menuIndex.metadata]);
-            // refreshMenu(view);
             switchView();
           };
 
@@ -1232,11 +1019,6 @@
             minSuggestCharacters: 0
           }];
           
-          
-
-          
-          
-
           // 検索ボタンクリック時のイベント
           listMenu[menuIndex.search].elm.onclick = function(){
             if (!listMenu[menuIndex.search].elm.classList.contains("active-menu")) {
@@ -1309,7 +1091,6 @@
             view.ui.remove(searchWidget);
           };
           if (index !== menuIndex.legend) {
-            // view.ui.remove(legend);
             layerlistDiv.style.display = "none";
           }
 
@@ -1331,13 +1112,10 @@
           view.ui.remove(basemapGallery);
           view.ui.remove(toolbarMeasureDiv);
           view.ui.remove(measurement);
-          // view.ui.remove(legend);
           
-
           if (view.map === map) {
             view.ui.remove(searchWidgetWithSources);
             layerlistDiv.style.display = "none";
-            // view.ui.remove(layerlistDiv);
           } else if (view.map === mapSecond) {
             view.ui.remove(searchWidget);
           };
@@ -1398,12 +1176,12 @@
 
         function startLoading(){
           loaderBackground.style.display = "block";
-          loaderDiv.setAttribute("is-active", null);
+          loaderDiv.setAttribute("active", null);
         }
 
         function endLoading(){
           loaderBackground.style.display = "none";
-          loaderDiv.removeAttribute("is-active");
+          loaderDiv.removeAttribute("active");
         }
 
 
@@ -1479,17 +1257,47 @@
 
         // 縮尺のリスト
         const listScale = [
-          // {'text': "- 1:150K (522)"}, 
-          // {'text': "1:150K - 1:300K (104)"}, 
-          // {'text': "1:500K (40)"}, 
-          // {'text': "1:750K - 1:1M (9)"}, 
-          // {'text': "1:2.5M (5)"}
-          {'text': "- 1:150,000 (522)"}, 
-          {'text': "1:150,000 - 1:300,000 (104)"}, 
-          {'text': "1:500,000 (40)"}, 
-          {'text': "1:750,000 - 1:1,000,000 (9)"}, 
-          {'text': "1:2,500,000 (5)"}
+          {'text': "- 1:150,000 ()", 'whereClause': 'scale_num IN (1,2,3,4)'}, 
+          {'text': "1:150,000 - 1:300,000 ()", 'whereClause': 'scale_num IN (5,6,7)'}, 
+          {'text': "1:500,000 ()", 'whereClause': 'scale_num IN (8)'}, 
+          {'text': "1:750,000 - 1:1,000,000 ()", 'whereClause': 'scale_num IN (9,10)'}, 
+          {'text': "1:2,500,000 ()", 'whereClause': 'scale_num IN (11)'}
         ];
+        let scaleId = '0';
+
+        // 縮尺ごとのフィーチャ数を取得してボタンの文字列に反映させる
+        const addCount2BtnTxt = (function () {
+          // https://t-salad.com/node-for-asynchronous/
+          const tasks = [];
+          for (let i=0; i<listScale.length; i++) {
+            tasks.push(
+              getCountByScale(listScale[i].whereClause)
+            );
+          };
+          Promise.all(tasks).then(function(results){
+
+            for (let i = 0; i < results.length; i++) {
+              listScale[i].text = listScale[i].text.replace('()', '(' + results[i] + ')');
+            }      
+
+            view.when(function(){
+
+              addScaleButton(scaleId);
+
+            })
+          });
+        })();
+
+        // 縮尺ごとのフィーチャ数を取得するクエリ
+        function getCountByScale(whereClause){
+          return new Promise(function(resolve, reject){
+            const queryScaleParams = zukakuFeatureLayer.createQuery();
+            queryScaleParams.where = defaultWhereClause + " AND " + whereClause;
+            zukakuFeatureLayer.queryFeatureCount(queryScaleParams).then(function(result){
+              resolve(result);
+            });
+          });
+        };
 
         function addScaleButton (index) {
 
@@ -1537,16 +1345,7 @@
 
           view.ui.add(scaleCalciteDropdown, "top-left");
 
-
         };
-
-        let scaleId = '0';
-        
-        view.when(function(){
-
-          addScaleButton(scaleId);
-
-        })
 
         // 縮尺ボタンクリック時の動作
         function selectScaleid (scaleId) {
@@ -1560,19 +1359,19 @@
                 node.setAttribute("active", null);
 
                 if (scaleId === '0') {
-                  scaleWhereclause = " AND scale_num IN (1,2,3,4)";
+                  scaleWhereclause = " AND " + listScale[scaleId].whereClause;
                   
                 } else if (scaleId === '1') {
-                  scaleWhereclause = " AND scale_num IN (5,6,7)" ;
+                  scaleWhereclause = " AND " + listScale[scaleId].whereClause;
                   
                 } else if (scaleId === '2') {
-                  scaleWhereclause = " AND scale_num IN (8)" ;
+                  scaleWhereclause = " AND " + listScale[scaleId].whereClause;
                   
                 } else if (scaleId === '3') {
-                  scaleWhereclause = " AND scale_num IN (9,10)" ;
+                  scaleWhereclause = " AND " + listScale[scaleId].whereClause;
                   
                 } else if (scaleId === '4') {
-                  scaleWhereclause = " AND scale_num IN (11)" ;
+                  scaleWhereclause = " AND " + listScale[scaleId].whereClause;
                   
                 };
                 
@@ -1625,6 +1424,7 @@
             if (view.extent) {
               viewZoom = view.zoom;
               viewCenter = view.center;
+              viewRotation = view.rotation;
             };
           };   
         });
@@ -1716,11 +1516,12 @@
         
         const mapSecond = new Map({
         });
-        // let objArrowBtn = [];
-
+        
+        let itemId;
+        
         function addTileLayer(response){
           
-          const itemId = response.results[0].id;
+          itemId = response.results[0].id;
 
           const tileLayerUrl = response.results[0].url;
           tileLayer = new TileLayer({
@@ -1735,29 +1536,23 @@
           };
 
           esriRequest(tileLayerUrl, options)
-            .then(createTileView)
-            .then(function(){clickAGOLbtn(itemId)});
+            .then(createTileView);
+
+          
         };
 
         //////////////////////////////////////////////
         //   AGOL
         /////////////////////////////////////////////
         // マップビューワー or シーンビューワーで開く
-        function clickAGOLbtn (itemId) {
-          // const lyrUrlBtn = document.createElement("button");
-          // lyrUrlBtn.className = "esri-button phone-hide";
-          // attributeDiv.insertBefore(lyrUrlBtn, attributeDiv.firstChild);
-          // lyrUrlBtn.insertAdjacentHTML('beforeend', "Open in ArcGIS Online");
-          // // console.log(itemId);
-          listMenu[menuIndex.agol].elm.addEventListener("click", function(){
-            // if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "3D") {
-              // window.open('https://www.arcgis.com/home/webmap/viewer.html?layers=' + itemId, '_blank');
-              window.open('https://www.arcgis.com/apps/mapviewer/index.html?layers=' + itemId, '_blank');
-            // } else if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "2D") {
-              // window.open('https://www.arcgis.com/home/webscene/viewer.html?layers=' + itemId, '_blank');
-            // }
-          });
-        }
+        listMenu[menuIndex.agol].elm.addEventListener("click", function(){
+          // if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "3D") {
+            // window.open('https://www.arcgis.com/home/webmap/viewer.html?layers=' + itemId, '_blank');
+            window.open('https://www.arcgis.com/apps/mapviewer/index.html?layers=' + itemId, '_blank');
+          // } else if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "2D") {
+            // window.open('https://www.arcgis.com/home/webscene/viewer.html?layers=' + itemId, '_blank');
+          // }
+        });
 
         // タイルURLのコピー
         // function addCopyTileUrlBtn () {
@@ -1778,19 +1573,17 @@
 
         const sceneView = new SceneView({
           container: null,
-          padding: {top: 56}
+          padding: {top: PADDINGTOP}
         });
 
-        // sceneView.environment.lighting.date = Date.now();
-        // sceneView.environment.lighting.date = new Date("June 23, 2019 12:00:00 JST");
-        // sceneView.environment.lighting.directShadowsEnabled = true;
-       
+        
         sceneView.ui.move(["zoom", "navigation-toggle", "compass"], "top-right");
         
         const homeBtn = new Home({
           view: sceneView
         });
 
+        let is3D = true;
 
         // ビューを作成
         function createTileView (response) {
@@ -1805,8 +1598,17 @@
           listMenu[menuIndex.agol].elm.style.display = "block";
           listMenu[menuIndex.back].elm.style.display = "block";
          
-          let activeViewpoint;
+          if (is3D === true) {
+            listMenu[menuIndex.threed].elm.firstElementChild.removeAttribute("icon");
+            listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "map");
+            listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "2D";
+          } else if (is3D === false) {
+            listMenu[menuIndex.threed].elm.firstElementChild.removeAttribute("icon");
+            listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "360-view");
+            listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "3D";
+          }
 
+          let activeViewpoint;
           if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "360-view") {
             activeViewpoint = view.viewpoint.clone();
           } else if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "map" && (sceneView.viewpoint)) {
@@ -1815,17 +1617,13 @@
           } else if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "map" && (view.viewpoint)) {
             activeViewpoint = view.viewpoint.clone();
             sceneView.viewpoint = activeViewpoint;
-          }
-          
+          };
           
           // すでに追加されている外邦図を削除
           mapSecond.removeAll();
           mapSecond.add(tileLayer);
           tileLayer.opacity = defaultTransparency/100;
 
-          
-          
-          
           // マップ
           if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "360-view") {
 
@@ -1848,6 +1646,7 @@
             });
             sceneView.ui.remove(exaggerationBtnDiv);
             addAllDirectionBtn2View(view);
+            endLoading();
 
             
           // シーン
@@ -1862,10 +1661,6 @@
             sceneView.container = "viewDiv";
             sceneView.ui.empty("bottom-left");
             selectExaggerationId(exaggerationId);       
-
-            
-
-            
 
             tileLayer.when(function() {
               sceneView.goTo({
@@ -1924,6 +1719,8 @@
 
           if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "2D") {
 
+            is3D = false;
+
             listMenu[menuIndex.threed].elm.firstElementChild.removeAttribute("icon");
             listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "360-view");
             listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "3D";
@@ -1944,13 +1741,11 @@
             view.ui.empty("top-left");
             view.ui.empty("bottom-left");
 
-            // addOpacitySlider(opacityMapDiv, opacityMapSlider, view);
             addOpacitySlider(view);
 
             tileLayer.when(function() {
             
               view.goTo(activeViewpoint);
-              // view.goTo(tileLayer.fullExtent);
               const vp = new Viewpoint({
                 targetGeometry: tileLayer.fullExtent
               });
@@ -1963,6 +1758,8 @@
             
           } else {
 
+            is3D = true;
+
             listMenu[menuIndex.threed].elm.firstElementChild.removeAttribute("icon");
             listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "map");
             listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "2D";
@@ -1971,14 +1768,15 @@
             sceneView.viewpoint = activeViewpoint;
 
             view.container = null;
+
+
+
+
             sceneView.container = "viewDiv";
             sceneView.ui.empty("bottom-left");
             selectExaggerationId(exaggerationId);
 
-            
-
             sceneView.when(function(){
-              // console.log(viewTilt);
               sceneView.goTo({
                 target: activeViewpoint,
                 tilt: viewTilt,
@@ -2000,6 +1798,8 @@
                   viewHeading = newValue;
                 });
               })
+              // 透過度スライダーの追加
+              .then(function(){addOpacitySlider(sceneView)})
               // 高さ倍率ボタンの追加
               .then(function(){
                 addExaggerationButton(sceneView, exaggerationId);
@@ -2057,19 +1857,8 @@
             
           }
           view.ui.add(exaggerationBtnDiv, "top-right");
-          // ex1xBtnDiv.style.display = "block";
-          // ex3xBtnDiv.style.display = "block";
-          // ex5xBtnDiv.style.display = "block";
           
         };
-
-        // 高さ倍率ボタンを削除
-        // function removeExaggerationButton () {
-          // ex1xBtnDiv.style.display = "none";
-          // ex3xBtnDiv.style.display = "none";
-          // ex5xBtnDiv.style.display = "none";
-        //   sceneView.ui.remove(exaggerationBtnDiv);
-        // }
 
         // 高さ倍率ボタンクリック時のイベント
         function clickExaggerationBtn (view) {
@@ -2227,10 +2016,10 @@
 
         // 透過スライダーを追加
         // const opacityMapDiv = document.getElementById("opacityMapDiv");
-        const opacitySceneDiv = document.getElementById("opacitySceneDiv");
+        const opacityDiv = document.getElementById("opacityDiv");
 
-        const opacitySceneSlider = new Slider({
-          container: "opacitySceneSlider",
+        const opacitySlider = new Slider({
+          container: "opacitySlider",
           min: 0,
           max: 100,
           steps: 0.1,
@@ -2244,10 +2033,10 @@
 
         function addOpacitySlider (view) {
           
-          opacitySceneDiv.style.display = "block";
-          view.ui.add(opacitySceneDiv, "top-left");
+          opacityDiv.style.display = "block";
+          view.ui.add(opacityDiv, "top-left");
 
-          opacitySceneSlider.on(
+          opacitySlider.on(
             ["thumb-change", "thumb-drag"],
             transparencyChanged
           );
@@ -2380,11 +2169,9 @@
           view = new MapView({
             container: "viewDiv",
             map: map,
-            // center: [118.4985351561923, -2.0326589312043144],
-            // zoom: 5,
             extent: startExtent,
             padding: {
-              top: 56
+              top: PADDINGTOP
             }
           });
 
@@ -2392,9 +2179,6 @@
             view: view
           });
           
-          // view.map = map;
-          view.heading = 0;
-
           // 背景図をセットする
           map.basemap = mapSecond.basemap;
 
@@ -2412,7 +2196,7 @@
           listMenu[menuIndex.back].elm.style.display = "none";
 
           // 透過スライダーを非表示にする
-          opacitySceneDiv.style.display = "none";
+          opacityDiv.style.display = "none";
 
           // 高さ倍率ボタンを非表示にする
           sceneView.ui.remove(exaggerationBtnDiv);
@@ -2445,9 +2229,7 @@
           clickMenuBtn(view);
 
           view.on("layerview-create", function(event) {
-            // The event contains the layer and its layer view that has just been
-            // created. Here we check for the creation of a layer view for a layer with
-            // a specific id, and log the layer view
+            
             if (event.layer.title === "図郭") {
               zukakuLayerView = event.layerView;
               
@@ -2462,7 +2244,8 @@
           .then(function(){
             view.goTo({
               target: viewCenter,
-              zoom: viewZoom
+              zoom: viewZoom,
+              rotation: viewRotation
             });
             endLoading();
           });
@@ -2475,10 +2258,6 @@
 
   <body>
 
-    <!-- <div id="loaderBackground">
-      <calcite-loader id="loaderDiv" type="indeterminate" is-active text="loading..."></calcite-loader>
-    </div> -->
-    
     <div class="wrapper">
 
       <div class="js-modal modal-overlay" data-modal="foo" id="firstModal">
@@ -2488,7 +2267,7 @@
           </a>
           <h3 class='trailer-half'>Gaihozu Viewer : Indonesian-territory version (GV-I)</h3>
           <p>Gaihozu meaning “maps of outer lands” is the maps of areas outside the Japanese Islands made by former Japanese Imperial Army before the end of the World War II. Despite the fact that these maps were prepared for military purpose, they contain the valuable records of detailed landscapes including landuse and landcover in the past. This site was designed with ArcGIS Online technology to interactively view about 680 geo-referenced maps in Indonesian territory from the collection of Gaihozu at Tohoku University.</p>
-          <p>Clicking a shaded box on the index map enable you to show the corresponding geo-referenced map with its metadata, such as map scale and printed year. Clicking a button of ratio like 1:500K switched the index map of the corresponding map scale (e.g. 1:500K means 1 / 500,000 map scale).</p>
+          <p>Clicking a shaded box on the index map enable you to show the corresponding geo-referenced map with its metadata, such as map scale and printed year. Clicking a button of ratio like 1:500,000 switched the index map of the corresponding map scale.</p>
           <p>If you need further information on Gaihozu, visit the <a href="http://chiri.es.tohoku.ac.jp/~gaihozu/index.php?lang=en-US" target="_blank">Gaihozu Digital Archive </a> maintained by the Tohoku University Library and the Institute of Geography, Graduate School of Science, Tohoku University.</p>
           <p>Copyright (C) 2020-  Human Geography Research Group at Tohoku University (Environmental Geography Lab at the Graduate School of Environmental Studies and the Institute of Geography, the Graduate School of Science, Tohoku University)</p>
           <p>Project team members: Nakaya, T., Nagata, S., Y. Isoda and R. Sekine (Tohoku University) + Y. Hoshida (<a href="http://www.openconcierge.org/" target="_blank">OpenConcierge</a>)</p>
@@ -2510,7 +2289,7 @@
           </a>
           <h3 class='trailer-half'>Gaihozu Viewer : Indonesian-territory version (GV-I)</h3>
           <p>Gaihozu meaning “maps of outer lands” is the maps of areas outside the Japanese Islands made by former Japanese Imperial Army before the end of the World War II. Despite the fact that these maps were prepared for military purpose, they contain the valuable records of detailed landscapes including landuse and landcover in the past. This site was designed with ArcGIS Online technology to interactively view about 680 geo-referenced maps in Indonesian territory from the collection of Gaihozu at Tohoku University.</p>
-          <p>Clicking a shaded box on the index map enable you to show the corresponding geo-referenced map with its metadata, such as map scale and printed year. Clicking a button of ratio like 1:500K switched the index map of the corresponding map scale (e.g. 1:500K means 1 / 500,000 map scale).</p>
+          <p>Clicking a shaded box on the index map enable you to show the corresponding geo-referenced map with its metadata, such as map scale and printed year. Clicking a button of ratio like 1:500,000 switched the index map of the corresponding map scale.</p>
           <p>If you need further information on Gaihozu, visit the <a href="http://chiri.es.tohoku.ac.jp/~gaihozu/index.php?lang=en-US" target="_blank">Gaihozu Digital Archive </a> maintained by the Tohoku University Library and the Institute of Geography, Graduate School of Science, Tohoku University.</p>
           <p>Special thanks to Dr. Fatwa Ramdani (Brawijaya University, Indonesia) for his valuable comments to the earlier version of this project site and <a href="https://www.wingfield.gr.jp/" target="_blank">Mr. Kohsuke Hada</a> for his help on the identification of old map datum. This project was financially supported by JSPS KAKENHI 16H01965 (PI: Prof Keiji Yano).</p>
           <p>Copyright (C) 2020-  Human Geography Research Group at Tohoku University (Environmental Geography Lab at the Graduate School of Environmental Studies and the Institute of Geography, the Graduate School of Science, Tohoku University)</p>
@@ -2528,7 +2307,7 @@
       <div id="titleDiv" class="esri-widget">
 
         <div id="loaderBackground">
-          <calcite-loader id="loaderDiv" type="indeterminate" is-active text="loading..."></calcite-loader>
+          <calcite-loader id="loaderDiv" type="indeterminate" active text="loading..." scale="l"></calcite-loader>
         </div>
         
         <a class="top-nav-title margin-left-1">
@@ -2539,8 +2318,7 @@
           
         </a>
         <div id="informationDiv">
-          <!-- <calcite-icon id="information" icon="information" scale="l" class="padding-right-half"></calcite-icon> -->
-          <calcite-button icon="information" id="information" color="dark" scale="l"></calcite-button>
+          <calcite-button icon-start="information" id="information" color="dark" scale="l"></calcite-button>
         </div>
         <div class="text-right">
           <img src="./img/Toh_E_S_N_G.gif" height="56px" width="56px">
@@ -2550,13 +2328,9 @@
       
       <div id="viewDiv"></div>
 
-      <!-- <div id="opacityMapDiv" class="esri-widget padding-leader-half padding-trailer-half padding-left-half">
+      <div id="opacityDiv" class="esri-widget padding-leader-half padding-trailer-half padding-left-half">
         <div class="padding-trailer-half">Opacity</div>
-        <div id="opacityMapSlider" class="slider"></div>
-      </div> -->
-      <div id="opacitySceneDiv" class="esri-widget padding-leader-half padding-trailer-half padding-left-half">
-        <div class="padding-trailer-half">Opacity</div>
-        <div id="opacitySceneSlider" class="slider"></div>
+        <div id="opacitySlider" class="slider"></div>
       </div>
 
       <div class="exaggeration-btn"> 
@@ -2570,34 +2344,6 @@
           <button class="esri-button exaggeration-btn-switch esri-component phone-hide" exaggeration-id="2">5x</button>
         </div>
       </div>
-
-      <!-- <calcite-dropdown id="dropdownScale">
-        <calcite-button slot="dropdown-trigger">Select Scale</calcite-button>
-        <calcite-dropdown-group>
-          <calcite-dropdown-item scale-id="0" active>- 1:150K (522)</calcite-dropdown-item>
-          <calcite-dropdown-item scale-id="1">1:150K - 1:300K (104)</calcite-dropdown-item>
-          <calcite-dropdown-item scale-id="2">1:500K (40)</calcite-dropdown-item>
-        </calcite-dropdown-group>
-      </calcite-dropdown> -->
-      
-
-      <!-- <div id="scaleBtnDiv" class="esri-widget">
-        <button class="esri-component esri-button scale-btn-switch trailer-half leader-half" scale-id="0" disabled="">- 1:150K (522)</button>
-        <button class="esri-component esri-button scale-btn-switch esri-component" scale-id="1">1:150K - 1:300K (104)</button>
-        <button class="esri-component esri-button scale-btn-switch esri-component" scale-id="2">1:500K (40)</button>
-        <button class="esri-component esri-button scale-btn-switch esri-component" scale-id="3">1:750K - 1:1M (9)</button>
-        <button class="esri-component esri-button scale-btn-switch esri-component" scale-id="4">1:2.5M (5)</button>
-      </div> -->
-
-      <!-- <div id="opacitySceneDiv" class="esri-widget padding-leader-half padding-trailer-half padding-left-half padding-right-half">
-        <div class="padding-trailer-half">Opacity</div>
-        <div id="opacitySceneSlider" class="slider"></div>
-      </div> -->
-
-      <!-- <div class="loader is-active" id="loaderDiv">
-        <div class="loader-bars"></div>
-      </div> -->
-      
 
       <div id="menuDiv" class="text-center"></div>
 
