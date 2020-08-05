@@ -1726,6 +1726,7 @@
             listMenu[menuIndex.threed].elm.firstElementChild.removeAttribute("icon");
             listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "360-view");
             listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "3D";
+            refreshMenu(sceneView);
 
             const activeViewpoint = sceneView.viewpoint.clone();
 
@@ -1765,7 +1766,8 @@
             listMenu[menuIndex.threed].elm.firstElementChild.removeAttribute("icon");
             listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "map");
             listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "2D";
-
+            refreshMenu(view);
+            
             const activeViewpoint = view.viewpoint.clone();
             sceneView.viewpoint = activeViewpoint;
 
