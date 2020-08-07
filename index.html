@@ -30,7 +30,6 @@
         bottom: 0px;
         left: 75px;
         right: 0px;
-        height: calc(100% - 56px);
         width: 180px;
         position: absolute;
         display: none;
@@ -1546,12 +1545,12 @@
         /////////////////////////////////////////////
         // マップビューワー or シーンビューワーで開く
         listMenu[menuIndex.agol].elm.addEventListener("click", function(){
-          // if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "3D") {
+          if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "3D") {
             // window.open('https://www.arcgis.com/home/webmap/viewer.html?layers=' + itemId, '_blank');
             window.open('https://www.arcgis.com/apps/mapviewer/index.html?layers=' + itemId, '_blank');
-          // } else if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "2D") {
-            // window.open('https://www.arcgis.com/home/webscene/viewer.html?layers=' + itemId, '_blank');
-          // }
+          } else if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "2D") {
+            window.open('https://www.arcgis.com/home/webscene/viewer.html?layers=' + itemId, '_blank');
+          }
         });
 
         // タイルURLのコピー
@@ -1767,7 +1766,7 @@
             listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "map");
             listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "2D";
             refreshMenu(view);
-            
+
             const activeViewpoint = view.viewpoint.clone();
             sceneView.viewpoint = activeViewpoint;
 
@@ -1787,7 +1786,7 @@
                 heading: viewHeading
               })
               .then(function(){
-                
+                console.log(sceneView);
                 sceneView.ui.remove(homeBtn);
                 sceneView.ui.add(homeBtn, "top-right");
                 const vp = new Viewpoint({
@@ -1997,6 +1996,8 @@
 
         // 方位ボタンをクリックして隣接外邦図を表示
         function showNextImage (event) {
+
+          startLoading();
 
           const id = event.target.dataset.id;
           
