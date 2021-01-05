@@ -232,26 +232,39 @@
     </style>
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.17/esri/themes/light/main.css"
+      href="https://js.arcgis.com/4.18/esri/themes/light/main.css"
     />
     <link rel="stylesheet" href="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/css/calcite-web.min.css">
-    <link
+    <!-- <link
       rel="stylesheet"
       type="text/css"
       href="https://unpkg.com/@esri/calcite-components@1.0.0-beta.36/dist/calcite/calcite.css"
+    /> -->
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://unpkg.com/@esri/calcite-components/dist/calcite/calcite.css"
     />
     <!-- <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/js/calcite-web.min.js"></script> -->
     <!-- interactive patterns need to be initialized -->
     <!-- <script>
        calcite.init()
     </script> -->
-    <script
+    <!-- <script
       type="module"
       src="https://unpkg.com/@esri/calcite-components@1.0.0-beta.36/dist/calcite/calcite.esm.js"
-    ></script>
+    ></script> -->
     <script
+      type="module"
+      src="https://unpkg.com/@esri/calcite-components/dist/calcite/calcite.esm.js"
+    ></script>
+    <!-- <script
       nomodule=""
       src="https://unpkg.com/@esri/calcite-components@1.0.0-beta.36/dist/calcite/calcite.js"
+    ></script> -->
+    <script
+      nomodule=""
+      src="https://unpkg.com/@esri/calcite-components/dist/calcite/calcite.js"
     ></script>
     <script>
       // set locale before JSAPI is loaded
@@ -260,7 +273,7 @@
         parseOnLoad: true
       };
     </script>
-    <script src="https://js.arcgis.com/4.17/"></script>
+    <script src="https://js.arcgis.com/4.18/"></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script> -->
     <script>
       require([
@@ -325,7 +338,7 @@
           {'text': 'basemap', 'icon': "basemap", 'phone-hide': false},
           {'text': 'search', 'icon': "search", 'phone-hide': true},
           {'text': 'legend', 'icon': "legend", 'phone-hide': false},
-          // {'text': 'open in ArcGIS Online', 'icon': "arcgis-online", 'phone-hide': true},
+          {'text': 'open in ArcGIS Online', 'icon': "arcgis-online", 'phone-hide': true},
           {'text': 'metadata', 'icon': "access-string-results", 'phone-hide': false},
           {'text': '2D', 'icon': "map", 'phone-hide': false},
           {'text': 'back to index map', 'icon': "x-circle", 'phone-hide': false}
@@ -336,10 +349,10 @@
           basemap: 1,
           search: 2,
           legend: 3,
-          metadata: 4,
-          threed: 5,
-          // agol: 4,
-          back: 6
+          metadata: 5,
+          threed: 6,
+          agol: 4,
+          back: 7
         };
 
         // メニューボタンを追加
@@ -371,7 +384,7 @@
         // 検索画面では使わないボタンは非表示
         listMenu[menuIndex.metadata].elm.style.display = "none";
         listMenu[menuIndex.threed].elm.style.display = "none";
-        // listMenu[menuIndex.agol].elm.style.display = "none";
+        listMenu[menuIndex.agol].elm.style.display = "none";
         listMenu[menuIndex.back].elm.style.display = "none";
 
         //////////////////////////////////////////////
@@ -1570,7 +1583,7 @@
             responseType: "json"
           };
 
-          addOpenInAGOLBtn();
+          // addOpenInAGOLBtn();
           addCopyTileUrlBtn();
           
 
@@ -1584,14 +1597,14 @@
         //   AGOL
         /////////////////////////////////////////////
         // マップビューワー or シーンビューワーで開く
-        // listMenu[menuIndex.agol].elm.addEventListener("click", function(){
-        //   if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "3D") {
-        //     // window.open('https://www.arcgis.com/home/webmap/viewer.html?layers=' + itemId, '_blank');
-        //     window.open('https://www.arcgis.com/apps/mapviewer/index.html?layers=' + itemId, '_blank');
-        //   } else if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "2D") {
-        //     window.open('https://www.arcgis.com/home/webscene/viewer.html?layers=' + itemId, '_blank');
-        //   }
-        // });
+        listMenu[menuIndex.agol].elm.addEventListener("click", function(){
+          if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "3D") {
+            // window.open('https://www.arcgis.com/home/webmap/viewer.html?layers=' + itemId, '_blank');
+            window.open('https://www.arcgis.com/apps/mapviewer/index.html?layers=' + itemId, '_blank');
+          } else if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "2D") {
+            window.open('https://www.arcgis.com/home/webscene/viewer.html?layers=' + itemId, '_blank');
+          }
+        });
 
 
 
@@ -1612,22 +1625,22 @@
         };
 
         // AGOLで開く
-        function addOpenInAGOLBtn () {
-          const agolBtn = document.createElement("button");
-          agolBtn.className = "esri-button phone-hide leader-half";
-          attributeDiv.insertBefore(agolBtn, attributeDiv.firstChild);
-          agolBtn.insertAdjacentHTML('beforeend', "Open in ArcGIS Online");
-          agolBtn.addEventListener("click", openInAGOL);
-        }
+        // function addOpenInAGOLBtn () {
+        //   const agolBtn = document.createElement("button");
+        //   agolBtn.className = "esri-button phone-hide leader-half";
+        //   attributeDiv.insertBefore(agolBtn, attributeDiv.firstChild);
+        //   agolBtn.insertAdjacentHTML('beforeend', "Open in ArcGIS Online");
+        //   agolBtn.addEventListener("click", openInAGOL);
+        // }
 
-        function openInAGOL () {
-          if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "3D") {
-            // window.open('https://www.arcgis.com/home/webmap/viewer.html?layers=' + itemId, '_blank');
-            window.open('https://www.arcgis.com/apps/mapviewer/index.html?layers=' + itemId, '_blank');
-          } else if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "2D") {
-            window.open('https://www.arcgis.com/home/webscene/viewer.html?layers=' + itemId, '_blank');
-          }
-        };
+        // function openInAGOL () {
+        //   if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "3D") {
+        //     // window.open('https://www.arcgis.com/home/webmap/viewer.html?layers=' + itemId, '_blank');
+        //     window.open('https://www.arcgis.com/apps/mapviewer/index.html?layers=' + itemId, '_blank');
+        //   } else if (listMenu[menuIndex.threed].elm.lastElementChild.innerHTML === "2D") {
+        //     window.open('https://www.arcgis.com/home/webscene/viewer.html?layers=' + itemId, '_blank');
+        //   }
+        // };
 
 
         const sceneView = new SceneView({
@@ -1664,7 +1677,7 @@
           listMenu[menuIndex.legend].elm.style.display = "none";
           listMenu[menuIndex.metadata].elm.style.display = "block";
           listMenu[menuIndex.threed].elm.style.display = "block";
-          // listMenu[menuIndex.agol].elm.style.display = "block";
+          listMenu[menuIndex.agol].elm.style.display = "block";
           listMenu[menuIndex.back].elm.style.display = "block";
 
           
@@ -2276,7 +2289,7 @@
           listMenu[menuIndex.legend].elm.style.display = "block";
           listMenu[menuIndex.metadata].elm.style.display = "none";
           listMenu[menuIndex.threed].elm.style.display = "none";
-          // listMenu[menuIndex.agol].elm.style.display = "none";
+          listMenu[menuIndex.agol].elm.style.display = "none";
           listMenu[menuIndex.back].elm.style.display = "none";
 
           // 透過スライダーを非表示にする
