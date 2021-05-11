@@ -28,7 +28,6 @@
         overflow: hidden;
       }
       #viewDiv {
-        /* position: absolute; */
         left: 0;
         right: 0;
         top: 0;
@@ -46,16 +45,11 @@
       }
       #imgTohoku {
         position: absolute;
-        /* width: 60px;
-        height: 60px; */
         right: 0; 
       }
       #headerTitle{
         padding-left: 30px;
       }
-      /* #actionGroup3D{
-        display: none;
-      } */
       #legendDiv{
         padding: 10px;
       }
@@ -68,14 +62,22 @@
         left: 50%;
         transform: translate(-50%, -50%);
         text-align: center;
-        z-index: 9998;
+        z-index: 9997;
       }
-      /* .esri-search {
-        width: none !important;
-      } */
+      #loaderBackground {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9998;
+        background: rgba(0,0,0,.5);
+      }
+      #firstModal{
+        z-index: 9999;
+      }
     </style>
-    <link rel="stylesheet" href="https://js.arcgis.com/4.19/esri/themes/light/main.css"/>
-    
+    <link rel="stylesheet" href="https://js.arcgis.com/4.19/esri/themes/dark/main.css"/>
     <link rel="stylesheet" type="text/css" href="https://jsdev.arcgis.com/calcite-components/1.0.0-beta.54/calcite.css" />
     <script type="module" src="https://jsdev.arcgis.com/calcite-components/1.0.0-beta.54/calcite.esm.js"></script>
     <script nomodule="" src="https://jsdev.arcgis.com/calcite-components/1.0.0-beta.54/calcite.js"></script>
@@ -96,11 +98,11 @@
         "esri/widgets/Search",
         "esri/portal/Portal",
         "esri/portal/PortalItem",
-        "esri/core/watchUtils",
         "esri/request",
         "esri/layers/TileLayer",
         "esri/widgets/Slider",
-        "esri/widgets/Measurement",
+        "esri/widgets/AreaMeasurement3D",
+        "esri/widgets/DirectLineMeasurement3D",
         "esri/widgets/DistanceMeasurement2D",
         "esri/widgets/AreaMeasurement2D",
         "esri/widgets/BasemapGallery",
@@ -114,7 +116,6 @@
         "esri/widgets/Compass",
         "esri/Viewpoint",
         "esri/widgets/LayerList",
-        // "esri/widgets/Zoom",
         "dojo/domReady!"
       ], function(
         MapView, 
@@ -123,11 +124,11 @@
         Search,
         Portal,
         PortalItem,
-        watchUtils,
         esriRequest,
         TileLayer,
         Slider,
-        Measurement,
+        AreaMeasurement3D,
+        DirectLineMeasurement3D,
         DistanceMeasurement2D,
         AreaMeasurement2D,
         BasemapGallery,
@@ -140,7 +141,6 @@
         Home,
         Compass,
         Viewpoint,
-        // Zoom,
         LayerList
       ) {
 
@@ -181,9 +181,6 @@
         });
         map.add(zukakuFeatureLayer);
 
-        // const hoge = document.getElementById("hogehoge");
-        // view.ui.add(hoge, "top-left");
-
         // フィーチャレイヤービュー
         let zukakuLayerView　;
         const defaultWhereClause = "georeference = 1";
@@ -197,7 +194,13 @@
         let lenValidYear;
         let startExtent;
         let compassWidget;
-        
+        // ビューの中心座標
+        let viewCenter;
+        // ビューのズームレベル
+        let viewZoom;
+        // ビューの回転角度
+        let viewRotation;
+
         
         view.whenLayerView(zukakuFeatureLayer).then(function(layerView) {
           zukakuLayerView = layerView;
@@ -206,7 +209,6 @@
           };
           
           goToFeatureLayerViewExtent();
-          
           
         });
 
@@ -250,6 +252,8 @@
           deleteCalciteFlow("metadataCalciteFlow");
           deleteCalciteFlow("agoCalciteFlow");
           deleteCalciteFlow("copyTileCalciteFlow");
+          deleteCalciteFlow("noticeCalciteFlow");
+          deleteCalciteFlow("noticeBackCalciteFlow");
         };
 
         //////////////////////////////////////////////
@@ -261,7 +265,6 @@
         const backAction = document.getElementById("backAction");
         const imageSettingsAction = document.getElementById("imageSettingsAction");
         const metadataAction = document.getElementById("metadataAction");
-        // const mapSceneAction = document.getElementById("mapSceneAction");
         const agoAction = document.getElementById("agoAction");
         const basemapAction = document.getElementById("basemapAction");
         const FilterAction = document.getElementById("filterAction");
@@ -272,7 +275,6 @@
           backAction.style.display = "none";
           imageSettingsAction.style.display = "none";
           metadataAction.style.display = "none";
-          // mapSceneAction.style.display = "none";
           agoAction.style.display = "none";
           basemapAction.style.display = "block";
           FilterAction.style.display = "block";
@@ -285,7 +287,6 @@
           backAction.style.display = "block";
           imageSettingsAction.style.display = "block";
           metadataAction.style.display = "block";
-          // mapSceneAction.style.display = "block";
           agoAction.style.display = "block";
           basemapAction.style.display = "block";
           FilterAction.style.display = "none";
@@ -298,20 +299,22 @@
           backAction.removeAttribute("active");
           imageSettingsAction.removeAttribute("active");
           metadataAction.removeAttribute("active");
-          // mapSceneAction.removeAttribute("active");
           agoAction.removeAttribute("active");
           basemapAction.removeAttribute("active");
           FilterAction.removeAttribute("active");
           measurementAction.removeAttribute("active");
           searchAction.removeAttribute("active");
           // 計測ウィジェットを初期化
+          resetMeasureWidget();
+        };
+        
+        function resetMeasureWidget() {
+          // 計測ウィジェットを初期化
           if (activeWidget) {
-            // measurementDiv.innerHTML='';
             activeWidget.destroy();
             activeWidget = null;
           }
         };
-        
 
         //////////////////////////////////////////////
         //   Filter（縮尺）
@@ -353,26 +356,6 @@
         };
         addCount2BtnTxt();
         
-        // const addCount2BtnTxt = (function () {
-        //   // https://t-salad.com/node-for-asynchronous/
-        //   const tasks = [];
-        //   for (let i=0; i<listScale.length; i++) {
-        //     tasks.push(
-        //       getCountByScale(listScale[i].whereClause)
-        //     );
-        //   };
-        //   Promise.all(tasks).then(function(results){
-            
-        //     for (let i = 0; i < results.length; i++) {
-        //       listScale[i].text = listScale[i].text.replace('()', '(' + results[i] + ')');
-        //     }      
-            
-        //     view.whenLayerView(zukakuFeatureLayer).then(function(layerView) {
-        //       addScaleButton(scaleId);
-        //     });
-
-        //   });
-        // })();
 
         FilterAction.addEventListener("click", function(event) {
           
@@ -404,6 +387,25 @@
 
           // 既存の内容を削除
           deleteAllExistedCalciteFlow();
+
+          // Notice
+          const noticeCalciteFlow = document.createElement("calcite-flow");
+          noticeCalciteFlow.setAttribute('id', 'noticeCalciteFlow');
+          primaryPanel.appendChild(noticeCalciteFlow);
+
+          const noticeCalcitePanel = document.createElement("calcite-panel");
+          noticeCalciteFlow.appendChild(noticeCalcitePanel);
+
+          const caliciteNotice = document.createElement("calcite-notice");
+          caliciteNotice.setAttribute("active", "");
+          caliciteNotice.setAttribute("color", "red");
+          caliciteNotice.setAttribute("icon", "lightbulb");
+          noticeCalcitePanel.appendChild(caliciteNotice);
+
+          const titleDiv = document.createElement("div");
+          titleDiv.setAttribute("slot", "notice-title");
+          titleDiv.innerHTML = "Click an index to see Gaihozu map image.";
+          caliciteNotice.appendChild(titleDiv);
           
           // 縮尺
           const scaleCalciteFlow = document.createElement("calcite-flow");
@@ -435,19 +437,20 @@
 
           queryByAllYears();
 
-          scaleRadioGroup.addEventListener('calciteRadioGroupChange', selectScaleid);
-
+          scaleRadioGroup.addEventListener('calciteRadioGroupChange', function(event) {
+             selectScaleid(event, true);
+          });  
         };
 
         // 縮尺ボタンクリック時の動作
-        function selectScaleid (event) {
-
+        function selectScaleid (event, isUpdateLayerList) {
+          
           if (!event) {
             return;
           } else {
             scaleId = event.detail;
           }
-          
+
           if (scaleId === '0') {
             scaleWhereclause = " AND " + listScale[scaleId].whereClause;
             
@@ -476,7 +479,10 @@
             lstYear.push(defaultYear[i]);
           };
           // レイヤーリストウィジェットを更新
-          queryByAllYears();
+          if (isUpdateLayerList == true) {
+            queryByAllYears();  
+          };
+          
 
         }
        
@@ -589,8 +595,7 @@
             button.setAttribute("scale", "s");
             button.setAttribute("appearance", "outline");
             button.setAttribute("year-id", uniqueValueInfos[i].label);
-            // console.log(uniqueValueInfos[i]);
-
+            
             const buttonStyle = document.createElement("div");
             buttonStyle.style.opacity = 0.51;
             buttonStyle.style.marginRight = "10px";
@@ -628,11 +633,6 @@
           primaryPanel.appendChild(legendCalciteFlow);
 
           showPrintedYearOnLegend();
-
-          // 縮尺ボタン押下時、凡例ボタンがアクティブな場合はレイヤーリストウィジェットを開いたままにしておく
-          // if (listMenu[menuIndex.legend].elm.classList.contains("active-menu")) {
-          //   layerlistDiv.style.display = "block";
-          // }
 
           // 各出版年ボタンクリック時の動作
           document
@@ -675,8 +675,7 @@
         function showAllYear(){
 
           showAllBtn.setAttribute("disabled", null);
-          // showAllBtn.setAttribute("appearance", "clear");
-
+          
           // lstYearをデフォルト値に戻す
           lstYear = [];
           for (let i=0; i<orgLstYear.length; i++) {
@@ -703,7 +702,6 @@
 
               if (yearIndex === yearId && !node.hasAttribute('disabled')) {
                 if (node.getAttribute("color") === "blue") {
-                  // node.firstElementChild.firstElementChild.style.setProperty('display', 'none', 'important');
                   node.setAttribute("color", "neutral");
                   // lstYearから該当の出版年を削除
                   const index = lstYear.indexOf(yearId);
@@ -712,7 +710,6 @@
                 } else if (node.getAttribute("color") === "neutral") {
                 
                   node.setAttribute("color", "blue");
-                  // node.firstElementChild.firstElementChild.style.setProperty('display', 'flex', 'important');
                   // lstYearに該当の出版年を追加
                   lstYear.push(yearId);
                 } 
@@ -736,10 +733,8 @@
         function setStatusShowAllBtn () {
           if (lenValidYear !== lstYear.length) {
             showAllBtn.removeAttribute("disabled");
-            // showAllBtn.setAttribute("appearance", "solid");
           } else if (lenValidYear === lstYear.length) {
             showAllBtn.setAttribute("disabled", "true");
-            // showAllBtn.setAttribute("appearance", "clear");
           };
         }
 
@@ -747,7 +742,7 @@
         function showPrintedYearOnLegend () {
           
           const nodes = document.querySelectorAll(".legendYearButton");
-          // console.log(lstFeatureCntByYear);
+          
           for (var idx = 0; idx < nodes.length; idx++) {
           
             const node = nodes[idx];
@@ -774,6 +769,8 @@
               }
             }
           };
+
+          endLoading();
         };
 
         
@@ -810,11 +807,19 @@
             query:{title: "Vector Basemaps",owner: "Esri_cy_US"}    
           });
 
-          basemapGallery = new BasemapGallery({       
-            view: view,     
-            container: basemapDiv,       
-            source: portalSource
-          }); 
+          if (view.container) {
+            basemapGallery = new BasemapGallery({       
+              view: view,     
+              container: basemapDiv,       
+              source: portalSource
+            });
+          } else if (sceneView.container) {
+            basemapGallery = new BasemapGallery({       
+              view: sceneView,     
+              container: basemapDiv,       
+              source: portalSource
+            });
+          }
 
           primaryPanel.appendChild(basemapCalciteFlow);
 
@@ -861,22 +866,30 @@
           measureArea.innerHTML = "Area";
           measurementRadioGroup.appendChild(measureArea);
 
-          // const measurementDiv = document.createElement("div");
-          // measurementDiv.setAttribute("id", "measurementDiv");
-          // measurementCalcitePanel.appendChild(measurementDiv);
-
           primaryPanel.appendChild(measurementCalciteFlow);
 
-          setActiveWidget("distance");
+          if (view.container) {
+            setActiveWidget("distance2d");
+          } else if (sceneView.container) {
+            setActiveWidget("distance3d");
+          }
 
           measureArea.addEventListener("click", function(event) {
-            setActiveWidget(null);
-            setActiveWidget("area");
+            setActiveWidget(null);  
+            if (view.container) {
+              setActiveWidget("area2d");
+            } else if (sceneView.container) {
+              setActiveWidget("area3d");
+            }
           });
 
           measureDistance.addEventListener("click", function(event) {
             setActiveWidget(null);
-            setActiveWidget("distance");
+            if (view.container) {
+              setActiveWidget("distance2d");
+            } else if (sceneView.container) {
+              setActiveWidget("distance3d");
+            }
           });
 
         });
@@ -890,7 +903,7 @@
           measurementCalcitePanel.appendChild(measurementDiv);
 
           switch (type) {
-            case "distance":
+            case "distance2d":
               activeWidget = new DistanceMeasurement2D({
                 view: view,
                 container: measurementDiv
@@ -900,7 +913,7 @@
               activeWidget.viewModel.start();
 
               break;
-            case "area":
+            case "area2d":
               activeWidget = new AreaMeasurement2D({
                 view: view,
                 container: measurementDiv
@@ -909,12 +922,29 @@
               // skip the initial 'new measurement' button
               activeWidget.viewModel.start();
 
-              // view.ui.add(activeWidget, "top-right");
-              // setActiveButton(document.getElementById("areaButton"));
+              break;
+            case "distance3d":
+              activeWidget = new DirectLineMeasurement3D({
+                view: sceneView,
+                container: measurementDiv
+              });
+
+              // skip the initial 'new measurement' button
+              activeWidget.viewModel.start();
+
+              break;
+            case "area3d":
+              activeWidget = new AreaMeasurement3D({
+                view: sceneView,
+                container: measurementDiv
+              });
+
+              // skip the initial 'new measurement' button
+              activeWidget.viewModel.start();
+
               break;
             case null:
               if (activeWidget) {
-                // measurementDiv.innerHTML='';
                 activeWidget.destroy();
                 activeWidget = null;
               }
@@ -979,46 +1009,71 @@
           const searchCalciteFlow = document.createElement("calcite-flow");
           searchCalciteFlow.setAttribute('id', 'searchCalciteFlow');
 
-          // const div = document.createElement("div");
-          // div.setAttribute("slot", "header-content");
-          // div.innerHTML = "aaaaaaaa";
-
           const searchCalcitePanel = document.createElement("calcite-panel");
           searchCalcitePanel.setAttribute("heading", "Search");
-          searchCalcitePanel.setAttribute("summary", "hogehoge");
           searchCalcitePanel.setAttribute("id", "searchCalcitePanel");
           searchCalciteFlow.appendChild(searchCalcitePanel);
 
           primaryPanel.appendChild(searchCalciteFlow);
 
+          const p1 = document.createElement("p");
+          p1.style.paddingLeft = "10px";
+          p1.style.paddingRight = "10px";
+          searchCalcitePanel.appendChild(p1);
+
           const geocodingDiv = document.createElement("div");
           geocodingDiv.style.height = "500px";
           geocodingDiv.style.display = "table-cell";
           geocodingDiv.style.verticalAlign = "top";
-          // geocodingDiv.style.background = "#2b2b2b";
-          geocodingDiv.style.background = "white";
+          geocodingDiv.style.background = "#2b2b2b";
+          // geocodingDiv.style.background = "white";
           geocodingDiv.style.width = "100%";
           searchCalcitePanel.appendChild(geocodingDiv);
 
-          const geocodingSearchWidget = new Search({
-            view: view,
-            container: geocodingDiv,
-            sources: sources
-          });
+          if (view.map == map && view.container) {
+            const geocodingSearchWidget = new Search({
+              view: view,
+              container: geocodingDiv,
+              sources: sources,
+              searchTerm: "Enter keywords"
+            });
+
+            p1.innerHTML = "Find address, place or Gaihozu map";
+
+            // 検索結果の図郭はどの縮尺か分からないため表示されるかは分からない
+            geocodingSearchWidget.on("search-complete", function(event){
+              const scale_num = event.results[0].results[0].feature.attributes.scale_num;
+              const result = {};
+              if ([1, 2, 3, 4].includes(scale_num)) {
+                result.detail = '0';
+              } else if ([5, 6, 7].includes(scale_num)) {
+                result.detail = '1';
+              } else if ([8].includes(scale_num)) {
+                result.detail = '2';
+              } else if ([9, 10].includes(scale_num)) {
+                result.detail = '3';
+              } else if ([11].includes(scale_num)) {
+                result.detail = '4';
+              }
+              selectScaleid(result, false);
+            });
+          } else if (sceneView.map == mapSecond && sceneView.container) {
+            const geocodingSearchWidget = new Search({
+              view: sceneView,
+              container: geocodingDiv,
+              searchTerm: "Enter keywords"
+            });
+            p1.innerHTML = "Find address or place";
+          } else if (view.map == mapSecond && view.container) {
+            const geocodingSearchWidget = new Search({
+              view: view,
+              container: geocodingDiv,
+              searchTerm: "Enter keywords"
+            });
+            p1.innerHTML = "Find address or place";
+          }
           
-
-          // const inline = document.createElement("calcite-input");
-          // // inline.setAttribute("controls", "true");
-          // // inline.setAttribute("editing-enabled", "true");  
-          // const geocodingSearchWidget = new Search({
-          //   view: view,
-          //   container: inline
-          // });
-          // searchCalcitePanel.appendChild(inline);
-
-
           
-
         });
 
         //////////////////////////////////////////////
@@ -1034,7 +1089,12 @@
               if (activeWidget) {
                 return;
               };
-              // refreshMenu(view);
+              
+              // マップの中心とズームレベルを取得、外邦図から図郭検索地図に戻る際に使用
+              viewZoom = view.zoom;
+              viewCenter = view.center;
+              viewRotation = view.rotation;
+
               queryFeaturesClickedPoint(event);
             } else {
               return;
@@ -1058,7 +1118,6 @@
           queryParams.outFields = ["*"];
 
           if (view.map === map && !activeWidget){
-            // if (view.map === map){
             // ビューがmapで、計測ウィジェットがアクティブでないときのみ
             zukakuLayerView.queryFeatures(queryParams)
             .then(queryArcGISOnline)
@@ -1083,7 +1142,7 @@
 
           // タイルレイヤーを検索する
           } else if (length === 1) {
-            // startLoading();
+            startLoading();
 
             const feature = response.features[0];
 
@@ -1120,7 +1179,6 @@
         let eastId;
 
         let is3D = true;
-        let isMetadataVisible = true;
         let viewTilt = 45;
         let viewHeading = 0;
 
@@ -1141,10 +1199,6 @@
             },
             responseType: "json"
           };
-
-          // addOpenInAGOLBtn();
-          // addCopyTileUrlBtn();
-          
 
           esriRequest(tileLayerUrl, options)
             .then(createTileView);
@@ -1174,129 +1228,275 @@
 
           // メニューボタンの表示、非表示の切り替え
           setDisplayActionItemsSecond();
-          // listMenu[menuIndex.legend].elm.style.display = "none";
-          // listMenu[menuIndex.metadata].elm.style.display = "block";
-          // listMenu[menuIndex.threed].elm.style.display = "block";
-          // listMenu[menuIndex.agol].elm.style.display = "block";
-          // listMenu[menuIndex.back].elm.style.display = "block";
 
-          
-         
-          // if (is3D === true) {
-          //   listMenu[menuIndex.threed].elm.firstElementChild.removeAttribute("icon");
-          //   listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "map");
-          //   listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "2D";
-          //   refreshMenu(sceneView);
-          // } else if (is3D === false) {
-          //   listMenu[menuIndex.threed].elm.firstElementChild.removeAttribute("icon");
-          //   listMenu[menuIndex.threed].elm.firstElementChild.setAttribute("icon", "360-view");
-          //   listMenu[menuIndex.threed].elm.lastElementChild.innerHTML = "3D";
-          //   refreshMenu(view);
-          // }
-
-          // let activeViewpoint;
-          // if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "360-view") {
-          //   activeViewpoint = view.viewpoint.clone();
-          // } else if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "map" && (sceneView.viewpoint)) {
-          //   activeViewpoint = sceneView.viewpoint.clone();
-          //   sceneView.viewpoint = activeViewpoint;
-          // } else if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "map" && (view.viewpoint)) {
-          //   activeViewpoint = view.viewpoint.clone();
-          //   sceneView.viewpoint = activeViewpoint;
-          // };
-          
           // すでに追加されている外邦図を削除
           mapSecond.removeAll();
           mapSecond.add(tileLayer);
           // tileLayer.opacity = defaultTransparency/100;
 
           // マップ
-          // if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "360-view") {
+          if (is3D === false) {
 
-          //   view.map = mapSecond;
-          //   mapSecond.ground = {};
-
-          //   // view.constraints = {minZoom: minLOD, maxZoom: maxLOD};
-            
-          //   view.ui.empty("top-left");
-          //   view.ui.empty("bottom-left");
-            
-          //   addOpacitySlider(view);
-
-          //   tileLayer.when(function() {
-          //     view.goTo(tileLayer.fullExtent);
-          //     const vp = new Viewpoint({
-          //       targetGeometry: tileLayer.fullExtent
-          //     });
-          //     homeBtn2D.viewpoint = vp;
-          //   });
-          //   sceneView.ui.remove(exaggerationBtnDiv);
-          //   addAllDirectionBtn2View(view);
-          //   // デフォルトでメタデータを表示
-          //   showMetadata(view);
-          //   endLoading();
-
+            createMap();
             
           // シーン
-          // } else if (listMenu[menuIndex.threed].elm.firstElementChild.getAttribute("icon") === "map") {
+          } else if (is3D === true) {
             
             sceneView.map = mapSecond;
             mapSecond.basemap = map.basemap;
 
-
-
+            createScene();
             
-            sceneView.container = "viewDiv";
-            // sceneView.ui.empty("bottom-left");
-            // selectExaggerationId(exaggerationId);       
-
-            tileLayer.when(function() {
-              sceneView.goTo({
-                target: tileLayer.fullExtent,
-                tilt: viewTilt,
-                heading: viewHeading
-              })
-              .then(function(){
-                
-                sceneView.ui.remove(homeBtn);
-                sceneView.ui.add(homeBtn, "top-right");
-                const vp = new Viewpoint({
-                  targetGeometry: tileLayer.fullExtent
-                });
-                homeBtn.viewpoint = vp;
-                
-                sceneView.watch("camera.tilt", function(newValue) {
-                  viewTilt = newValue;
-                });
-                sceneView.watch("camera.heading", function(newValue) {
-                  viewHeading = newValue;
-                });
-                add2d3dRadioButton();
-                addImageSettingsCalciteFlow();
-              })
-              // 透過度スライダーの追加
-              // .then(function(){addOpacitySlider(sceneView)})
-              // 高さ倍率ボタンの追加
-              // .then(function(){
-              //   sceneView.ui.empty("bottom-left");
-              //   sceneView.ui.remove(exaggerationBtnDiv);
-              //   addExaggerationButton(sceneView, exaggerationId);
-              // })
-              // 東西南北ボタンを追加、ボタンが順番に追加されるようにする
-              // .then(function(){addAllDirectionBtn2View(sceneView)})
-              // 高さ倍率ボタンクリック時のイベント
-              // .then(function(){clickExaggerationBtn(sceneView)})
-              // .then()
-              // .then(function(){
-              //   endLoading();
-              //   clickMenuBtn(sceneView);
-                // デフォルトでメタデータを表示
-              //   showMetadata(sceneView);
-              // })
-            });
-          // }
-          
+          }
         };
+
+        function createMap(){
+
+          sceneView.container = null;
+          view.map = mapSecond;
+          mapSecond.ground = {};
+
+          tileLayer.when(function() {
+          view.goTo(tileLayer.fullExtent);
+          const vp = new Viewpoint({
+            targetGeometry: tileLayer.fullExtent
+          });
+          homeBtn2D.viewpoint = vp;
+
+          add2d3dRadioButton();
+          addImageSettingsCalciteFlow();
+        });
+
+        };
+
+        function createScene(){
+          view.container = null;
+          sceneView.container = "viewDiv";
+          
+          selectExaggerationId(exaggerationId);
+
+          tileLayer.when(function() {
+
+            // console.log(viewTilt);
+            sceneView.goTo({
+              target: tileLayer.fullExtent,
+              tilt: viewTilt,
+              heading: viewHeading
+            })
+            .then(function(){
+              sceneView.ui.remove(homeBtn);
+              sceneView.ui.add(homeBtn, "top-right");
+              const vp = new Viewpoint({
+                targetGeometry: tileLayer.fullExtent
+              });
+              homeBtn.viewpoint = vp;
+              
+              add2d3dRadioButton();
+              addImageSettingsCalciteFlow();
+            })
+          });
+        };
+
+        //////////////////////////////////////////////
+        //   Back
+        /////////////////////////////////////////////
+        
+        backAction.addEventListener("click", function(event) {
+          back2IndexMap();
+        });
+
+        function back2IndexMap () {
+
+          startLoading();
+
+          setDisplayActionItemsFirst();
+
+          // すべてのActionItemのActive状態を解除
+          resetActiveActionItems();
+
+          // 該当するActiveItemをAcitiveにする
+          FilterAction.setAttribute("active", null);
+
+          addCount2BtnTxt();
+          
+          sceneView.container = null;
+          // view.container = null;
+
+          view = new MapView({
+            container: "viewDiv",
+            map: map,
+            extent: startExtent
+          });
+
+          homeBtn2D = new Home({
+            view: view
+          });
+
+          compassWidget = new Compass({
+            view: view
+          });
+
+          view.ui.move("zoom", "top-right");
+          view.ui.add(homeBtn2D, "top-right");
+          view.ui.add(compassWidget, "top-right");
+          
+          // 背景図をセットする
+          map.basemap = mapSecond.basemap;
+          mapSecond.ground = {};
+
+          clickView();
+
+          view.on("layerview-create", function(event) {
+            
+            if (event.layer.title === "図郭") {
+              zukakuLayerView = event.layerView;
+              
+              zukakuLayerView.filter = {
+                where: whereClause
+              };
+              
+            };
+          });
+
+          view.when(function(){
+            view.goTo({
+              target: viewCenter,
+              zoom: viewZoom,
+              rotation: viewRotation
+            });
+          });
+          
+        }
+
+        //////////////////////////////////////////////
+        //   Exaggeration
+        /////////////////////////////////////////////
+        
+        function selectExaggerationId (exaggerationId) {
+          if (exaggerationId === '0') {
+            mapSecond.ground = {
+              layers: [new ExaggeratedElevationLayer1()],
+              surfaceColor: [0, 0, 0]
+            };
+          } else if (exaggerationId === '1') {
+            mapSecond.ground = {
+              layers: [new ExaggeratedElevationLayer3()],
+              surfaceColor: [0, 0, 0]
+            };
+          } else if (exaggerationId === '2') {
+            mapSecond.ground = {
+              layers: [new ExaggeratedElevationLayer5()],
+              surfaceColor: [0, 0, 0]
+            };
+            
+          };
+        };
+
+        // 倍率３倍
+        const ExaggeratedElevationLayer3 = BaseElevationLayer.createSubclass({
+          // Add an exaggeration property whose value will be used
+          // to multiply the elevations at each tile by a specified
+          // factor. In this case terrain will render 100x the actual elevation.
+
+          properties: {
+            exaggeration: 3
+          },
+
+          // The load() method is called when the layer is added to the map
+          // prior to it being rendered in the view.
+
+          load: function() {
+            this._elevation = new ElevationLayer({
+              url:
+                "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
+            });
+
+            // wait for the elevation layer to load before resolving load()
+            this.addResolvingPromise(this._elevation.load());
+          },
+
+          // Fetches the tile(s) visible in the view
+          fetchTile: function(level, row, col) {
+            // calls fetchTile() on the elevationlayer for the tiles
+            // visible in the view
+            return this._elevation.fetchTile(level, row, col).then(
+              function(data) {
+                var exaggeration = this.exaggeration;
+
+                // `data` is an object that contains the
+                // the width of the tile in pixels,
+                // the height of the tile in pixels,
+                // and the values of each pixel
+                for (var i = 0; i < data.values.length; i++) {
+                  // each value represents an elevation sample for the
+                  // given pixel position in the tile. Multiply this
+                  // by the exaggeration value
+                  data.values[i] = data.values[i] * exaggeration;
+                }
+
+                return data;
+              }.bind(this)
+            );
+          }
+        });
+
+        // 倍率１倍
+        const ExaggeratedElevationLayer1 = BaseElevationLayer.createSubclass({
+
+          properties: {
+            exaggeration: 1
+          },
+
+          load: function() {
+            this._elevation = new ElevationLayer({
+              url:
+                "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
+            });
+
+            this.addResolvingPromise(this._elevation.load());
+          },
+
+          fetchTile: function(level, row, col) {
+            return this._elevation.fetchTile(level, row, col).then(
+              function(data) {
+                var exaggeration = this.exaggeration;
+                for (var i = 0; i < data.values.length; i++) {
+                  data.values[i] = data.values[i] * exaggeration;
+                }
+                return data;
+              }.bind(this)
+            );
+          }
+        });
+        
+        // 倍率５倍
+        const ExaggeratedElevationLayer5 = BaseElevationLayer.createSubclass({
+
+          properties: {
+            exaggeration: 5
+          },
+
+          load: function() {
+            this._elevation = new ElevationLayer({
+              url:
+                "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
+            });
+
+            this.addResolvingPromise(this._elevation.load());
+          },
+
+          fetchTile: function(level, row, col) {
+            return this._elevation.fetchTile(level, row, col).then(
+              function(data) {
+                var exaggeration = this.exaggeration;
+                for (var i = 0; i < data.values.length; i++) {
+                  data.values[i] = data.values[i] * exaggeration;
+                }
+                return data;
+              }.bind(this)
+            );
+          }
+        });
 
         //////////////////////////////////////////////
         //   AGO
@@ -1318,17 +1518,23 @@
           primaryPanel.appendChild(agoCalciteFlow);
 
           const agoCalcitePanel = document.createElement("calcite-panel");
-          agoCalcitePanel.setAttribute("heading", "Open in ArcGIS Online");
-          agoCalcitePanel.setAttribute("summary", "aiueo");
+          agoCalcitePanel.setAttribute("heading", "Open Web map");
           agoCalciteFlow.appendChild(agoCalcitePanel);
 
           const agoButton = document.createElement("calcite-button");
           agoButton.setAttribute("width", "full");
-          // agoButton.setAttribute("scale", "s");
           agoButton.setAttribute("icon-start", "arcgis-online");
           agoButton.setAttribute("appearance", "outline");
           agoButton.innerHTML = "Open Web Map";
           agoCalcitePanel.appendChild(agoButton);
+
+          agoButton.onclick = function(){
+            if (is3D === false) {
+              window.open('https://www.arcgis.com/apps/mapviewer/index.html?layers=' + itemId, '_blank');
+            } else if (is3D === true) {
+              window.open('https://www.arcgis.com/home/webscene/viewer.html?layers=' + itemId, '_blank');
+            }
+          };
 
           const copyTileCalciteFlow = document.createElement("calcite-flow");
           copyTileCalciteFlow.setAttribute('id', 'copyTileCalciteFlow');
@@ -1336,22 +1542,41 @@
 
           const copyTileCalcitePanel = document.createElement("calcite-panel");
           copyTileCalcitePanel.setAttribute("heading", "Copy Tile Service URL");
-          copyTileCalcitePanel.setAttribute("summary", "aiueo");
           copyTileCalciteFlow.appendChild(copyTileCalcitePanel);
 
           const copyTileButton = document.createElement("calcite-button");
           copyTileButton.setAttribute("width", "full");
-          // agoButton.setAttribute("scale", "s");
           copyTileButton.setAttribute("icon-start", "copy-to-clipboard");
           copyTileButton.setAttribute("appearance", "outline");
-          copyTileButton.innerHTML = "Copy URL";
+          copyTileButton.innerHTML = "Copy WMTS URL";
           copyTileCalcitePanel.appendChild(copyTileButton);
+
+          copyTileButton.onclick = function(){
+            const url = tileLayer.url + "/wmts";
+            if(navigator.clipboard){
+              navigator.clipboard.writeText(url);
+            }
+          };
 
         });
 
         //////////////////////////////////////////////
         //   Metadata
         /////////////////////////////////////////////
+
+        const arrayAtt = [
+          {"title": "記号", "att": "area3"},
+          {"title": "図幅名", "att": "area_name"},
+          {"title": "測量機関", "att": "surveyed_by"},
+          {"title": "測量時期（修正含む）", "att": "survey_year"},
+          {"title": "製版・印刷機関", "att": "printed_by"},
+          {"title": "製版時期", "att": "print_year"},
+          {"title": "発行時期", "att": "publish_year"},
+          {"title": "大きさ", "att": "size"},
+          {"title": "色", "att": "color"},
+          {"title": "備考", "att": "notes"},
+          {"title": "枚数（実物）", "att": "copies"}
+        ];
 
         metadataAction.addEventListener("click", function(event){
           
@@ -1377,21 +1602,9 @@
 
         });
 
-        const arrayAtt = [
-          {"title": "記号", "att": "area3"},
-          {"title": "図幅名", "att": "area_name"},
-          {"title": "測量機関", "att": "surveyed_by"},
-          {"title": "測量時期（修正含む）", "att": "survey_year"},
-          {"title": "製版・印刷機関", "att": "printed_by"},
-          {"title": "製版時期", "att": "print_year"},
-          {"title": "発行時期", "att": "publish_year"},
-          {"title": "大きさ", "att": "size"},
-          {"title": "色", "att": "color"},
-          {"title": "備考", "att": "notes"},
-          {"title": "枚数（実物）", "att": "copies"}
-        ];
-
         const attributeDiv = document.createElement("div");
+        attributeDiv.style.paddingLeft = "20px";
+        attributeDiv.style.paddingRight = "20px";
 
         function addZukakuAttribute (response) {
 
@@ -1436,13 +1649,12 @@
 
           const divId = document.createElement("h3");
           const attId = feature.attributes.id;
-          // divId.className = "padding-leader-half font-size--1";
           divId.innerHTML = attId;
           attributeDiv.appendChild(divId);
           
 
           const details = document.createElement("details");
-          // details.className = "padding-leader-half font-size--1";
+          details.style.paddingBottom = "20px";
           attributeDiv.appendChild(details);
 
           const summary = document.createElement("summary");
@@ -1491,6 +1703,26 @@
           // 該当するActiveItemをAcitiveにする
           imageSettingsAction.setAttribute("active", null);
 
+          // Notice
+          const noticeBackCalciteFlow = document.createElement("calcite-flow");
+          noticeBackCalciteFlow.setAttribute('id', 'noticeBackCalciteFlow');
+          primaryPanel.appendChild(noticeBackCalciteFlow);
+
+          const noticeCalcitePanel = document.createElement("calcite-panel");
+          noticeBackCalciteFlow.appendChild(noticeCalcitePanel);
+
+          const caliciteNotice = document.createElement("calcite-notice");
+          caliciteNotice.setAttribute("active", "");
+          caliciteNotice.setAttribute("color", "yellow");
+          caliciteNotice.setAttribute("icon", "lightbulb");
+          noticeCalcitePanel.appendChild(caliciteNotice);
+
+          const titleDiv = document.createElement("div");
+          titleDiv.setAttribute("slot", "notice-title");
+          titleDiv.innerHTML = "Click Back to index button to go back to index map.";
+          caliciteNotice.appendChild(titleDiv);
+          primaryPanel.appendChild(noticeBackCalciteFlow);
+
           // opacity
           const opacityCalciteFlow = document.createElement("calcite-flow");
           opacityCalciteFlow.setAttribute('id', 'opacityCalciteFlow');
@@ -1520,35 +1752,60 @@
           // event
           opacityCalciteSlider.addEventListener('calciteSliderChange', transparencyChanged);
 
-          // Exaggerating elevation
-          const exaggerationCalciteFlow = document.createElement("calcite-flow");
-          exaggerationCalciteFlow.setAttribute('id', 'exaggerationCalciteFlow');
-          primaryPanel.appendChild(exaggerationCalciteFlow);
+          // Exaggerating elevation: only 3D
+          if (is3D == true) {
+            const exaggerationCalciteFlow = document.createElement("calcite-flow");
+            exaggerationCalciteFlow.setAttribute('id', 'exaggerationCalciteFlow');
+            primaryPanel.appendChild(exaggerationCalciteFlow);
 
-          const exaggerationCalcitePanel = document.createElement("calcite-panel");
-          exaggerationCalcitePanel.setAttribute("heading", "Exaggerating elevation");
-          // exaggerationCalcitePanel.setAttribute("summary", "hogehogehoge");
-          exaggerationCalciteFlow.appendChild(exaggerationCalcitePanel);
+            const exaggerationCalcitePanel = document.createElement("calcite-panel");
+            exaggerationCalcitePanel.setAttribute("heading", "Exaggerating elevation");
+            // exaggerationCalcitePanel.setAttribute("summary", "hogehogehoge");
+            exaggerationCalciteFlow.appendChild(exaggerationCalcitePanel);
 
-          const exaggerationRadioGroup = document.createElement("calcite-radio-group");
-          exaggerationRadioGroup.setAttribute("width", "full");
-          exaggerationCalcitePanel.appendChild(exaggerationRadioGroup);
+            const exaggerationRadioGroup = document.createElement("calcite-radio-group");
+            exaggerationRadioGroup.setAttribute("width", "full");
+            exaggerationCalcitePanel.appendChild(exaggerationRadioGroup);
 
-          const x1RadioButton = document.createElement("calcite-radio-group-item");
-          x1RadioButton.setAttribute("value", "1");
-          x1RadioButton.setAttribute("checked", null);
-          x1RadioButton.innerHTML = "1x";
-          exaggerationRadioGroup.appendChild(x1RadioButton);
-           
-          const x3RadioButton = document.createElement("calcite-radio-group-item");
-          x3RadioButton.setAttribute("value", "3");
-          x3RadioButton.innerHTML = "3x";
-          exaggerationRadioGroup.appendChild(x3RadioButton);
+            const x1RadioButton = document.createElement("calcite-radio-group-item");
+            x1RadioButton.setAttribute("value", "1");
+            x1RadioButton.innerHTML = "1x";
+            exaggerationRadioGroup.appendChild(x1RadioButton);
+            
+            const x3RadioButton = document.createElement("calcite-radio-group-item");
+            x3RadioButton.setAttribute("value", "3");
+            x3RadioButton.innerHTML = "3x";
+            exaggerationRadioGroup.appendChild(x3RadioButton);
 
-          const x5RadioButton = document.createElement("calcite-radio-group-item");
-          x5RadioButton.setAttribute("value", "5");
-          x5RadioButton.innerHTML = "5x";
-          exaggerationRadioGroup.appendChild(x5RadioButton);
+            const x5RadioButton = document.createElement("calcite-radio-group-item");
+            x5RadioButton.setAttribute("value", "5");
+            x5RadioButton.innerHTML = "5x";
+            exaggerationRadioGroup.appendChild(x5RadioButton);
+
+            if (exaggerationId === "0") {
+              x1RadioButton.setAttribute("checked", null);
+            } else if (exaggerationId === "1") {
+              x3RadioButton.setAttribute("checked", null);
+            } else if (exaggerationId === "2") {
+              x5RadioButton.setAttribute("checked", null);
+            }
+
+            // event
+            x1RadioButton.addEventListener("click", function(event) {
+              exaggerationId = '0';
+              selectExaggerationId(exaggerationId);
+            });
+            x3RadioButton.addEventListener("click", function(event) {
+              exaggerationId = '1';
+              selectExaggerationId(exaggerationId);
+            });
+            x5RadioButton.addEventListener("click", function(event) {
+              exaggerationId = '2';
+              selectExaggerationId(exaggerationId);
+            });
+
+          }
+          
 
           // adjacent map
           const adjacentCalciteFlow = document.createElement("calcite-flow");
@@ -1563,23 +1820,6 @@
 
           // 東西南北ボタンを追加
           addAllDirectionBtn2View();
-
-          // copy tile service url
-          // const copyCalciteFlow = document.createElement("calcite-flow");
-          // copyCalciteFlow.setAttribute('id', 'adjacentCalciteFlow');
-          // primaryPanel.appendChild(copyCalciteFlow);
-
-          // const copyCalcitePanel = document.createElement("calcite-panel");
-          // copyCalcitePanel.setAttribute("heading", "Copy tile service URL");
-          // // copyCalcitePanel.setAttribute("summary", "hogehogehoge");
-          // copyCalcitePanel.setAttribute("id", "copyCalcitePanel");
-          // copyCalciteFlow.appendChild(copyCalcitePanel);
-
-          // const copyButton = document.createElement('calcite-button');
-          // copyButton.setAttribute("icon-start", "copy-to-clipboard");
-          // copyButton.innerHTML = "Copy URL";
-          // copyButton.className = "legendbutton";
-          // copyCalcitePanel.appendChild(copyButton);
           
         };
 
@@ -1598,12 +1838,94 @@
            
           const sceneRadioGroupItem = document.createElement("calcite-radio-group-item");
           sceneRadioGroupItem.setAttribute("value", "area");
-          sceneRadioGroupItem.setAttribute("checked", null);
           sceneRadioGroupItem.innerHTML = "3D";
           mapSceneRadioGroup.appendChild(sceneRadioGroupItem);
 
-          sceneView.ui.add(mapSceneRadioGroup, "top-left");
+          if (is3D == true) {
+            sceneRadioGroupItem.setAttribute("checked", null);
+            mapRadioGroupItem.removeAttribute("checked");
+            sceneView.ui.empty("top-left");
+            sceneView.ui.add(mapSceneRadioGroup, "top-left");
+          } else if (is3D == false) {
+            mapRadioGroupItem.setAttribute("checked", null);
+            sceneRadioGroupItem.removeAttribute("checked");
+            view.ui.empty("top-left");
+            view.ui.add(mapSceneRadioGroup, "top-left");
+          }
+
+          mapRadioGroupItem.addEventListener("click", function(event) {
+            switch2Map();
+          });
+
+          sceneRadioGroupItem.addEventListener("click", function(event) {
+            switch2Scene();
+          });
+
         };
+
+        // マップとシーンの切り替え
+        function switch2Scene() {
+
+          is3D = true;
+
+          // 計測ウィジェットを初期化
+          resetMeasureWidget();
+
+          // createScene();          
+
+          view.container = null;
+          sceneView.container = "viewDiv";
+
+          tileLayer.when(function() {
+            sceneView.goTo({
+              target: tileLayer.fullExtent,
+              tilt: viewTilt,
+              heading: viewHeading
+            })
+            .then(function(){
+              const vp = new Viewpoint({
+                targetGeometry: tileLayer.fullExtent
+              });
+              homeBtn.viewpoint = vp;
+              add2d3dRadioButton();
+              addImageSettingsCalciteFlow();
+            })
+          });
+        };
+
+
+
+
+        function switch2Map() {
+
+          is3D = false;
+
+          // 計測ウィジェットを初期化
+          resetMeasureWidget();
+
+          viewTilt = sceneView.camera.tilt;
+          viewHeading = sceneView.camera.heading;
+
+          const activeViewpoint = sceneView.viewpoint.clone();
+
+          sceneView.container = null;
+          view.container = "viewDiv";
+
+          view.map = mapSecond;
+          mapSecond.ground = {};
+
+          tileLayer.when(function() {
+          
+            view.goTo(activeViewpoint);
+            const vp = new Viewpoint({
+              targetGeometry: tileLayer.fullExtent
+            });
+            homeBtn2D.viewpoint = vp;
+            add2d3dRadioButton();
+          });
+          
+          addImageSettingsCalciteFlow();
+        }
 
         //////////////////////////////////////////////
         //   東西南北ボタン
@@ -1622,9 +1944,10 @@
                 
                 const adjacentCalcitePanel = document.getElementById("adjacentCalcitePanel");
                 adjacentCalcitePanel.appendChild(results[i]);
-                // results[i].addEventListener("click", showNextImage);
+                results[i].addEventListener("click", showNextImage);
               };
             }
+            endLoading();
           });
         };
         
@@ -1676,6 +1999,31 @@
 
         };
 
+        // 方位ボタンをクリックして隣接外邦図を表示
+        function showNextImage (event) {
+
+          if (sceneView.container) {
+            viewTilt = sceneView.camera.tilt;
+            viewHeading = sceneView.camera.heading;
+          }
+
+          // startLoading();
+          const id = event.target.dataset.id;
+
+          const queryParams = zukakuFeatureLayer.createQuery();
+          // set a geometry for querying features by the view's extent
+          queryParams.returnGeometry = true;
+          queryParams.outFields = ["*"];
+          queryParams.where = "id = '" + id + "'";
+
+          zukakuFeatureLayer.queryFeatures(queryParams)
+          .then(queryArcGISOnline)
+          // .then(addZukakuAttribute)
+          .catch(function(error) {
+            console.log(error);
+          });
+        };
+
         //////////////////////////////////////////////
         //   透過率
         /////////////////////////////////////////////
@@ -1684,33 +2032,99 @@
           tileLayer.opacity = defaultTransparency/100;
         };
 
+        //////////////////////////////////////////////
+        //   ローディング
+        /////////////////////////////////////////////
+        
+        const loaderBackground = document.getElementById("loaderBackground");
+        const loaderDiv = document.getElementById("loaderDiv");
+
+        function startLoading(){
+          loaderBackground.style.display = "block";
+          loaderDiv.setAttribute("active", null);
+        };
+
+        function endLoading() {
+          if (loaderDiv.hasAttribute("active")) {
+            loaderBackground.style.display = "none";
+            loaderDiv.removeAttribute("active");
+          }
+        };
+
+        //////////////////////////////////////////////
+        //   モーダル
+        /////////////////////////////////////////////
+        // モーダル（初期表示）
+        const firstModal = document.getElementById("firstModal");
+        const infoModal = document.getElementById("infoModal"); 
+
+        // 初回は強制的に表示
+        if(localStorage.getItem('flgNotShowAgain') === null) {
+          firstModal.setAttribute("active", "");
+        };
+
+        // 閉じるボタン
+        const closeFirstModalBtn = document.getElementById("closeFirstModalBtn");
+        closeFirstModalBtn.onclick = function(){
+          if (firstModal.hasAttribute("active")) {
+            firstModal.removeAttribute("active");
+          }
+          if(notShowAgainChk.checked) {
+            localStorage.setItem('flgNotShowAgain', "1");
+          }
+        };
+
+        const information = document.getElementById("information");
+        information.onclick = function(){
+          // if (!firstModal.hasAttribute("active")) {
+            infoModal.setAttribute("active", "");
+          // }
+        };
+
+        const closeInfoModalBtn = document.getElementById("closeInfoModalBtn");
+        closeInfoModalBtn.onclick = function(){
+          if (infoModal.hasAttribute("active")) {
+            infoModal.removeAttribute("active");
+          }
+        };
+
       });
     </script>
   </head>
 
   <body>
 
-    <calcite-modal aria-labelledby="modal-title">
+    <calcite-modal aria-labelledby="modal-title" id="firstModal">
       <div slot="header" id="modal-title">Gaihozu Viewer : Indonesian-territory version (GV-I)</div>
       <div slot="content">Gaihozu meaning “maps of outer lands” is the maps of areas outside the Japanese Islands made by former Japanese Imperial Army before the end of the World War II. Despite the fact that these maps were prepared for military purpose, they contain the valuable records of detailed landscapes including landuse and landcover in the past. This site was designed with ArcGIS Online technology to interactively view about 680 geo-referenced maps in Indonesian territory from the collection of Gaihozu at Tohoku University.</p>
         <p>Clicking a shaded box on the index map enable you to show the corresponding geo-referenced map in 3D scene with its metadata, such as map scale and printed year. Clicking a button of ratio like 1:500,000 switched the index map of the corresponding map scale.</p>
-        <p>If you need further information on Gaihozu, visit the <a href="http://chiri.es.tohoku.ac.jp/~gaihozu/index.php?lang=en-US" target="_blank">Gaihozu Digital Archive </a> maintained by the Tohoku University Library and the Institute of Geography, Graduate School of Science, Tohoku University.</p>
+        <p>If you need further information on Gaihozu, visit the <a href="http://chiri.es.tohoku.ac.jp/~gaihozu/index.php?lang=en-US" target="_blank">Gaihozu Digital Archive </a> maintained by the Tohoku University Library and the Institute of Geography, Graduate School of Science, Tohoku University. The article about this web applicataion is published on <a href="https://www.esri.com/about/newsroom/arcuser/finding-lost-landscapes-in-southeast-asia/" target="_blank">ArcUser</a>.</p>
         <p>Copyright (C) 2020-  Human Geography Research Group at Tohoku University (Environmental Geography Lab at the Graduate School of Environmental Studies and the Institute of Geography, the Graduate School of Science, Tohoku University)</p>
         <p>Project team members: T. Nakaya, S. Nagata, Y. Isoda and R. Sekine (Tohoku University) + Y. Hoshida (<a href="http://www.openconcierge.org/" target="_blank">OpenConcierge</a>)</p>
+        <div>
+          <img src="./img/gaihozu3dforsplash.JPG" width="100%">
+        </div>
       </div>
-      <!-- <calcite-button slot="back" color="light" appearance="outline" icon="chevron-left" width="full">
-          Back</calcite-button> -->
-      <!-- <calcite-button slot="secondary" width="full" appearance="outline">Cancel</calcite-button> -->
-      <calcite-button slot="primary" width="full">OK</calcite-button>
+      <calcite-checkbox slot="secondary" id="notShowAgainChk">Don't show this message again.</calcite-checkbox>
+      <calcite-button slot="primary" width="full" id="closeFirstModalBtn">Close</calcite-button>
     </calcite-modal>
 
-    <!-- <calcite-modal aria-labelledby="modal-title" active>
-      
-    </calcite-modal> -->
+    <calcite-modal aria-labelledby="modal-title" id="infoModal">
+      <div slot="header" id="modal-title">Gaihozu Viewer : Indonesian-territory version (GV-I)</div>
+      <div slot="content">Gaihozu meaning “maps of outer lands” is the maps of areas outside the Japanese Islands made by former Japanese Imperial Army before the end of the World War II. Despite the fact that these maps were prepared for military purpose, they contain the valuable records of detailed landscapes including landuse and landcover in the past. This site was designed with ArcGIS Online technology to interactively view about 680 geo-referenced maps in Indonesian territory from the collection of Gaihozu at Tohoku University.</p>
+        <p>Clicking a shaded box on the index map enable you to show the corresponding geo-referenced map in 3D scene with its metadata, such as map scale and printed year. Clicking a button of ratio like 1:500,000 switched the index map of the corresponding map scale.</p>
+        <p>If you need further information on Gaihozu, visit the <a href="http://chiri.es.tohoku.ac.jp/~gaihozu/index.php?lang=en-US" target="_blank">Gaihozu Digital Archive </a> maintained by the Tohoku University Library and the Institute of Geography, Graduate School of Science, Tohoku University. The article about this web applicataion is published on <a href="https://www.esri.com/about/newsroom/arcuser/finding-lost-landscapes-in-southeast-asia/" target="_blank">ArcUser</a>.</p>
+        <p>Special thanks to Dr. Fatwa Ramdani (Brawijaya University, Indonesia) for his valuable comments to the earlier version of this project site and <a href="https://www.wingfield.gr.jp/" target="_blank">Mr. Kohsuke Hada</a> for his help on the identification of old map datum. This project was financially supported by JSPS KAKENHI 16H01965 (PI: Prof Keiji Yano).</p>
+        <p>Copyright (C) 2020-  Human Geography Research Group at Tohoku University (Environmental Geography Lab at the Graduate School of Environmental Studies and the Institute of Geography, the Graduate School of Science, Tohoku University)</p>
+        <p>Project team members: T. Nakaya, S. Nagata, Y. Isoda and R. Sekine (Tohoku University) + Y. Hoshida (<a href="http://www.openconcierge.org/" target="_blank">OpenConcierge</a>)</p>
+        <div>
+          <img src="./img/gaihozu3dforsplash.JPG" width="100%">
+        </div>
+      </div>
+      <calcite-button slot="primary" width="full" id="closeInfoModalBtn">Close</calcite-button>
+    </calcite-modal>
 
-    
-
-    <calcite-shell theme="light">
+    <calcite-shell theme="dark">
 
       <div slot="shell-header">
         
@@ -1718,12 +2132,12 @@
           
           <div id="divHeader">
             <div id="headerTitle">
-              <h2>Gaihozu Viewer
+              <h2>Gaihozu Viewer: Indonesian-territory version
                 <!-- <span> : Indonesian-territory version (GV-I)</span> -->
               </h2>
             </div>
             <div id="buttonInfo">
-              <calcite-button icon-start="information" scale="l" appearance="transparent" color="neutral"></calcite-button>
+              <calcite-button icon-start="information" scale="l" appearance="transparent" color="neutral" id="information"></calcite-button>
             </div>
             <div id="imgTohoku">
               
@@ -1749,69 +2163,20 @@
               <calcite-action text="Basemap" icon="basemap" scale="l" id="basemapAction"></calcite-action>
               <calcite-action text="Measurement" icon="measure" scale="l" id="measurementAction"></calcite-action>
             </calcite-action-group>
-            <!-- <calcite-action-group id="actionGroup3D">
-              <calcite-action text="Search" icon="search" scale="l"></calcite-action>
-              <calcite-action text="Basemap" active icon="basemap" scale="l"></calcite-action>
-              <calcite-action text="Measurement" active icon="measure" scale="l"></calcite-action>
-            </calcite-action-group> -->
-
+            
           </calcite-action-bar>
           
-          
-          <!-- <calcite-flow>
-            <calcite-panel heading="Printed year">
-              <div id="">
-                <calcite-button scale = "m" width="full" icon-start="polygon">
-                  Show all
-                </calcite-button>
-
-                <calcite-button scale = "m" width="full" disabled appearance="outline" color="neutral">
-                  <div style="opacity: 0.51; margin-right: 10px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
-                      
-                      <g transform="matrix(1.0909091234207153,0,0,1.0909091234207153,12,12)">
-                        <path fill="rgba(255, 0, 0, 1)" fill-rule="evenodd" stroke="rgba(255, 255, 255, 0.25098039215686274)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="none" stroke-miterlimit="4" d="M -10,-10 L 10,0 L 10,10 L -10,10 L -10,-10 Z">
-                        </path>
-                      </g>
-                    </svg>
-                  </div>
-                  1939
-                </calcite-button>
-
-                <calcite-button scale = "m" width="full" appearance="outline" color="neutral">
-                  <div style="opacity: 0.51; margin-right: 10px;">
-                    <svg class="svg" fill="currentColor"  width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-                      <path fill="rgba(255, 0, 0, 1)" fill-rule="nonzero" d="M15 1L6.833 7 1 4v11h14zm-1 13H2V5.639l4.927 2.534L14 2.976z"></path>
-                    </svg>
-                  </div>
-                  1940
-                </calcite-button>
-
-                <calcite-button scale = "m" width="full" appearance="outline" color="blue" theme="dark">
-                  <div style="opacity: 0.51; margin-right: 10px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
-                      
-                      <g transform="matrix(1.0909091234207153,0,0,1.0909091234207153,12,12)">
-                        <path fill="rgba(255, 0, 0, 1)" fill-rule="evenodd" stroke="rgba(255, 255, 255, 0.25098039215686274)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="none" stroke-miterlimit="4" d="M -10,-10 L 10,0 L 10,10 L -10,10 L -10,-10 Z">
-                        </path>
-                      </g>
-                    </svg>
-                  </div>
-                  <div>1941</div>
-                </calcite-button>
-              </div>
-              
-            </calcite-panel>
-          </calcite-flow> -->
       </calcite-shell-panel>
       
-      <calcite-loader type="indeterminate" id="loaderDiv"></calcite-loader>  
       
-      <div id="viewDiv" class="esri-widget"></div>
+
+      <div id="viewDiv" slot="center-row"></div>
       
   </calcite-shell>
     
-
+  <div id="loaderBackground">
+    <calcite-loader active type="indeterminate" id="loaderDiv"></calcite-loader>  
+  </div>
 
   </body>
 </html>
