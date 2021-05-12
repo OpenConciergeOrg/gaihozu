@@ -253,7 +253,7 @@
           deleteCalciteFlow("agoCalciteFlow");
           deleteCalciteFlow("copyTileCalciteFlow");
           deleteCalciteFlow("noticeCalciteFlow");
-          deleteCalciteFlow("noticeBackCalciteFlow");
+          // deleteCalciteFlow("noticeBackCalciteFlow");
         };
 
         //////////////////////////////////////////////
@@ -1704,24 +1704,24 @@
           imageSettingsAction.setAttribute("active", null);
 
           // Notice
-          const noticeBackCalciteFlow = document.createElement("calcite-flow");
-          noticeBackCalciteFlow.setAttribute('id', 'noticeBackCalciteFlow');
-          primaryPanel.appendChild(noticeBackCalciteFlow);
+          // const noticeBackCalciteFlow = document.createElement("calcite-flow");
+          // noticeBackCalciteFlow.setAttribute('id', 'noticeBackCalciteFlow');
+          // primaryPanel.appendChild(noticeBackCalciteFlow);
 
-          const noticeCalcitePanel = document.createElement("calcite-panel");
-          noticeBackCalciteFlow.appendChild(noticeCalcitePanel);
+          // const noticeCalcitePanel = document.createElement("calcite-panel");
+          // noticeBackCalciteFlow.appendChild(noticeCalcitePanel);
 
-          const caliciteNotice = document.createElement("calcite-notice");
-          caliciteNotice.setAttribute("active", "");
-          caliciteNotice.setAttribute("color", "yellow");
-          caliciteNotice.setAttribute("icon", "lightbulb");
-          noticeCalcitePanel.appendChild(caliciteNotice);
+          // const caliciteNotice = document.createElement("calcite-notice");
+          // caliciteNotice.setAttribute("active", "");
+          // caliciteNotice.setAttribute("color", "yellow");
+          // caliciteNotice.setAttribute("icon", "lightbulb");
+          // noticeCalcitePanel.appendChild(caliciteNotice);
 
-          const titleDiv = document.createElement("div");
-          titleDiv.setAttribute("slot", "notice-title");
-          titleDiv.innerHTML = "Click Back to index button to go back to index map.";
-          caliciteNotice.appendChild(titleDiv);
-          primaryPanel.appendChild(noticeBackCalciteFlow);
+          // const titleDiv = document.createElement("div");
+          // titleDiv.setAttribute("slot", "notice-title");
+          // titleDiv.innerHTML = "Click Back to index button to go back to index map.";
+          // caliciteNotice.appendChild(titleDiv);
+          // primaryPanel.appendChild(noticeBackCalciteFlow);
 
           // opacity
           const opacityCalciteFlow = document.createElement("calcite-flow");
