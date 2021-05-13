@@ -1876,6 +1876,8 @@
           view.container = null;
           sceneView.container = "viewDiv";
 
+          selectExaggerationId(exaggerationId);
+
           tileLayer.when(function() {
             sceneView.goTo({
               target: tileLayer.fullExtent,
