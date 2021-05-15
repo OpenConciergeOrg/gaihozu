@@ -1195,6 +1195,10 @@
         let viewHeading = 0;
 
         let exaggerationId = '1';
+
+        // 外邦図を初めて開く：false
+        // 外邦図を開いた後に同じボタンをおす：true
+        // let isOpened = false;
         
         function addTileLayer(response){
           
@@ -1264,6 +1268,14 @@
 
         function createMap(){
 
+          if (windowWidth < MOBILE_WIDTH) {
+            
+            if (!primaryPanel.hasAttribute("collapsed")) {
+              primaryPanel.setAttribute("collapsed");
+            } 
+      
+          };
+
           sceneView.container = null;
           view.map = mapSecond;
           mapSecond.ground = {};
@@ -1282,6 +1294,15 @@
         };
 
         function createScene(){
+
+          if (windowWidth < MOBILE_WIDTH) {
+            
+            if (!primaryPanel.hasAttribute("collapsed")) {
+              primaryPanel.setAttribute("collapsed");
+            } 
+      
+          };
+
           view.container = null;
           sceneView.container = "viewDiv";
           
@@ -1570,6 +1591,8 @@
             }
           };
 
+          collapsePrimaryPanel();
+
         });
 
         //////////////////////////////////////////////
@@ -1611,6 +1634,8 @@
           metadataCalciteFlow.appendChild(metadataCalcitePanel);
 
           metadataCalcitePanel.appendChild(attributeDiv);
+
+          collapsePrimaryPanel();
 
         });
 
@@ -1701,7 +1726,10 @@
         /////////////////////////////////////////////
 
         imageSettingsAction.addEventListener("click", function(event) {
+          
+          collapsePrimaryPanel();
           addImageSettingsCalciteFlow();
+          
         });
 
         function addImageSettingsCalciteFlow () {
@@ -1832,6 +1860,8 @@
 
           // 東西南北ボタンを追加
           addAllDirectionBtn2View();
+
+          
           
         };
 
@@ -2106,7 +2136,7 @@
         }
 
         function collapsePrimaryPanel () {
-          if (windowWidth < 480) {
+          if (windowWidth < MOBILE_WIDTH) {
             if (primaryPanel.hasAttribute("collapsed")) {
               primaryPanel.removeAttribute("collapsed");
             } else {
