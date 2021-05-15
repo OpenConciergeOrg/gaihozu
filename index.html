@@ -830,6 +830,8 @@
 
           primaryPanel.appendChild(basemapCalciteFlow);
 
+          collapsePrimaryPanel();
+
         });
 
         //////////////////////////////////////////////
@@ -898,6 +900,8 @@
               setActiveWidget("distance3d");
             }
           });
+
+          collapsePrimaryPanel();
 
         });
 
@@ -1080,6 +1084,7 @@
             p1.innerHTML = "Find address or place";
           }
           
+          collapsePrimaryPanel();
           
         });
 
