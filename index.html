@@ -76,6 +76,11 @@
       #firstModal{
         z-index: 9999;
       }
+      @media screen and (max-width:480px) { 
+        #subtitle{
+         display: none; 
+        }
+      }
     </style>
     <link rel="stylesheet" href="https://js.arcgis.com/4.19/esri/themes/dark/main.css"/>
     <link rel="stylesheet" type="text/css" href="https://jsdev.arcgis.com/calcite-components/1.0.0-beta.54/calcite.css" />
@@ -147,7 +152,7 @@
         const URL_FL = "https://services1.arcgis.com/qvPIahekAMWThrhc/arcgis/rest/services/zukaku/FeatureServer/0";
         const QUERYTXT = "owner: Y.Hoshida AND group: 3f221abcf0cc4633a868f8dd49f99f8b AND type: 'Map Service' AND tags: ";
         const PADDINGTOP = 56;
-
+        const MOBILE_WIDTH = 480;
 
 
         const actionBar = document.getElementById("actionBar");
@@ -369,6 +374,8 @@
           FilterAction.setAttribute("active", null);
 
           addCount2BtnTxt();
+
+          collapsePrimaryPanel();
         });
 
         // 縮尺ごとのフィーチャ数を取得するクエリ
@@ -2082,6 +2089,27 @@
           }
         };
 
+        //////////////////////////////////////////////
+        //   スマホ対応
+        /////////////////////////////////////////////
+
+        const windowWidth = document.documentElement.clientWidth;
+        const windowHeight = document.documentElement.clientHeight;
+
+        if (windowWidth < MOBILE_WIDTH) {
+          primaryPanel.setAttribute("collapsed", "");
+        }
+
+        function collapsePrimaryPanel () {
+          if (windowWidth < 480) {
+            if (primaryPanel.hasAttribute("collapsed")) {
+              primaryPanel.removeAttribute("collapsed");
+            } else {
+              primaryPanel.setAttribute("collapsed", "");
+            }
+          };
+        };
+
       });
     </script>
   </head>
@@ -2126,8 +2154,8 @@
           
           <div id="divHeader">
             <div id="headerTitle">
-              <h2>Gaihozu Viewer: Indonesian-territory version
-                <!-- <span> : Indonesian-territory version (GV-I)</span> -->
+              <h2>Gaihozu Viewer
+                <span id="subtitle"> : Indonesian-territory version (GV-I)</span>
               </h2>
             </div>
             <div id="buttonInfo">
