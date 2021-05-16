@@ -1285,7 +1285,7 @@
           if (windowWidth < MOBILE_WIDTH) {
             
             if (!primaryPanel.hasAttribute("collapsed")) {
-              primaryPanel.setAttribute("collapsed");
+              primaryPanel.setAttribute("collapsed", "");
             } 
       
           };
@@ -1312,7 +1312,7 @@
           if (windowWidth < MOBILE_WIDTH) {
             
             if (!primaryPanel.hasAttribute("collapsed")) {
-              primaryPanel.setAttribute("collapsed");
+              primaryPanel.setAttribute("collapsed", "");
             } 
       
           };
@@ -2145,6 +2145,7 @@
         if (windowWidth < MOBILE_WIDTH) {
           primaryPanel.setAttribute("collapsed", "");
           actionBar.setAttribute("expanded", "false");
+          actionBar.setAttribute("expand-disabled", "true");
         }
 
         function collapsePrimaryPanel () {
