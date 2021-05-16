@@ -2133,6 +2133,7 @@
 
         if (windowWidth < MOBILE_WIDTH) {
           primaryPanel.setAttribute("collapsed", "");
+          actionBar.setAttribute("expanded", "false");
         }
 
         function collapsePrimaryPanel () {
@@ -2213,7 +2214,6 @@
               <calcite-action text="Back to Index" icon="x-circle" scale="l" id="backAction"></calcite-action>
               <calcite-action text="Image settings" icon="image-layer" scale="l" id="imageSettingsAction"></calcite-action>
               <calcite-action text="Metadata" icon="access-string-results" scale="l" id="metadataAction"></calcite-action>
-              <!-- <calcite-action text="2D" icon="map" scale="l" id="mapSceneAction"></calcite-action> -->
               <calcite-action text="ArcGIS Online" icon="arcgis-online" scale="l" id="agoAction"></calcite-action>
               <calcite-action text="Filter" active icon="filter" scale="l" id="filterAction"></calcite-action>
               <calcite-action text="Search" icon="search" scale="l" id="searchAction"></calcite-action>
