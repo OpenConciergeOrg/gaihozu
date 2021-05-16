@@ -1888,7 +1888,12 @@
 
         function add2d3dRadioButton () {
           const mapSceneRadioGroup = document.createElement("calcite-radio-group");
-          mapSceneRadioGroup.setAttribute("scale", "l");
+          if (windowWidth < MOBILE_WIDTH) {
+            mapSceneRadioGroup.setAttribute("scale", "m");
+          } else {
+            mapSceneRadioGroup.setAttribute("scale", "l");
+          }
+          
           
           const mapRadioGroupItem = document.createElement("calcite-radio-group-item");
           mapRadioGroupItem.setAttribute("value", "map");
