@@ -286,12 +286,14 @@
           agoAction.style.display = "none";
           basemapAction.style.display = "block";
           FilterAction.style.display = "block";
-          measurementAction.style.display = "block";
-          searchAction.style.display = "block";
+          
 
           if (windowWidth < MOBILE_WIDTH) {
             measurementAction.style.display = "none";
             searchAction.style.display = "none";
+          } else {
+            measurementAction.style.display = "block";
+            searchAction.style.display = "block";
           }
         };
         setDisplayActionItemsFirst();
@@ -300,16 +302,17 @@
           backAction.style.display = "block";
           imageSettingsAction.style.display = "block";
           metadataAction.style.display = "block";
-          agoAction.style.display = "block";
           basemapAction.style.display = "block";
           FilterAction.style.display = "none";
-          measurementAction.style.display = "block";
-          searchAction.style.display = "block";
 
           if (windowWidth < MOBILE_WIDTH) {
             measurementAction.style.display = "none";
             searchAction.style.display = "none";
             agoAction.style.display = "none";
+          } else {
+            agoAction.style.display = "block";
+            measurementAction.style.display = "block";
+            searchAction.style.display = "block";
           }
         };
 
@@ -2146,6 +2149,15 @@
           primaryPanel.setAttribute("collapsed", "");
           actionBar.setAttribute("expanded", "false");
           actionBar.setAttribute("expand-disabled", "true");
+
+          backAction.setAttribute("scale", "m");
+          imageSettingsAction.setAttribute("scale", "m");
+          metadataAction.setAttribute("scale", "m");
+          agoAction.setAttribute("scale", "m");
+          basemapAction.setAttribute("scale", "m");
+          FilterAction.setAttribute("scale", "m");
+          measurementAction.setAttribute("scale", "m");
+          searchAction.setAttribute("scale", "m");
         }
 
         function collapsePrimaryPanel () {
