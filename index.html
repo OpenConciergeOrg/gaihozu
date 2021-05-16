@@ -159,6 +159,9 @@
         const showAllBtn = document.createElement("calcite-button");
         const primaryPanel = document.getElementById("primaryPanel");
 
+        const windowWidth = document.documentElement.clientWidth;
+        const windowHeight = document.documentElement.clientHeight;
+
         //////////////////////////////////////////////
         //   図郭検索画面
         /////////////////////////////////////////////
@@ -285,6 +288,11 @@
           FilterAction.style.display = "block";
           measurementAction.style.display = "block";
           searchAction.style.display = "block";
+
+          if (windowWidth < MOBILE_WIDTH) {
+            measurementAction.style.display = "none";
+            searchAction.style.display = "none";
+          }
         };
         setDisplayActionItemsFirst();
         
@@ -297,6 +305,12 @@
           FilterAction.style.display = "none";
           measurementAction.style.display = "block";
           searchAction.style.display = "block";
+
+          if (windowWidth < MOBILE_WIDTH) {
+            measurementAction.style.display = "none";
+            searchAction.style.display = "none";
+            agoAction.style.display = "none";
+          }
         };
 
         // すべてのActionItemのActive状態を解除
@@ -2127,9 +2141,6 @@
         //////////////////////////////////////////////
         //   スマホ対応
         /////////////////////////////////////////////
-
-        const windowWidth = document.documentElement.clientWidth;
-        const windowHeight = document.documentElement.clientHeight;
 
         if (windowWidth < MOBILE_WIDTH) {
           primaryPanel.setAttribute("collapsed", "");
