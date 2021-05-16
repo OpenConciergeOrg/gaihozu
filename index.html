@@ -1367,6 +1367,10 @@
           // 該当するActiveItemをAcitiveにする
           FilterAction.setAttribute("active", null);
 
+          if (windowWidth < MOBILE_WIDTH) {
+            primaryPanel.setAttribute("collapsed", "");
+          };
+
           addCount2BtnTxt();
           
           sceneView.container = null;
